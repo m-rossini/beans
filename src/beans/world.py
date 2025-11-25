@@ -35,7 +35,6 @@ class World:
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
-        logger.debug(">>>>> World._initialize: calculating population")
         male_count, female_count = self.population_estimator.estimate(
             width=self.width,
             height=self.height,
@@ -44,7 +43,7 @@ class World:
             male_female_ratio=self.male_female_ratio,
         )
         bean_count = male_count + female_count
-        logger.debug(f">>>>> Creating {bean_count} beans ({male_count} males, {female_count} females)")
+        logger.info(f">>>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
         return [
             Bean(config=self.beans_config, id=i, sex=Sex.MALE if i < male_count else Sex.FEMALE)
             for i in range(bean_count)

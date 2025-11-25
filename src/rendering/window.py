@@ -20,7 +20,7 @@ def _color_from_name(name: str):
 
 class WorldWindow(arcade.Window):
     def __init__(self, world: World, title: str = "Beans World") -> None:
-        logger.debug(f">>>>> WorldWindow.__init__: title={title}, beans_count={len(world.beans)}")
+        logger.info(f">>>>> WorldWindow.__init__: title={title}, beans_count={len(world.beans)}")
         self.world = world
         self.world_config = world.world_config
         width = self.world_config.width

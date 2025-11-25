@@ -31,7 +31,7 @@ class DensityPopulationEstimator(PopulationEstimator):
         population_density: float,
         male_female_ratio: float,
     ) -> Tuple[int, int]:
-        logger.debug(f">>>>> DensityPopulationEstimator.estimate: width={width}, height={height}, sprite_size={sprite_size}, population_density={population_density}")
+        logger.info(f">>>>> DensityPopulationEstimator.estimate: width={width}, height={height}, sprite_size={sprite_size}, population_density={population_density}")
         area = width * height
         per_bean_area = max(1, sprite_size ** 2)
         total = int(area * population_density / per_bean_area)

@@ -10,7 +10,7 @@ class BeanSprite(arcade.Sprite):
     """Sprite representation of a Bean for rendering in the window."""
 
     def __init__(self, bean: Bean, position: tuple[float, float], color: tuple[int, int, int]):
-        logger.debug(f">>>>> BeanSprite.__init__: bean_id={bean.id}, position={position}, color={color}")
+        logger.info(f">>>>> BeanSprite.__init__: bean_id={bean.id}, position={position}, color={color}")
         self.diameter = bean.beans_config.initial_bean_size
         texture = arcade.make_circle_texture(self.diameter, color)
         super().__init__(texture, center_x=position[0], center_y=position[1])
