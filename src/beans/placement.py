@@ -131,12 +131,12 @@ class GridPlacementStrategy(PlacementStrategy):
         if count <= 0:
             logger.warning(">>>>> Count <= 0, returning empty list")
             return []
+        
         cols = max(1, width // size)
         rows = max(1, height // size)
         positions: List[Tuple[float, float]] = []
         for r in range(rows):
             for c in range(cols):
-                can_fit = self._can_fit(size, count, width, height)
                 if len(positions) >= count:
                     break
                 x = (c + 0.5) * size
@@ -144,8 +144,15 @@ class GridPlacementStrategy(PlacementStrategy):
                 positions.append((x, y))
             if len(positions) >= count:
                 break
-        logger.info(f">>>>> Generated {len(positions)} positions")
-        return positions
+        
+        # Check if we met minimum threshold (90%)
+        min_sprites = int(count * 0.9)
+        if len(positions) >= min_sprites:
+            logger.info(f">>>>> Generated {len(positions)} positions (requested {count}, ratio={len(positions)/count:.2%})")
+            return positions
+        else:
+            logger.error(f">>>>> Failed to place minimum sprites. Placed: {len(positions)}, Required: {min_sprites}, Requested: {count}")
+            raise SystemExit(1)
 
 
 class ClusteredPlacementStrategy(PlacementStrategy):
