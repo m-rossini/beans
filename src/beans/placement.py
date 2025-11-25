@@ -16,6 +16,7 @@ class PlacementStrategy:
         area_per_sprite = math.pi * ( (effective_diameter/2) * (effective_diameter/2))
         total_area_needed = count * area_per_sprite
         available_area = width * height
+        logger.debug(f">>>>> PlacementStrategy._can_fit: size={size}, count={count}, width={width}, height={height}, total_area_needed={total_area_needed}, available_area={available_area}, packing_efficiency={self.packing_efficiency}")
         return total_area_needed <= (available_area * self.packing_efficiency)
 
 
@@ -24,14 +25,14 @@ class RandomPlacementStrategy(PlacementStrategy):
         self.packing_efficiency = packing_efficiency
 
     def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
-        logger.debug(f">>>>> RandomPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
+        logger.info(f">>>>> RandomPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
         positions: List[Tuple[float, float]] = []
         for _ in range(count):
             can_fit = self._can_fit(size, count, width, height)
             x = random.uniform(0, width)
             y = random.uniform(0, height)
             positions.append((x, y))
-        logger.debug(f">>>>> Generated {len(positions)} positions")
+        logger.info(f">>>>> Generated {len(positions)} positions")
         return positions
     
 

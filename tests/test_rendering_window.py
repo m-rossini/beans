@@ -1,10 +1,13 @@
 import arcade
 import types
 import pytest
+import logging
 
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
 from config.loader import WorldConfig, BeansConfig
+
+logger = logging.getLogger(__name__)
 
 
 def _fake_arcade_init(self, width, height, title):
