@@ -43,6 +43,46 @@ class SpatialHash:
         return False
 
 
+def validate_placements(positions: List[Tuple[float, float]], size: int, width: int, height: int) -> None:
+    """Validate that returned placements have no overlaps and are within bounds.
+    
+    Args:
+        positions: List of (x, y) coordinates from place()
+        size: Sprite size (collision radius)
+        width: World width
+        height: World height
+    
+    Raises:
+        AssertionError: If placements overlap or are out of bounds
+    """
+    if not positions:
+        raise AssertionError("Placements list is empty")
+    
+    collision_radius = float(size)
+    
+    # Check each position against others for overlaps
+    for i, (x1, y1) in enumerate(positions):
+        # Verify within bounds
+        if x1 < 0 or x1 > width or y1 < 0 or y1 > height:
+            raise AssertionError(
+                f"Position {i} at ({x1:.2f}, {y1:.2f}) is out of bounds [0, {width}] x [0, {height}]"
+            )
+        
+        # Check for overlaps with all subsequent positions
+        for j in range(i + 1, len(positions)):
+            x2, y2 = positions[j]
+            dist_sq = (x1 - x2) ** 2 + (y1 - y2) ** 2
+            radius_sq = collision_radius * collision_radius
+            
+            if dist_sq < radius_sq:
+                raise AssertionError(
+                    f"Positions {i} and {j} overlap: ({x1:.2f}, {y1:.2f}) and ({x2:.2f}, {y2:.2f}), "
+                    f"distance={math.sqrt(dist_sq):.2f}, required_separation={size}"
+                )
+    
+    logger.info(f">>>>> validate_placements: All {len(positions)} placements are valid (no overlaps, within bounds)")
+
+
 class PlacementStrategy:
     def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
         raise NotImplementedError()

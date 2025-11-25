@@ -61,7 +61,17 @@ def test_world_window_calls_placement(monkeypatch):
     class SpyPlacement(RandomPlacementStrategy):
         def place(self, count, width, height, size):
             called['count'] += 1
-            return [(0, 0)] * count
+            # Return non-overlapping positions within bounds
+            positions = []
+            cols = max(1, width // (size * 2))
+            for i in range(count):
+                col = i % cols
+                row = i // cols
+                x = col * size * 2 + size
+                y = row * size * 2 + size
+                if x < width and y < height:
+                    positions.append((x, y))
+            return positions
 
     world.placement_strategy = SpyPlacement()
     monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)

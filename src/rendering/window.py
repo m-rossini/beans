@@ -2,7 +2,7 @@ import arcade
 import logging
 from typing import List, Tuple, Optional
 from beans.world import World
-from beans.placement import PlacementStrategy, RandomPlacementStrategy
+from beans.placement import PlacementStrategy, RandomPlacementStrategy, validate_placements
 from .bean_sprite import BeanSprite
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ class WorldWindow(arcade.Window):
         positions = self.placement_strategy.place(
             len(self.world.beans), self.world.width, self.world.height, self.world.sprite_size
         )
+        validate_placements(positions, self.world.sprite_size, self.world.width, self.world.height)
         self.bean_sprites: List[BeanSprite] = []
         self.sprite_list = arcade.SpriteList()
         for i, bean in enumerate(self.world.beans):
