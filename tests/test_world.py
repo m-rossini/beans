@@ -1,6 +1,9 @@
+import logging
 from beans.world import World
 from config.loader import WorldConfig, BeansConfig
 from beans.placement import GridPlacementStrategy, ClusteredPlacementStrategy, RandomPlacementStrategy
+
+logger = logging.getLogger(__name__)
 
 
 def test_grid_placement_strategy_positions():

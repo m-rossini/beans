@@ -65,7 +65,7 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
 
     with open(config_file_path, 'r') as f:
         data = json.load(f)
-    logger.debug(f">>>>> Successfully loaded config file: {config_file_path}")
+    logger.info(f">>>>> Successfully loaded config file: {config_file_path}")
 
     world_data = data.get('world', {})
     beans_data = data.get('beans', {})
