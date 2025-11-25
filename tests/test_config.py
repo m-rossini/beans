@@ -1,8 +1,11 @@
 import pytest
 import json
+import logging
 import tempfile
 import os
 from config.loader import load_config, WorldConfig, BeansConfig
+
+logger = logging.getLogger(__name__)
 
 
 def test_load_config_with_valid_file():

@@ -1,11 +1,14 @@
 import math
 import random
+import logging
 
 from beans.bean import Bean
 # Keep BeansConfig import; no FrozenInstanceError expected
 from config.loader import BeansConfig
 from beans.bean import Sex
 from beans.placement import RandomPlacementStrategy
+
+logger = logging.getLogger(__name__)
 
 
 def test_create_bean_default_values():

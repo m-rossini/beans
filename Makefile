@@ -5,6 +5,9 @@ SHELL := cmd.exe
 
 .PHONY: help install install-dev test lint format type-check clean build
 
+LOGGING_LEVEL ?= $(LOG_LEVEL)
+LOGGING_LEVEL ?= INFO
+
 help:  ## Show this help message
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -16,17 +19,17 @@ install-dev:  ## Install the package with development dependencies
 	pip install -e ".[dev]"
 
 test:  ## Run tests with pytest (full suite)
-	set PYTHONPATH=src && python -m pytest -v
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s
 
 test-cov:  ## Run tests with coverage report
-	set PYTHONPATH=src && python -m coverage run --source=src/beans,src/config,src/rendering -m pytest -v
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m coverage run --source=src/beans,src/config,src/rendering -m pytest -v -s
 	set PYTHONPATH=src && python -m coverage report -m --skip-empty
 	set PYTHONPATH=src && python -m coverage html
 
 TEST_SPECIFIC ?= tests/test_config.py
 
 test-specific:  ## Run a specific test file only. Use TEST_SPECIFIC=path to override.
-	set PYTHONPATH=src && python -m pytest -v $(TEST_SPECIFIC)
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s $(TEST_SPECIFIC)
 
 test-sequence: test-specific test  ## Run a specific test first, then the full test suite
 	@echo Completed test sequence (specific then full suite)
@@ -60,5 +63,5 @@ build:  ## Build the package
 
 all: format lint type-check test  ## Run all checks (format, lint, type-check, test)
 
-run:  ## Run the main application. Use CONFIG=path/to/config.json to specify config file.
-	set PYTHONPATH=src && python scripts/run_window.py $(CONFIG)
+run:  ## Run the main application. Use CONFIG=path/to/config.json LOGGING_LEVEL=level LOG_FILE=path to override.
+	set PYTHONPATH=src && python scripts/run_window.py $(CONFIG) --logging-level $(LOGGING_LEVEL) $(if $(LOG_FILE),--log-file $(LOG_FILE))

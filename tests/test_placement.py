@@ -1,7 +1,10 @@
 import random
 import math
+import logging
 
 from beans.placement import RandomPlacementStrategy
+
+logger = logging.getLogger(__name__)
 
 
 def test_random_placement_reproducible_with_seed():

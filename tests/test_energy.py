@@ -1,7 +1,10 @@
+import logging
 from beans.bean import Bean, Sex
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 def make_beans_config(**overrides) -> BeansConfig:

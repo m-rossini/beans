@@ -1,3 +1,4 @@
+import logging
 from beans.population import (
     DensityPopulationEstimator,
     SoftLogPopulationEstimator,
@@ -6,6 +7,8 @@ from beans.population import (
 from beans.world import World
 from config.loader import WorldConfig, BeansConfig
 import pytest
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,10 @@
 import json
 import os
+import logging
 from dataclasses import dataclass
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -55,7 +58,9 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
+    logger.info(f">>>>> load_config called with config_file_path={config_file_path}")
     if not config_file_path or not os.path.exists(config_file_path):
+        logger.error(f"Configuration file not found: {config_file_path}")
         raise FileNotFoundError(f"Configuration file not found: {config_file_path}")
 
     with open(config_file_path, 'r') as f:
@@ -88,6 +93,8 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
     )
 
+
+
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
     def validate_world(cfg: WorldConfig) -> None:
         if cfg.width <= 0:
@@ -116,7 +123,12 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         if cfg.initial_bean_size <= 0:
             raise ValueError(f"initial_bean_size must be > 0, got {cfg.initial_bean_size}")
 
+    logger.debug(">>>>> Validating world config")
     validate_world(world_config)
+    logger.debug(">>>>> World config validation passed")
+    
+    logger.debug(">>>>> Validating beans config")
     validate_beans(beans_config)
+    logger.debug(">>>>> Beans config validation passed")
 
     return world_config, beans_config
