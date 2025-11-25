@@ -58,7 +58,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
-    logger.debug(f">>>>> load_config called with config_file_path={config_file_path}")
+    logger.info(f">>>>> load_config called with config_file_path={config_file_path}")
     if not config_file_path or not os.path.exists(config_file_path):
         logger.error(f"Configuration file not found: {config_file_path}")
         raise FileNotFoundError(f"Configuration file not found: {config_file_path}")
