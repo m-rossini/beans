@@ -62,12 +62,15 @@ class RandomPlacementStrategy(PlacementStrategy):
 
     def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
         logger.info(f">>>>> RandomPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
-        
+
         if count <= 0:
             logger.warning(">>>>> Count <= 0, returning empty list")
             return []
         
-        # Initialize spatial hash with cell size = size * 3 for efficient lookups
+        # Quick check: is there enough space?
+        if not self._can_fit(size, count, width, height):
+            logger.error(f">>>>> Not enough space to fit {count} sprites of size {size} in {width}x{height}")
+            raise SystemExit(1)        # Initialize spatial hash with cell size = size * 3 for efficient lookups
         hash_grid = SpatialHash(cell_size=max(1, size * 3))
         positions: List[Tuple[float, float]] = []
         collision_radius = float(size)  # Prevent overlaps at distance >= size
@@ -134,6 +137,11 @@ class ClusteredPlacementStrategy(PlacementStrategy):
         if count <= 0:
             logger.warning(">>>>> Count <= 0, returning empty list")
             return []
+        
+        # Quick check: is there enough space?
+        if not self._can_fit(size, count, width, height):
+            logger.error(f">>>>> Not enough space to fit {count} sprites of size {size} in {width}x{height}")
+            raise SystemExit(1)
         
         # Initialize spatial hash with cell size = size * 3 for efficient lookups
         hash_grid = SpatialHash(cell_size=max(1, size * 3))
