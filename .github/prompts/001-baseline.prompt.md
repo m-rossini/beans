@@ -1,0 +1,43 @@
+---
+mode: agent
+---
+# Baseliene Prompt for Beans Project
+I want to create a baseline code. That baseline code will be a generic thing to start the project and the foundations for running it.
+It has to have:
+- The code is about simulating unicelular beans life cycle.
+- A package structure that separates business logic, configuration, and main execution script
+- A Main script that will be run
+- It must capture parameters from command line that are initially:
+    - --config-file: Path to a configuration file (string)
+    - --log-lelvel: Logging level (e.g., DEBUG, INFO, WARNING) (string)
+- It must have logging configured based on the log-level parameter
+- The configuraiton file could be in JSON and must contain at least:
+    - Configuration should ideally be split between ebans configuration and world configuration elements
+    - World Configuration
+        - male and female sprite color
+        - male and female ratio
+        - Sprite bean size
+        - population density for initial calculation of beans quantity
+        - Placement strategy of the beans
+    - Beans Configuration
+        - maximum bean age  
+        - Speed range (min and max), negative speeds imply backwards movement
+    - for non informed parameters, default values must be used
+- Business logic and config files live in different packages/modules
+- I want the classes representing game elements example, world, bean, etc.. to be in their own modules
+- The game elements classes DO NOT contain display or rendering logic, they will be wrapped by classes that
+- The relationship beteween the elements and rendering classes will be:
+    - World class will be wrapped by a class
+    - Bean class will be wrapped by a class  
+- The engine that renders the class is arcade
+- The main script will initialize the game by:
+    - loading the configuration from the file
+    - setting up the logging
+    - creating the world instance based on the configuration
+    - starting the arcade window to render the world
+- Placement of the beans inside the world will follow a streategy that will be configured and implemented by specific classes:
+    - RandomPlacementStrategy
+    - GridPlacementStrategy
+    - ClusteredPlacementStrategy
+    - Each bean wuill have an initial position based on the placement strategy and a direction based on random angle
+- The project must have a requirements.txt or pyproject.toml file that includes all dependencies

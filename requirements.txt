@@ -1,0 +1,3 @@
+# Production dependencies
+arcade>=2.6.17
+pydantic>=2.0.0
