@@ -1,7 +1,10 @@
 from __future__ import annotations
 import math
+import logging
 from abc import ABC, abstractmethod
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 
 class PopulationEstimator(ABC):
@@ -28,12 +31,14 @@ class DensityPopulationEstimator(PopulationEstimator):
         population_density: float,
         male_female_ratio: float,
     ) -> Tuple[int, int]:
+        logger.debug(f">>>>> DensityPopulationEstimator.estimate: width={width}, height={height}, sprite_size={sprite_size}, population_density={population_density}")
         area = width * height
         per_bean_area = max(1, sprite_size ** 2)
         total = int(area * population_density / per_bean_area)
         male_fraction = male_female_ratio / (1 + male_female_ratio)
         male = int(total * male_fraction)
         female = total - male
+        logger.debug(f">>>>> DensityPopulationEstimator: total={total}, male={male}, female={female}")
         return male, female
 
 
@@ -48,11 +53,13 @@ class SoftLogPopulationEstimator(PopulationEstimator):
         population_density: float,
         male_female_ratio: float,
     ) -> Tuple[int, int]:
+        logger.debug(f">>>>> SoftLogPopulationEstimator.estimate: width={width}, height={height}, sprite_size={sprite_size}, population_density={population_density}")
         area = width * height
         per_bean_area = max(1, sprite_size ** 2)
         raw_total = area * population_density / per_bean_area
         capped_total = int(raw_total)
         if capped_total <= 0:
+            logger.debug(">>>>> SoftLogPopulationEstimator: capped_total <= 0, returning 0, 0")
             return 0, 0
 
         log_value = math.log1p(raw_total)
@@ -63,16 +70,21 @@ class SoftLogPopulationEstimator(PopulationEstimator):
         male_fraction = male_female_ratio / (1 + male_female_ratio)
         male = int(soft_total * male_fraction)
         female = soft_total - male
+        logger.debug(f">>>>> SoftLogPopulationEstimator: raw_total={raw_total:.2f}, soft_total={soft_total}, male={male}, female={female}")
 
         return male, female
 
 
 def create_population_estimator_from_name(name: str) -> PopulationEstimator:
+    logger.debug(f">>>>> create_population_estimator_from_name: name={name}")
     match name.lower() if name else '':
         case 'density' | 'default':
+            logger.debug(">>>>> Creating DensityPopulationEstimator")
             return DensityPopulationEstimator()
         case 'soft_log' | 'softlog' | 'soft-log':
+            logger.debug(">>>>> Creating SoftLogPopulationEstimator")
             return SoftLogPopulationEstimator()
         case _:
+            logger.debug(f">>>>> Unknown estimator '{name}', defaulting to DensityPopulationEstimator")
             return DensityPopulationEstimator()
 

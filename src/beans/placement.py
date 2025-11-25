@@ -84,13 +84,13 @@ class ClusteredPlacementStrategy(PlacementStrategy):
             x = max(0.0, min(float(width), x))
             y = max(0.0, min(float(height), y))
             positions.append((x, y))
-        logger.debug(f">>>>> Generated {len(positions)} positions")
+        logger.info(f">>>>> Generated {len(positions)} positions")
         return positions
 
 
 def create_strategy_from_name(name: str) -> PlacementStrategy:
     """Return a placement strategy instance given a config name string."""
-    logger.debug(f">>>>> create_strategy_from_name: name={name}")
+    logger.info(f">>>>> create_strategy_from_name: name={name}")
     match name.lower() if name else '':
         case 'random':
             logger.debug(">>>>> Creating RandomPlacementStrategy")
