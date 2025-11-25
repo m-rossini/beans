@@ -10,7 +10,6 @@ def run(config_path: str | None = None):
     if config_path:
         world_config, beans_config = load_config(config_path)
     else:
-        # Try to import defaults from loader if available
         from config.loader import DEFAULT_WORLD_CONFIG, DEFAULT_BEANS_CONFIG
         world_config = DEFAULT_WORLD_CONFIG
         beans_config = DEFAULT_BEANS_CONFIG
