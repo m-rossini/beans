@@ -24,7 +24,6 @@ class Bean:
         sex: Sex,
         direction: Optional[float] = None,
         speed: Optional[float] = None,) -> None:
-        logger.debug(f">>>>> Bean.__init__: id={id}, sex={sex}, direction={direction}, speed={speed}")
 
         self.beans_config = config
         self.id = id

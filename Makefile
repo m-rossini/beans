@@ -5,6 +5,7 @@ SHELL := cmd.exe
 
 .PHONY: help install install-dev test lint format type-check clean build
 
+LOGGING_LEVEL ?= $(LOG_LEVEL)
 LOGGING_LEVEL ?= INFO
 
 help:  ## Show this help message

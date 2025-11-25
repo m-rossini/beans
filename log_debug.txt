@@ -1,2 +1,0 @@
-set PYTHONPATH=src && python scripts/run_window.py src/config/small.json --logging-level DEBUG
-Terminate batch job (Y/N)? 

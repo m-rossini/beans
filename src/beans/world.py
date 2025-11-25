@@ -50,7 +50,7 @@ class World:
         ]
 
     def step(self, dt: float) -> None:
-        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}")
+        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}")
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:

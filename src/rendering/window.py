@@ -28,7 +28,6 @@ class WorldWindow(arcade.Window):
         bg_color = _color_from_name(self.world_config.background_color)
         self.background_color = bg_color
         self.placement_strategy = world.placement_strategy
-        # Create sprites for each bean
         positions = self.placement_strategy.place(
             len(self.world.beans), self.world.width, self.world.height, self.world.sprite_size
         )
