@@ -50,7 +50,6 @@ class WorldWindow(arcade.Window):
     def on_update(self, delta_time: float):
         logger.debug(f">>>>> WorldWindow.on_update: delta_time={delta_time}")
         self.world.step(delta_time)
-        # Sync sprites with alive beans
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:

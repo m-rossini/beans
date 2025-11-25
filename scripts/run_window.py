@@ -9,24 +9,39 @@ from beans.placement import RandomPlacementStrategy
 from rendering.window import WorldWindow
 
 
-def _configure_logging(level: str, debug_module: str | None = None) -> None:
+def _configure_logging(level: str, log_file: str | None = None) -> None:
     """Configure logging based on provided level.
     
     Args:
-        level: Global logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        debug_module: Specific module to set to DEBUG level (e.g., 'beans.world', 'config.loader')
+        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        log_file: Optional file path to write logs to
     """
     numeric_level = getattr(logging, level.upper(), logging.INFO)
-    logging.basicConfig(
-        level=numeric_level,
-        format='%(levelname)s - %(name)s - %(funcName)s: %(message)s',
+    
+    # Create formatter
+    formatter = logging.Formatter(
+        '%(levelname)s - %(name)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    # Set specific module to DEBUG if specified
-    if debug_module:
-        logger = logging.getLogger(debug_module)
-        logger.setLevel(logging.DEBUG)
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(numeric_level)
+    
+    # Console handler (always added)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(numeric_level)
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+    
+    # File handler (only if log_file is provided)
+    if log_file:
+        os.makedirs(os.path.dirname(log_file) or '.', exist_ok=True)
+        file_handler = logging.FileHandler(log_file, mode='w')
+        file_handler.setLevel(numeric_level)
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+        root_logger.info(f"Logging to file: {log_file}")
 
 
 def run(config_path: str | None = None):
@@ -50,10 +65,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the Beans world simulation')
     parser.add_argument('config', nargs='?', default=None, help='Path to configuration file')
     parser.add_argument('--logging-level', default='INFO', help='Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)')
-    parser.add_argument('--debug-module', default=None, help='Specific module to set to DEBUG level (e.g., beans.world, config.loader)')
+    parser.add_argument('--log-file', default=None, help='Log file path (logs to console by default)')
     
     args = parser.parse_args()
-    _configure_logging(args.logging_level, args.debug_module)
+    _configure_logging(args.logging_level, args.log_file)
     
     run(args.config)
 
