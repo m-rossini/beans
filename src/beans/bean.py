@@ -39,10 +39,9 @@ class Bean:
 
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics."""
-        logger.debug(f">>>>> Bean {self.id} update: dt={dt}, age={self.age}, energy={self.energy:.2f}")
         self.age += 1.0
         energy = self._energy_tick(dt)
-        logger.debug(f">>>>> Bean {self.id} after update: age={self.age}, energy={energy:.2f}")
+        logger.debug(f">>>>> Bean {self.id} after update: age={self.age}, energy={energy:.2f}, dt={dt}")
         return {"energy": energy}
 
     def _energy_tick(self, dt: float = 1.0) -> float:

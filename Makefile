@@ -18,17 +18,17 @@ install-dev:  ## Install the package with development dependencies
 	pip install -e ".[dev]"
 
 test:  ## Run tests with pytest (full suite)
-	set PYTHONPATH=src && python -m pytest -v
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s
 
 test-cov:  ## Run tests with coverage report
-	set PYTHONPATH=src && python -m coverage run --source=src/beans,src/config,src/rendering -m pytest -v
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m coverage run --source=src/beans,src/config,src/rendering -m pytest -v -s
 	set PYTHONPATH=src && python -m coverage report -m --skip-empty
 	set PYTHONPATH=src && python -m coverage html
 
 TEST_SPECIFIC ?= tests/test_config.py
 
 test-specific:  ## Run a specific test file only. Use TEST_SPECIFIC=path to override.
-	set PYTHONPATH=src && python -m pytest -v $(TEST_SPECIFIC)
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s $(TEST_SPECIFIC)
 
 test-sequence: test-specific test  ## Run a specific test first, then the full test suite
 	@echo Completed test sequence (specific then full suite)
