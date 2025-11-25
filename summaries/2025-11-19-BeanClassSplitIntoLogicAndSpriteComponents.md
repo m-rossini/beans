@@ -22,4 +22,4 @@ Successfully split the Bean class into Bean (logic) and BeanSprite (rendering) c
 
 ## Diagram
 [Bean Sprite Architecture](bean_sprite_architecture.md)</content>
-<parameter name="filePath">c:\dev\DevProjects\beans\summaries\2024-12-19-BeanClassSplitIntoLogicAndSpriteComponents.md
++[Bean Sprite Architecture](bean_sprite_architecture.md)
