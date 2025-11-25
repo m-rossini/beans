@@ -14,6 +14,7 @@ class WorldConfig:
     population_density: float
     placement_strategy: str
     population_estimator: str = "density"
+    background_color: str = "white"
 
 
 @dataclass
@@ -37,7 +38,8 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
     height=600,
     population_density=0.1,
     placement_strategy="random",
-    population_estimator="density"
+    population_estimator="density",
+    background_color="white"
 )
 
 DEFAULT_BEANS_CONFIG = BeansConfig(
@@ -70,7 +72,8 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         height=world_data.get('height', DEFAULT_WORLD_CONFIG.height),
         population_density=world_data.get('population_density', DEFAULT_WORLD_CONFIG.population_density),
         placement_strategy=world_data.get('placement_strategy', DEFAULT_WORLD_CONFIG.placement_strategy),
-        population_estimator=world_data.get('population_estimator', DEFAULT_WORLD_CONFIG.population_estimator)
+        population_estimator=world_data.get('population_estimator', DEFAULT_WORLD_CONFIG.population_estimator),
+        background_color=world_data.get('background_color', DEFAULT_WORLD_CONFIG.background_color)
     )
 
     beans_config = BeansConfig(

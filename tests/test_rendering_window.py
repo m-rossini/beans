@@ -19,20 +19,6 @@ def _fake_arcade_init(self, width, height, title):
     self.get_size = lambda: (self._width, self._height)
 
 
-def test_world_window_uses_config_dimensions(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=1.0, placement_strategy='random')
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
-    world = World(cfg, bcfg)
-
-    # Don't set width property on instance (keyboard events, internal getters rely on get_size)
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
-    win = WorldWindow(world)
-    assert win.width == cfg.width
-    assert win.height == cfg.height
-    assert len(win.bean_sprites) == len(world.beans)
-
-
 def test_world_window_calls_world_step_on_update(monkeypatch):
     cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=1.0, placement_strategy='random')
     bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')

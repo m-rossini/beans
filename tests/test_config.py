@@ -240,3 +240,72 @@ def test_load_config_beans_invalid_speed_zero_raises():
             load_config(temp_file)
     finally:
         os.unlink(temp_file)
+
+
+def test_load_small_config():
+    world_config, beans_config = load_config('src/config/small.json')
+    assert world_config.width == 400
+    assert world_config.height == 300
+    assert world_config.population_density == 0.05
+    # Other world fields should be defaults
+    assert world_config.male_sprite_color == "blue"
+    assert world_config.female_sprite_color == "red"
+    assert world_config.male_female_ratio == 1.0
+    assert world_config.placement_strategy == "random"
+    assert world_config.population_estimator == "density"
+    # Beans should be defaults
+    assert beans_config.max_bean_age == 1000
+    assert beans_config.speed_min == -80.0
+    assert beans_config.speed_max == 80.0
+    assert beans_config.initial_energy == 100.0
+    assert beans_config.energy_gain_per_step == 1.0
+    assert beans_config.energy_cost_per_speed == 0.1
+    assert beans_config.initial_bean_size == 5
+    assert beans_config.male_bean_color == "blue"
+    assert beans_config.female_bean_color == "red"
+
+
+def test_load_medium_config():
+    world_config, beans_config = load_config('src/config/medium.json')
+    assert world_config.width == 800
+    assert world_config.height == 600
+    assert world_config.population_density == 0.1
+    # Other fields defaults
+    assert world_config.male_sprite_color == "blue"
+    assert world_config.female_sprite_color == "red"
+    assert world_config.male_female_ratio == 1.0
+    assert world_config.placement_strategy == "random"
+    assert world_config.population_estimator == "density"
+    # Beans defaults
+    assert beans_config.max_bean_age == 1000
+    assert beans_config.speed_min == -80.0
+    assert beans_config.speed_max == 80.0
+    assert beans_config.initial_energy == 100.0
+    assert beans_config.energy_gain_per_step == 1.0
+    assert beans_config.energy_cost_per_speed == 0.1
+    assert beans_config.initial_bean_size == 5
+    assert beans_config.male_bean_color == "blue"
+    assert beans_config.female_bean_color == "red"
+
+
+def test_load_large_config():
+    world_config, beans_config = load_config('src/config/large.json')
+    assert world_config.width == 1600
+    assert world_config.height == 1200
+    assert world_config.population_density == 0.2
+    # Other fields defaults
+    assert world_config.male_sprite_color == "blue"
+    assert world_config.female_sprite_color == "red"
+    assert world_config.male_female_ratio == 1.0
+    assert world_config.placement_strategy == "random"
+    assert world_config.population_estimator == "density"
+    # Beans defaults
+    assert beans_config.max_bean_age == 1000
+    assert beans_config.speed_min == -80.0
+    assert beans_config.speed_max == 80.0
+    assert beans_config.initial_energy == 100.0
+    assert beans_config.energy_gain_per_step == 1.0
+    assert beans_config.energy_cost_per_speed == 0.1
+    assert beans_config.initial_bean_size == 5
+    assert beans_config.male_bean_color == "blue"
+    assert beans_config.female_bean_color == "red"

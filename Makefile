@@ -59,3 +59,6 @@ build:  ## Build the package
 	python -m build
 
 all: format lint type-check test  ## Run all checks (format, lint, type-check, test)
+
+run:  ## Run the main application. Use CONFIG=path/to/config.json to specify config file.
+	set PYTHONPATH=src && python scripts/run_window.py $(CONFIG)

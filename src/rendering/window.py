@@ -19,10 +19,8 @@ class WorldWindow(arcade.Window):
         width = self.world_config.width
         height = self.world_config.height
         super().__init__(width, height, title)
-        try:
-            arcade.set_background_color(arcade.color.BLACK)
-        except RuntimeError:
-            pass
+        bg_color = _color_from_name(self.world_config.background_color)
+        self.background_color = bg_color
         self.placement_strategy = world.placement_strategy
         # Create sprites for each bean
         positions = self.placement_strategy.place(
@@ -37,9 +35,8 @@ class WorldWindow(arcade.Window):
             self.bean_sprites.append(sprite)
 
     def on_draw(self):
-        arcade.start_render()
-        for sprite in self.bean_sprites:
-            sprite.draw()
+        self.clear()
+        arcade.SpriteList(self.bean_sprites).draw()
 
     def on_update(self, delta_time: float):
         self.world.step(delta_time)

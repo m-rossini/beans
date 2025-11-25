@@ -1,0 +1,8 @@
+{
+  "world": {
+    "width": 400,
+    "height": 300,
+    "population_density": 0.05
+  },
+  "beans": {}
+}
