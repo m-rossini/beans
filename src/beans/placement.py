@@ -134,12 +134,22 @@ class ClusteredPlacementStrategy(PlacementStrategy):
         if count <= 0:
             logger.warning(">>>>> Count <= 0, returning empty list")
             return []
+        
+        # Initialize spatial hash with cell size = size * 3 for efficient lookups
+        hash_grid = SpatialHash(cell_size=max(1, size * 3))
+        positions: List[Tuple[float, float]] = []
+        collision_radius = float(size)  # Prevent overlaps at distance >= size
+        
         clusters = max(1, count // 5)
         centers = [(random.uniform(0, width), random.uniform(0, height)) for _ in range(clusters)]
         logger.debug(f">>>>> Created {clusters} cluster centers")
-        positions: List[Tuple[float, float]] = []
-        for i in range(count):
-            can_fit = self._can_fit(size, count, width, height)
+        
+        max_attempts = count * 10  # Allow multiple attempts per sprite
+        attempts = 0
+        
+        while len(positions) < count and attempts < max_attempts:
+            attempts += 1
+            i = len(positions)
             center = centers[i % clusters]
             angle = random.random() * 2 * math.pi
             radius = random.random() * (size * 2)
@@ -147,9 +157,24 @@ class ClusteredPlacementStrategy(PlacementStrategy):
             y = center[1] + radius * math.sin(angle)
             x = max(0.0, min(float(width), x))
             y = max(0.0, min(float(height), y))
-            positions.append((x, y))
-        logger.info(f">>>>> Generated {len(positions)} positions")
-        return positions
+            
+            # Check if position collides with any existing sprite
+            if not hash_grid.has_collision(x, y, collision_radius):
+                hash_grid.add(x, y)
+                positions.append((x, y))
+            
+            # Log progress every 100 attempts
+            if attempts % 100 == 0:
+                logger.debug(f">>>>> ClusteredPlacementStrategy: attempt={attempts}, placed={len(positions)}/{count}")
+        
+        # Check if we met minimum threshold (90%)
+        min_sprites = int(count * 0.9)
+        if len(positions) >= min_sprites:
+            logger.info(f">>>>> Generated {len(positions)} collision-free positions (requested {count}, ratio={len(positions)/count:.2%})")
+            return positions
+        else:
+            logger.error(f">>>>> Failed to place minimum sprites. Placed: {len(positions)}, Required: {min_sprites}, Requested: {count}")
+            raise SystemExit(1)
 
 
 def create_strategy_from_name(name: str) -> PlacementStrategy:
