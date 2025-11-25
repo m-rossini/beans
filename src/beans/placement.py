@@ -61,8 +61,7 @@ class PlacementStrategy:
         count: int,
         width: int,
         height: int,
-        size: int,
-        max_attempts: int = None
+        size: int
     ) -> List[Tuple[float, float]]:
         """
         Generic collision detection wrapper for placement strategies.
@@ -72,30 +71,21 @@ class PlacementStrategy:
             count: Target number of sprites to place
             width, height: World dimensions
             size: Sprite size (collision radius)
-            max_attempts: Max iterations (default: count * 10)
         
         Returns:
             List of collision-free positions, or raises SystemExit if <90% threshold
         """
-        if max_attempts is None:
-            max_attempts = count * 10
-        
         hash_grid = SpatialHash(cell_size=max(1, size * 3))
         positions: List[Tuple[float, float]] = []
         collision_radius = float(size)
-        attempts = 0
         
         for x, y in generator:
-            attempts += 1
-            if attempts > max_attempts or len(positions) >= count:
+            if len(positions) >= count:
                 break
             
             if not hash_grid.has_collision(x, y, collision_radius):
                 hash_grid.add(x, y)
                 positions.append((x, y))
-            
-            if attempts % 100 == 0:
-                logger.debug(f">>>>> Placement: attempt={attempts}, placed={len(positions)}/{count}")
         
         # Check if we met minimum threshold (90%)
         min_sprites = int(count * 0.9)
@@ -128,7 +118,7 @@ class RandomPlacementStrategy(PlacementStrategy):
                 yield (random.uniform(0, width), random.uniform(0, height))
         
         return self._place_with_collision_detection(
-            random_generator(), count, width, height, size, max_attempts=count * 10
+            random_generator(), count, width, height, size
         )
     
 
@@ -192,7 +182,7 @@ class ClusteredPlacementStrategy(PlacementStrategy):
                 i += 1
         
         return self._place_with_collision_detection(
-            cluster_generator(), count, width, height, size, max_attempts=count * 10
+            cluster_generator(), count, width, height, size
         )
 
 
