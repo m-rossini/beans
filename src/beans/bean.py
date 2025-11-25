@@ -30,6 +30,7 @@ class Bean:
         self.direction = direction % 360.0
         self.speed = random.uniform(config.speed_min, config.speed_max) if speed is None else speed
         self.energy = config.initial_energy
+        self.size = config.initial_bean_size
 
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics."""

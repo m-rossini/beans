@@ -2,6 +2,7 @@ import arcade
 from typing import List, Tuple, Optional
 from beans.world import World
 from beans.placement import PlacementStrategy, RandomPlacementStrategy
+from .bean_sprite import BeanSprite
 
 
 def _color_from_name(name: str):
@@ -23,23 +24,27 @@ class WorldWindow(arcade.Window):
         except RuntimeError:
             pass
         self.placement_strategy = world.placement_strategy
-        # compute positions for rendering only
-        self.positions: List[Tuple[float, float]] = self.placement_strategy.place(
+        # Create sprites for each bean
+        positions = self.placement_strategy.place(
             len(self.world.beans), self.world.width, self.world.height, self.world.sprite_size
         )
-        self.male_color = _color_from_name(self.world_config.male_sprite_color)
-        self.female_color = _color_from_name(self.world_config.female_sprite_color)
+        self.bean_sprites: List[BeanSprite] = []
+        for i, bean in enumerate(self.world.beans):
+            pos = positions[i]
+            color_str = self.world.beans_config.male_bean_color if bean.is_male else self.world.beans_config.female_bean_color
+            color = _color_from_name(color_str)
+            sprite = BeanSprite(bean, pos, color)
+            self.bean_sprites.append(sprite)
 
     def on_draw(self):
         arcade.start_render()
-        for i, bean in enumerate(self.world.beans):
-            x, y = self.positions[i]
-            radius = max(1, self.world.sprite_size / 2)
-            color = self.male_color if bean.is_male else self.female_color
-            arcade.draw_circle_filled(x, y, radius, color)
+        for sprite in self.bean_sprites:
+            sprite.draw()
 
     def on_update(self, delta_time: float):
         self.world.step(delta_time)
+        # Sync sprites with alive beans
+        self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ESCAPE:
