@@ -19,13 +19,11 @@ class World:
     def __init__(self, config: WorldConfig, beans_config: BeansConfig) -> None:
         self.world_config = config
         self.beans_config = beans_config
-        # Use config defaults if width/height not provided explicitly
         self.width = config.width
         self.height = config.height
-        self.sprite_size = config.sprite_bean_size
+        self.sprite_size = beans_config.initial_bean_size
         self.population_density = config.population_density
         self.male_female_ratio = config.male_female_ratio
-        # instantiate placement strategy from config
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.beans: List[Bean] = self._initialize()

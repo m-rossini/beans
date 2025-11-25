@@ -40,14 +40,13 @@ def test_world_records_dead_bean_with_reason():
         male_sprite_color='blue',
         female_sprite_color='red',
         male_female_ratio=1.0,
-        sprite_bean_size=5,
         width=100,
         height=100,
         population_density=0.0,
         placement_strategy='random',
         population_estimator='density',
     )
-    beans_cfg = make_beans_config(initial_energy=1.0, energy_gain_per_step=0.0, energy_cost_per_speed=1.0)
+    beans_cfg = make_beans_config(initial_energy=1.0, energy_gain_per_step=0.0, energy_cost_per_speed=1.0, initial_bean_size=5)
     world = World(config=world_cfg, beans_config=beans_cfg)
     world.beans = [Bean(config=beans_cfg, id=0, sex=Sex.MALE, speed=5.0)]
     world.step(dt=1.0)

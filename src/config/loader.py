@@ -9,7 +9,6 @@ class WorldConfig:
     male_sprite_color: str
     female_sprite_color: str
     male_female_ratio: float
-    sprite_bean_size: int
     width: int
     height: int
     population_density: float
@@ -25,13 +24,15 @@ class BeansConfig:
     initial_energy: float = 100.0
     energy_gain_per_step: float = 1.0
     energy_cost_per_speed: float = 0.1
+    initial_bean_size: int = 5
+    male_bean_color: str = "blue"
+    female_bean_color: str = "red"
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
     male_sprite_color="blue",
     female_sprite_color="red",
     male_female_ratio=1.0,
-    sprite_bean_size=5,
     width=800,
     height=600,
     population_density=0.1,
@@ -46,6 +47,9 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     initial_energy=100.0,
     energy_gain_per_step=1.0,
     energy_cost_per_speed=0.1,
+    initial_bean_size=5,
+    male_bean_color="blue",
+    female_bean_color="red",
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
@@ -62,7 +66,6 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         male_sprite_color=world_data.get('male_sprite_color', DEFAULT_WORLD_CONFIG.male_sprite_color),
         female_sprite_color=world_data.get('female_sprite_color', DEFAULT_WORLD_CONFIG.female_sprite_color),
         male_female_ratio=world_data.get('male_female_ratio', DEFAULT_WORLD_CONFIG.male_female_ratio),
-        sprite_bean_size=world_data.get('sprite_bean_size', DEFAULT_WORLD_CONFIG.sprite_bean_size),
         width=world_data.get('width', DEFAULT_WORLD_CONFIG.width),
         height=world_data.get('height', DEFAULT_WORLD_CONFIG.height),
         population_density=world_data.get('population_density', DEFAULT_WORLD_CONFIG.population_density),
@@ -77,6 +80,9 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         initial_energy=beans_data.get('initial_energy', DEFAULT_BEANS_CONFIG.initial_energy),
         energy_gain_per_step=beans_data.get('energy_gain_per_step', DEFAULT_BEANS_CONFIG.energy_gain_per_step),
         energy_cost_per_speed=beans_data.get('energy_cost_per_speed', DEFAULT_BEANS_CONFIG.energy_cost_per_speed),
+        initial_bean_size=beans_data.get('initial_bean_size', DEFAULT_BEANS_CONFIG.initial_bean_size),
+        male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
+        female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
@@ -85,8 +91,6 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"World width must be > 0, got {cfg.width}")
         if cfg.height <= 0:
             raise ValueError(f"World height must be > 0, got {cfg.height}")
-        if cfg.sprite_bean_size <= 0:
-            raise ValueError(f"Sprite size must be > 0, got {cfg.sprite_bean_size}")
         if cfg.population_density <= 0:
             raise ValueError(f"Population density must be >= 0, got {cfg.population_density}")
         if cfg.male_female_ratio <= 0:
@@ -106,6 +110,8 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"energy_gain_per_step must be >= 0, got {cfg.energy_gain_per_step}")
         if cfg.energy_cost_per_speed < 0:
             raise ValueError(f"energy_cost_per_speed must be >= 0, got {cfg.energy_cost_per_speed}")
+        if cfg.initial_bean_size <= 0:
+            raise ValueError(f"initial_bean_size must be > 0, got {cfg.initial_bean_size}")
 
     validate_world(world_config)
     validate_beans(beans_config)

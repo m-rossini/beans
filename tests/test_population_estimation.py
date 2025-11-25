@@ -64,13 +64,12 @@ def test_world_initialization_respects_density_and_ratio():
         male_sprite_color='blue',
         female_sprite_color='red',
         male_female_ratio=3.0,
-        sprite_bean_size=10,
         width=20,
         height=20,
         population_density=1.0,
         placement_strategy='random',
     )
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5)
+    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10)
     world = World(config=cfg, beans_config=bcfg)
     total = 4
     assert len(world.beans) == total
