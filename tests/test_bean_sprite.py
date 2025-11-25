@@ -1,8 +1,11 @@
 import pytest
 import arcade
+import logging
 from beans.bean import Bean, Sex
 from config.loader import BeansConfig
 from rendering.bean_sprite import BeanSprite
+
+logger = logging.getLogger(__name__)
 
 
 class TestBeanSprite:

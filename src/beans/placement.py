@@ -40,9 +40,9 @@ class GridPlacementStrategy(PlacementStrategy):
         self.packing_efficiency = packing_efficiency 
 
     def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
-        logger.debug(f">>>>> GridPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
+        logger.info(f">>>>> GridPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
         if count <= 0:
-            logger.debug(">>>>> Count <= 0, returning empty list")
+            logger.warning(">>>>> Count <= 0, returning empty list")
             return []
         cols = max(1, width // size)
         rows = max(1, height // size)
@@ -57,7 +57,7 @@ class GridPlacementStrategy(PlacementStrategy):
                 positions.append((x, y))
             if len(positions) >= count:
                 break
-        logger.debug(f">>>>> Generated {len(positions)} positions")
+        logger.info(f">>>>> Generated {len(positions)} positions")
         return positions
 
 
@@ -66,9 +66,9 @@ class ClusteredPlacementStrategy(PlacementStrategy):
         self.packing_efficiency = packing_efficiency
 
     def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
-        logger.debug(f">>>>> ClusteredPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
+        logger.info(f">>>>> ClusteredPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
         if count <= 0:
-            logger.debug(">>>>> Count <= 0, returning empty list")
+            logger.warning(">>>>> Count <= 0, returning empty list")
             return []
         clusters = max(1, count // 5)
         centers = [(random.uniform(0, width), random.uniform(0, height)) for _ in range(clusters)]
