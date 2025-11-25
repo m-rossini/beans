@@ -63,7 +63,7 @@ class World:
                 survivors.append(bean)
         self.beans = survivors
         if deaths_this_step > 0:
-            logger.info(f"World.step: {deaths_this_step} beans died, {len(survivors)} survived")
+            logger.debug(f"World.step: {deaths_this_step} beans died, {len(survivors)} survived")
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")

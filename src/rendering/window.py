@@ -20,7 +20,6 @@ def _color_from_name(name: str):
 
 class WorldWindow(arcade.Window):
     def __init__(self, world: World, title: str = "Beans World") -> None:
-        logger.info(f">>>>> WorldWindow.__init__: title={title}, beans_count={len(world.beans)}")
         self.world = world
         self.world_config = world.world_config
         width = self.world_config.width
@@ -42,7 +41,7 @@ class WorldWindow(arcade.Window):
             sprite = BeanSprite(bean, pos, color)
             self.bean_sprites.append(sprite)
             self.sprite_list.append(sprite)
-        logger.info(f"WorldWindow initialized with {len(self.bean_sprites)} bean sprites")
+        logger.info(f"WorldWindow initialized with {len(self.bean_sprites)} bean sprites. title={title}, beans_count={len(world.beans)}")
 
     def on_draw(self):
         self.clear()
@@ -55,7 +54,7 @@ class WorldWindow(arcade.Window):
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
-            logger.info(f"WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
+            logger.debug(f"WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
             self.sprite_list.append(sprite)

@@ -65,11 +65,9 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
 
     with open(config_file_path, 'r') as f:
         data = json.load(f)
-    logger.info(f">>>>> Successfully loaded config file: {config_file_path}")
 
     world_data = data.get('world', {})
     beans_data = data.get('beans', {})
-    logger.debug(f">>>>> Extracted world_data and beans_data from config")
 
     world_config = WorldConfig(
         male_sprite_color=world_data.get('male_sprite_color', DEFAULT_WORLD_CONFIG.male_sprite_color),
@@ -94,6 +92,8 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
         female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
     )
+
+
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
     def validate_world(cfg: WorldConfig) -> None:
@@ -130,6 +130,5 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
     logger.debug(">>>>> Validating beans config")
     validate_beans(beans_config)
     logger.debug(">>>>> Beans config validation passed")
-    logger.info(f"Successfully loaded and validated configurations from {config_file_path}")
 
     return world_config, beans_config
