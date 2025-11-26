@@ -8,6 +8,8 @@ Beans were being placed without collision detection, allowing sprites to overlap
 
 Implemented spatial hashing-based collision detection in the `RandomPlacementStrategy` to ensure beans are placed at least `size` pixels apart, preventing visual overlaps.
 
+See [Architecture Diagram](./2025-11-26-collision-detection-diagram.md) for visual representation of the collision detection algorithm.
+
 ### Key Design Decisions
 
 1. **SpatialHash Class**: Implemented a grid-based spatial hash for O(1) neighbor queries rather than O(n²) brute-force comparisons
