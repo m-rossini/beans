@@ -22,9 +22,10 @@ Implemented spatial hashing-based collision detection in the `RandomPlacementStr
 3. **Half-Pixel Snapping**: Already applied to placement strategies for arcade pixel-perfect rendering (0.5 precision)
    - Applied before collision checks to ensure consistent positioning
 
-4. **Minimum Distance**: Uses `size` parameter directly as collision radius
-   - For size=5, minimum distance = 5 pixels
-   - Distance calculation uses Euclidean geometry
+4. **Minimum Center-to-Center Distance**: Uses `size` parameter as minimum distance threshold
+   - For size=5, beans must be at least 5 pixels apart (center to center)
+   - This ensures no overlap for circular sprites with diameter = size
+   - Distance calculation uses Euclidean geometry: sqrt((x1-x2)² + (y1-y2)²)
 
 ## Implementation Details
 
