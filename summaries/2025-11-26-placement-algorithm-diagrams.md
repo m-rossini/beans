@@ -21,7 +21,7 @@ graph TB
 
     subgraph "Output"
         K["Valid Positions List"]
-        L["ValueError on Failed Threshold"]
+        L["Empty List on Failed Threshold"]
     end
 
     A -->|count, bounds| B
@@ -52,7 +52,7 @@ flowchart TD
     CheckCount -->|No| ReturnEmpty["Return []"]
     CheckCount -->|Yes| CheckFit{_can_fit<br/>returns True?}
     
-    CheckFit -->|No| RaiseError["Raise ValueError<br/>impossible to fit"]
+    CheckFit -->|No| RaiseError["Return []<br/>impossible to fit"]
     CheckFit -->|Yes| CalcBounds["_get_valid_bounds()<br/>min=71, max=319"]
     
     CalcBounds --> InitHash["SpatialHash(30)<br/>cell_size=30"]
@@ -70,7 +70,7 @@ flowchart TD
     
     CalcRatio --> CheckThreshold{ratio >= 90%?}
     CheckThreshold -->|Yes| Return["Return positions"]
-    CheckThreshold -->|No| RaiseError2["Raise ValueError<br/>90% threshold failed"]
+    CheckThreshold -->|No| RaiseError2["Return []<br/>90% threshold failed"]
     
     Return --> End["Success"]
     RaiseError --> End
