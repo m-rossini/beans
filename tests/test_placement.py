@@ -1,8 +1,6 @@
 import random
 import math
 import logging
-import pytest
-
 from beans.placement import RandomPlacementStrategy
 
 logger = logging.getLogger(__name__)
