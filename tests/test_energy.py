@@ -33,7 +33,7 @@ def test_update_calls_energy_tick():
     before = bean.energy
     result = bean.update(dt=2.0)
     energy_after = result["energy"]
-    expected = before + 2 * 1.0 - abs(4.0) * 0.5 * 2.0
+    expected = before + (cfg.energy_gain_per_step) - (cfg.energy_cost_per_speed * bean.speed) 
     assert bean.energy == pytest.approx(expected)
     assert energy_after == pytest.approx(bean.energy)
 
