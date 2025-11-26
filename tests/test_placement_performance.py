@@ -1,5 +1,4 @@
 import time
-import pytest
 from beans.placement import RandomPlacementStrategy
 from beans.population import DensityPopulationEstimator
 
