@@ -26,13 +26,15 @@ class WorldWindow(arcade.Window):
         width = self.world_config.width
         height = self.world_config.height
         super().__init__(width, height, title)
-        self.title = f"{self.base_title} - round: {self.world.round}"
         bg_color = _color_from_name(self.world_config.background_color)
         self.background_color = bg_color
         self.placement_strategy = world.placement_strategy
         positions = self.placement_strategy.place(
             len(self.world.beans), self.world.width, self.world.height, self.world.sprite_size
         )
+        logger.info(f"WorldWindow::__init__ Generated positions for beans with width={self.world.width}, height={self.world.height}, sprite_size={self.world.sprite_size}")
+        for pos in positions:
+            logger.info(f"WorldWindow::__init__ Position: {pos}")
         self.bean_sprites: List[BeanSprite] = []
         self.sprite_list = arcade.SpriteList()
         for i, bean in enumerate(self.world.beans):
