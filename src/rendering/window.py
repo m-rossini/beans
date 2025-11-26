@@ -21,10 +21,12 @@ def _color_from_name(name: str):
 class WorldWindow(arcade.Window):
     def __init__(self, world: World, title: str = "Beans World") -> None:
         self.world = world
+        self.base_title = title
         self.world_config = world.world_config
         width = self.world_config.width
         height = self.world_config.height
         super().__init__(width, height, title)
+        self.title = f"{self.base_title} - round: {self.world.round}"
         bg_color = _color_from_name(self.world_config.background_color)
         self.background_color = bg_color
         self.placement_strategy = world.placement_strategy
@@ -49,7 +51,7 @@ class WorldWindow(arcade.Window):
     def on_update(self, delta_time: float):
         logger.debug(f">>>>> WorldWindow.on_update: delta_time={delta_time}")
         self.world.step(delta_time)
-        self.title = f"Beans World - round: {self.world.round}"
+        self.title = f"{self.base_title} - round: {self.world.round}"
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
