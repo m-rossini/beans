@@ -83,7 +83,7 @@ class RandomPlacementStrategy(PlacementStrategy):
             return []
         
         if not self._can_fit(size, int(count * 0.9), width, height):
-            logger.warning(">>>>> Cannot fit at least 90% of sprites    , returning empty list")
+            logger.warning(">>>>> Cannot fit at least 90% of sprites, returning empty list")
             return []
         
         min_x, max_x, min_y, max_y = self._get_valid_bounds(size, width, height)
