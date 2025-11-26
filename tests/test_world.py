@@ -1,7 +1,6 @@
 import logging
 from beans.world import World
 from config.loader import WorldConfig, BeansConfig
-from beans.placement import RandomPlacementStrategy
 
 logger = logging.getLogger(__name__)
 
