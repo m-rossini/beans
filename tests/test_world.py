@@ -1,5 +1,7 @@
 import logging
+import arcade
 from beans.world import World
+from rendering.window import WorldWindow
 from config.loader import WorldConfig, BeansConfig
 
 logger = logging.getLogger(__name__)
@@ -18,3 +20,18 @@ def test_world_uses_config_dimensions_by_default():
     w = World(config=cfg, beans_config=bcfg)
     assert w.width == cfg.width
     assert w.height == cfg.height
+
+
+def test_world_window_title_displays_round_number():
+    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=20, height=20, population_density=1.0, placement_strategy='random')
+    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10)
+    world = World(config=cfg, beans_config=bcfg)
+    window = WorldWindow(world)
+    
+    # After first on_update, round should be 2
+    window.on_update(0.1)
+    assert "round: 2" in window.title
+    
+    # After second on_update, round should be 3
+    window.on_update(0.1)
+    assert "round: 3" in window.title

@@ -45,8 +45,8 @@ class Bean:
 
     def _energy_tick(self, dt: float = 1.0) -> float:
         """Adjust energy based on per-step gains and movement costs."""
-        gain = self.beans_config.energy_gain_per_step * dt
-        cost = abs(self.speed) * self.beans_config.energy_cost_per_speed * dt
+        gain = self.beans_config.energy_gain_per_step
+        cost = abs(self.speed) * self.beans_config.energy_cost_per_speed
         old_energy = self.energy
         self.energy += gain - cost
         logger.debug(f">>>>> Bean {self.id} _energy_tick: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, cost_per_speed={self.beans_config.energy_cost_per_speed}, dt={dt}")

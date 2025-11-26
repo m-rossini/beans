@@ -32,6 +32,7 @@ class World:
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.beans: List[Bean] = self._initialize()
         self.dead_beans: List[DeadBeanRecord] = []
+        self.round: int = 1
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
@@ -65,6 +66,7 @@ class World:
         self.beans = survivors
         if deaths_this_step > 0:
             logger.info(f"World.step: {deaths_this_step} beans died, {len(survivors)} survived")
+        self.round += 1
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")
