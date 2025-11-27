@@ -1,4 +1,3 @@
-import pytest
 from beans.placement import ConsecutiveFailureValidator, SpaceAvailabilityValidator
 
 
@@ -90,7 +89,7 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
             validator.mark_placed(x=col + 0.5, y=row + 0.5, size=size)
             if validator.is_saturated():
                 return attempt + 1
-        pytest.fail("Validator did not reach saturation within max attempts")
+        raise RuntimeError("Validator did not reach saturation within max attempts")
 
     def test_empty_world_stays_unsaturated(self):
         """Empty world should never be saturated.
