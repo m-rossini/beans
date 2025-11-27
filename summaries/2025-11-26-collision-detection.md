@@ -54,6 +54,11 @@ Key test: `test_random_placement_no_collisions`
 - Verifies no two beans are closer than 20 pixels
 - Passes consistently with collision detection enabled
 
+## Coverage Analysis
+
+- `placement.py`: 62% (validator classes need additional test coverage)
+- Overall project coverage: 83%
+
 ## Files Modified
 
 - `src/beans/placement.py`: Added SpatialHash class and collision detection logic
@@ -63,15 +68,17 @@ Key test: `test_random_placement_no_collisions`
 
 - Small performance improvement for collision checking (O(1) grid lookup vs O(n²) brute force)
 - Placement Performance (test results):
-  - Small config (6 beans): ~28,640 beans/sec
-  - Medium config (150 beans): ~114,260 beans/sec  
-  - Large config (1,200 beans): ~211,685 beans/sec
+  - Small config (6 beans): ~19,400-24,600 beans/sec
+  - Medium config (150 beans): ~87,255-181,752 beans/sec  
+  - Large config (1,200 beans): ~81,346-284,219 beans/sec
+  - Note: Performance varies based on system load and random seed; collision-free positioning adds overhead
 
 ## Challenges Overcome
 
-1. **Git merge conflicts**: Main branch had different collision detection implementation; kept the SpatialHash approach
-2. **Test compatibility**: Round counter and energy system tests required careful synchronization
-3. **Half-pixel snapping**: Ensured snapping was applied consistently before collision checks
+1. **Collision detection accuracy**: Ensured center-to-center distance checks match sprite diameter for pixel-perfect rendering
+2. **Half-pixel snapping**: Applied snapping before collision checks to ensure consistent positioning in arcade engine
+3. **Retry saturation logic**: Implemented `ConsecutiveFailureValidator` to detect when world is too saturated to place more beans
+4. **Performance**: SpatialHash grid-based approach keeps O(n) placement time with efficient neighbor lookups
 
 ## How to Run
 
