@@ -85,7 +85,7 @@ class SpaceAvailabilityValidator(PlacementValidator):
     def _get_cells(self, x: float, y: float, size: int) -> list[int]:
         """Get all grid cell indices occupied by a circle at (x, y) with given size."""
         cells = []
-        radius = size
+        radius = size / 2  # size is diameter, so radius is half
         x_min = max(0, int((x - radius) // self.cell_size))
         x_max = min(self.grid_width - 1, int((x + radius) // self.cell_size))
         y_min = max(0, int((y - radius) // self.cell_size))

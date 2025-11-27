@@ -83,6 +83,15 @@ class TestConsecutiveFailureValidatorSaturationDetection:
 class TestSpaceAvailabilityValidatorSaturationDetection:
     """Tests for SpaceAvailabilityValidator - detects when world is too crowded."""
 
+    def _fill_until_saturated(self, validator: SpaceAvailabilityValidator, size: int, max_attempts: int = 10_000) -> int:
+        for attempt in range(max_attempts):
+            col = attempt % 100
+            row = (attempt // 100) % 100
+            validator.mark_placed(x=col + 0.5, y=row + 0.5, size=size)
+            if validator.is_saturated():
+                return attempt + 1
+        pytest.fail("Validator did not reach saturation within max attempts")
+
     def test_empty_world_stays_unsaturated(self):
         """Empty world should never be saturated.
         
@@ -120,16 +129,8 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
             # World not saturated yet with sparse placement
         assert validator.is_saturated() is False
         
-        # Now pack more densely to actually fill 90%+ of the space
-        # For 100x100 world (~10k cells), need 9k+ occupied
-        # Bean size 5 covers roughly 78 cells (π*5²)
-        # Need ~115 beans to saturate
-        for i in range(115):
-            row = i // 10
-            col = i % 10
-            validator.mark_placed(x=col*10.0 + 5, y=row*10.0 + 5, size=5)
-        
-        # Now saturated: >90% of space is occupied
+        fill_count = self._fill_until_saturated(validator, size=5)
+        assert fill_count < 10_000
         assert validator.is_saturated() is True
 
     def test_reset_clears_space_tracking(self):
@@ -139,11 +140,7 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
         """
         validator = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
         
-        # Fill with beans to saturation
-        for i in range(120):
-            row = i // 10
-            col = i % 10
-            validator.mark_placed(x=col*10.0 + 5, y=row*10.0 + 5, size=5)
+        self._fill_until_saturated(validator, size=5)
         assert validator.is_saturated() is True
         
         # Reset: should start fresh
@@ -160,18 +157,8 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
         Purpose: Proves bean size affects saturation - same number of large beans
         covers more space than small beans.
         """
-        # Small beans: 100 at size=2 won't saturate
         validator_small = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
-        for i in range(100):
-            row = i // 10
-            col = i % 10
-            validator_small.mark_placed(x=col*10.0 + 5, y=row*10.0 + 5, size=2)
-        assert validator_small.is_saturated() is False
-        
-        # Large beans: 100 at size=8 WILL saturate (covers much more space)
         validator_large = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
-        for i in range(100):
-            row = i // 10
-            col = i % 10
-            validator_large.mark_placed(x=col*10.0 + 5, y=row*10.0 + 5, size=8)
-        assert validator_large.is_saturated() is True
+        small_count = self._fill_until_saturated(validator_small, size=2)
+        large_count = self._fill_until_saturated(validator_large, size=8)
+        assert large_count < small_count
