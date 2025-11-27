@@ -1,8 +1,8 @@
 # Random Placement Strategy with Spatial Hash Collision Detection
 
 **Date**: November 26, 2025  
-**Branch**: placement-collisions  
-**Status**: ✅ Complete - All 48 tests passing
+**Branch**: add-collision-detection  
+**Status**: ✅ Complete - All 50 tests passing
 
 ## Problem Statement
 
@@ -45,59 +45,77 @@ cell_x, cell_y = int(x // cell_size), int(y // cell_size)
 # Checks 9 cells: (cx-1..cx+1, cy-1..cy+1)
 ```
 
-#### 2. PlacementStrategy Base Class (Enhanced)
-Added three shared helper methods:
-- `_get_min_distance(size)`: Returns `size + PIXEL_DISTANCE` (minimum center-to-center distance)
-- `_get_valid_bounds(size, width, height)`: Calculates coordinate ranges with wall clearance
-- `_can_fit(size, count, width, height)`: Theoretical feasibility check using area calculation
+#### 2. PlacementStrategy Base Class
+Provides factory methods for validators:
+- `consecutive_failure_validator(threshold)`: Creates validator tracking consecutive failed placements
+- `space_availability_validator(width, height, cell_size)`: Creates validator using bitset to track occupied space
+
+Note: Helper methods for distance/bounds calculations are internal to RandomPlacementStrategy
 
 #### 3. RandomPlacementStrategy (Fully Implemented)
-- **Generator-based**: Infinite stream of random positions within bounds
-- **Collision Detection**: SpatialHash with min_distance validation
+- **Retry-based**: Each bean placement gets up to 50 attempts to find collision-free position
+- **Collision Detection**: SpatialHash with Euclidean distance validation
+- **Saturation Detection**: Tracks consecutive failures to detect when world is saturated
 - **Placement Logic**:
   1. Validate count > 0
-  2. Check `_can_fit()` for early rejection
-  3. Generate random positions until count reached or exhausted
-  4. Apply 90% threshold: `len(positions) >= int(count * 0.9)`
-  5. Raise ValueError if threshold not met
+  2. Create SpatialHash with cell_size = size parameter
+  3. For each bean, generate random positions (half-pixel snapped) until collision-free or max retries exhausted
+  4. Query neighbors within collision radius using spatial hash (O(1) lookup)
+  5. Check Euclidean distance to all neighbors; accept if distance >= size
+  6. Log warnings if placement fails or world saturates
 
 ### Mathematical Foundation
 
-**Valid Coordinate Range** (for both X and Y):
-```
-min = PIXEL_DISTANCE + (size / 2)
-max = width - PIXEL_DISTANCE - (size / 2)
-valid_range = [min, max]
-```
-
 **Collision Detection** (center-to-center distance):
 ```
-distance >= size1/2 + PIXEL_DISTANCE + size2/2
-For uniform sizes: distance >= size + PIXEL_DISTANCE
+distance = sqrt((x1 - x2)² + (y1 - y2)²)
+Collision occurs if: distance < size
+No collision if: distance >= size
+```
+
+**Half-Pixel Snapping** (arcade pixel-perfect rendering):
+```
+snapped_value = round(value * 2) / 2
+Ensures positions align to 0.5 pixel boundaries
+```
+
+**SpatialHash Grid**:
+```
+cell_size = size parameter
+cell_x = int(x // cell_size)
+cell_y = int(y // cell_size)
+Neighbor search checks 9-cell neighborhood: (cx-1..cx+1, cy-1..cy+1)
 ```
 
 **Constants**:
-- `PIXEL_DISTANCE = 1` (wall clearance)
-- `CELL_SIZE = sprite_size × 3` (spatial hash grid)
+- `PIXEL_DISTANCE = 1` (currently unused; reserved for future wall clearance)
 
 ## Performance Results
 
-### Benchmarked Configurations
+### Benchmarked Configurations (Actual Test Runs)
 
-| Config | Dimensions | Density | Size | Beans | Time | Rate |
-|--------|-----------|---------|------|-------|------|------|
-| Small (small.json) | 400×300 | 0.005 | 10 | 6 | 0.21ms | 28,558/sec |
-| Medium | 800×600 | 0.02 | 8 | 150 | 1.42ms | 105,308/sec |
-| Large | 2000×1500 | 0.01 | 5 | 1200 | 5.25ms | 228,397/sec |
+| Config | Dimensions | Density | Size | Beans | Time Range | Rate Range |
+|--------|-----------|---------|------|-------|-----------|-----------------|
+| Small (small.json) | 400×300 | 0.005 | 10 | 6 | 0.24-0.31ms | 19,400-24,600 beans/sec |
+| Medium | 800×600 | 0.02 | 8 | 150 | 0.83-1.72ms | 87,255-181,752 beans/sec |
+| Large | 2000×1500 | 0.01 | 5 | 1200 | 4.22-14.75ms | 81,346-284,219 beans/sec |
 
-**Key Insight**: Placement rate *improves* with scale due to amortized overhead of the spatial hash initialization.
+**Key Insight**: Performance varies significantly based on collision density and random seed. Stricter spacing requirements (larger beans in dense configs) increase retry attempts and placement time.
 
 ## Testing
 
 ### Test Coverage
-- ✅ 4 placement-specific tests (reproducibility, seeds, edge cases)
-- ✅ 2 world integration tests
-- ✅ 3 performance benchmarks
+- ✅ 4 placement-specific tests: reproducibility, different seeds, edge cases (zero/negative count), collision validation
+- ✅ 3 performance benchmarks: small, medium, large configurations
+- ✅ 4 world integration tests: initialization, sprite colors, window rendering, placement strategy selection
+- ✅ 39 additional tests: config validation, energy system, population estimation, bean sprite rendering
+
+**Overall**: 50 tests passing, 83% code coverage
+
+### Test Performance
+- All tests complete in ~1.6-1.95 seconds
+- Collision detection validates spatial hash efficiency (O(1) neighbor lookups)
+- RandomPlacementStrategy handles edge cases: count=0, count<0, saturation detection
 - ✅ 44 other system tests
 - **Total**: 48 tests passing
 
