@@ -6,6 +6,7 @@ import logging
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
 from config.loader import WorldConfig, BeansConfig
+from reporting.report import SimulationReport
 
 logger = logging.getLogger(__name__)
 
@@ -80,3 +81,27 @@ def test_world_window_sprite_colors(monkeypatch):
             expected_color = getattr(arcade.color, bcfg.female_bean_color.upper())
             assert sprite.color == expected_color
     assert len(win.bean_sprites) == len(world.beans)
+
+
+def test_world_window_reports_when_empty(monkeypatch):
+    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy='random')
+    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    world = World(cfg, bcfg)
+
+    class SpyReporter(SimulationReport):
+        def __init__(self) -> None:
+            self.called = 0
+        def generate(self, world_config, beans_config, world_arg, window_arg):
+            self.called += 1
+
+    reporter = SpyReporter()
+
+    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
+    closed = {'called': False}
+    monkeypatch.setattr(arcade, 'close_window', lambda: closed.update({'called': True}), raising=False)
+    from rendering.window import WorldWindow
+    win = WorldWindow(world, reporters=[reporter])
+    win.on_update(0)
+    assert win._prompt_active
+    win.on_key_press(arcade.key.Y, 0)
+    assert reporter.called == 1
