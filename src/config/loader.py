@@ -18,6 +18,8 @@ class WorldConfig:
     placement_strategy: str
     population_estimator: str = "density"
     background_color: str = "white"
+    max_age_years: int = 100
+    rounds_per_year: int = 12
 
 
 @dataclass
@@ -42,7 +44,9 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
     population_density=0.1,
     placement_strategy="random",
     population_estimator="density",
-    background_color="white"
+    background_color="white",
+    max_age_years=100,
+    rounds_per_year=12,
 )
 
 DEFAULT_BEANS_CONFIG = BeansConfig(
@@ -78,7 +82,9 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         population_density=world_data.get('population_density', DEFAULT_WORLD_CONFIG.population_density),
         placement_strategy=world_data.get('placement_strategy', DEFAULT_WORLD_CONFIG.placement_strategy),
         population_estimator=world_data.get('population_estimator', DEFAULT_WORLD_CONFIG.population_estimator),
-        background_color=world_data.get('background_color', DEFAULT_WORLD_CONFIG.background_color)
+        background_color=world_data.get('background_color', DEFAULT_WORLD_CONFIG.background_color),
+        max_age_years=world_data.get('max_age_years', DEFAULT_WORLD_CONFIG.max_age_years),
+        rounds_per_year=world_data.get('rounds_per_year', DEFAULT_WORLD_CONFIG.rounds_per_year),
     )
 
     beans_config = BeansConfig(
@@ -105,6 +111,10 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"Population density must be >= 0, got {cfg.population_density}")
         if cfg.male_female_ratio <= 0:
             raise ValueError(f"Male/female ratio must be > 0, got {cfg.male_female_ratio}")
+        if cfg.max_age_years <= 0:
+            raise ValueError(f"max_age_years must be > 0, got {cfg.max_age_years}")
+        if cfg.rounds_per_year <= 0:
+            raise ValueError(f"rounds_per_year must be > 0, got {cfg.rounds_per_year}")
 
     def validate_beans(cfg: BeansConfig) -> None:
         if cfg.max_bean_age < 0:
