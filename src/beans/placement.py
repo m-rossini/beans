@@ -146,7 +146,7 @@ class SpatialHash:
         self.grid[cell].append((x, y))
     
     def get_neighbors(self, x: float, y: float, radius: float) -> list[tuple[float, float]]:
-        """Get all positions within radius of (x, y)."""
+        """Get all positions in the 9 surrounding grid cells."""
         cell = self._get_cell(x, y)
         neighbors = []
         # Check neighboring cells
@@ -154,10 +154,7 @@ class SpatialHash:
             for dy in [-1, 0, 1]:
                 check_cell = (cell[0] + dx, cell[1] + dy)
                 if check_cell in self.grid:
-                    for pos in self.grid[check_cell]:
-                        distance = math.sqrt((pos[0] - x) ** 2 + (pos[1] - y) ** 2)
-                        if distance <= radius:
-                            neighbors.append(pos)
+                    neighbors.extend(self.grid[check_cell])
         return neighbors
 
 
