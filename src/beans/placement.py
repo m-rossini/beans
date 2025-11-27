@@ -54,7 +54,7 @@ class ConsecutiveFailureValidator(PlacementValidator):
 
 
 class SpaceAvailabilityValidator(PlacementValidator):
-    """Tracks occupied space; detects saturation by analyzing remaining free space."""
+    """Tracks occupied space using bitset; detects saturation by analyzing remaining free space."""
     
     def __init__(self, width: int, height: int, cell_size: int = 1) -> None:
         self.width = width
@@ -62,27 +62,47 @@ class SpaceAvailabilityValidator(PlacementValidator):
         self.cell_size = cell_size
         self.grid_width = (width + cell_size - 1) // cell_size
         self.grid_height = (height + cell_size - 1) // cell_size
-        self.occupied: set[tuple[int, int]] = set()
+        self.total_cells = self.grid_width * self.grid_height
+        # Bitset: use bytearray for efficient bit storage (8 bits per byte)
+        self.bitmap = bytearray((self.total_cells + 7) // 8)
+        self.occupied_count = 0
     
-    def _get_cells(self, x: float, y: float, size: int) -> set[tuple[int, int]]:
-        """Get all grid cells occupied by a circle at (x, y) with given size."""
-        cells = set()
+    def _get_cell_index(self, grid_x: int, grid_y: int) -> int:
+        """Convert grid coordinates to linear cell index."""
+        return grid_y * self.grid_width + grid_x
+    
+    def _set_bit(self, cell_index: int) -> bool:
+        """Set bit at cell_index. Returns True if bit was already set."""
+        byte_index = cell_index // 8
+        bit_index = cell_index % 8
+        byte_val = self.bitmap[byte_index]
+        bit_was_set = (byte_val >> bit_index) & 1
+        self.bitmap[byte_index] |= (1 << bit_index)
+        if not bit_was_set:
+            self.occupied_count += 1
+        return bit_was_set
+    
+    def _get_cells(self, x: float, y: float, size: int) -> list[int]:
+        """Get all grid cell indices occupied by a circle at (x, y) with given size."""
+        cells = []
         radius = size
         x_min = max(0, int((x - radius) // self.cell_size))
         x_max = min(self.grid_width - 1, int((x + radius) // self.cell_size))
         y_min = max(0, int((y - radius) // self.cell_size))
         y_max = min(self.grid_height - 1, int((y + radius) // self.cell_size))
         
-        for grid_x in range(x_min, x_max + 1):
-            for grid_y in range(y_min, y_max + 1):
-                cells.add((grid_x, grid_y))
+        for grid_y in range(y_min, y_max + 1):
+            for grid_x in range(x_min, x_max + 1):
+                cell_index = self._get_cell_index(grid_x, grid_y)
+                cells.append(cell_index)
         
         return cells
     
     def mark_placed(self, x: float, y: float, size: int) -> None:
-        """Mark cells occupied by placed bean."""
+        """Mark cells occupied by placed bean using bitset."""
         cells = self._get_cells(x, y, size)
-        self.occupied.update(cells)
+        for cell_index in cells:
+            self._set_bit(cell_index)
     
     def mark_failed(self) -> None:
         """No-op for space availability validator."""
@@ -90,14 +110,14 @@ class SpaceAvailabilityValidator(PlacementValidator):
     
     def is_saturated(self) -> bool:
         """Check if less than 10% free space remains."""
-        total_cells = self.grid_width * self.grid_height
-        free_cells = total_cells - len(self.occupied)
-        free_ratio = free_cells / total_cells
+        free_cells = self.total_cells - self.occupied_count
+        free_ratio = free_cells / self.total_cells
         return free_ratio < 0.1
     
     def reset(self) -> None:
-        """Clear occupied cells."""
-        self.occupied.clear()
+        """Clear all bits in bitmap."""
+        self.bitmap = bytearray((self.total_cells + 7) // 8)
+        self.occupied_count = 0
 
 
 def _snap_to_half_pixel(value: float) -> float:
