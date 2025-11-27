@@ -31,8 +31,12 @@ class World:
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.beans: List[Bean] = self._initialize()
+        self.initial_beans: int = len(self.beans)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
+        self.max_age_years = config.max_age_years
+        self.rounds_per_year = config.rounds_per_year
+        self.max_age_months = self.max_age_years * self.rounds_per_year
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
@@ -51,18 +55,21 @@ class World:
         ]
 
     def step(self, dt: float) -> None:
-        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}")
+        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
             result = bean.update(dt)
             energy_after_update = result["energy"]
+            if bean.age >= self.max_age_months:
+                self._mark_dead(bean, reason="max_age_reached")
+                deaths_this_step += 1
+                continue
             if energy_after_update <= 0:
                 self._mark_dead(bean, reason="energy_depleted")
                 deaths_this_step += 1
             else:
                 survivors.append(bean)
-        logger.debug(f">>>>> World.step: completed bean updates. survivors_count={len(survivors)}")
         self.beans = survivors
         if deaths_this_step > 0:
             logger.debug(f">>>>> World.step: {deaths_this_step} beans died, {len(survivors)} survived")

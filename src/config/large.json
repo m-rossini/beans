@@ -2,7 +2,9 @@
   "world": {
     "width": 1600,
     "height": 1200,
-    "population_density": 0.7
+    "population_density": 0.7,
+    "max_age_years": 100,
+    "rounds_per_year": 12
   },
   "beans": {}
-}
+} 
