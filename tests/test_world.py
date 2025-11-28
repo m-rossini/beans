@@ -54,7 +54,7 @@ def test_world_kills_beans_when_age_limit_reached():
     world = World(config=cfg, beans_config=bcfg)
     bean = Bean(config=bcfg, id=0, sex=Sex.MALE)
     world.beans = [bean]
-    for any in range(world.max_age_months):
+    for _ in range(world.max_age_months):
         world.step(dt=1.0)
 
     assert bean not in world.beans
