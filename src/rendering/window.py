@@ -52,6 +52,7 @@ class WorldWindow(arcade.Window):
         self._prompt_active = False
         self._paused = False
         self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
+        self._help_active = False
 
     def _pause_for_empty_world(self) -> bool:
         """Set pause/prompt state when no beans remain."""
@@ -67,6 +68,8 @@ class WorldWindow(arcade.Window):
         self.sprite_list.draw()
         if self._prompt_active:
             self._draw_zero_bean_prompt()
+        if self._help_active:
+            self._draw_help_overlay()
 
     def on_update(self, delta_time: float):
         logger.debug(f">>>>> WorldWindow.on_update: delta_time={delta_time}")
@@ -94,7 +97,13 @@ class WorldWindow(arcade.Window):
             elif symbol == arcade.key.N or symbol == arcade.key.ESCAPE:
                 arcade.close_window()
             return
+        if symbol == arcade.key.F1:
+            self._help_active = not self._help_active
+            return
         if symbol == arcade.key.ESCAPE:
+            if self._help_active:
+                self._help_active = False
+                return
             logger.info(">>>>> ESC key pressed, closing window")
             arcade.close_window()
 
@@ -150,6 +159,60 @@ class WorldWindow(arcade.Window):
     def _invoke_reports(self) -> None:
         for reporter in self._reporters:
             reporter.generate(self.world_config, self.world.beans_config, self.world, self)
+
+    def _draw_help_overlay(self) -> None:
+        overlay_width = self.width * 0.8
+        overlay_height = self.height * 0.8
+        if overlay_width <= 0 or overlay_height <= 0:
+            return
+        center_x = self.width / 2
+        center_y = self.height / 2
+        half_width = overlay_width / 2
+        half_height = overlay_height / 2
+        left = center_x - half_width
+        right = center_x + half_width
+        bottom = center_y - half_height
+        top = center_y + half_height
+        overlay_color = self._overlay_color_for_background()
+        arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, overlay_color)
+        arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, border_width=2)
+        title_text = "Help"
+        help_lines = [
+            "F1 - Toggle this help",
+            "ESC - Close window",
+        ]
+        margin = max(24, overlay_width * 0.05)
+        text_width = overlay_width - margin * 2
+        title_font = max(20, min(int(self.height * 0.07), 32))
+        line_font = max(14, min(int(self.height * 0.05), 22))
+        text_color = self.background_color
+        text_x = left + margin
+        title_y = top - margin - title_font
+        arcade.draw_text(
+            title_text,
+            text_x,
+            title_y,
+            text_color,
+            font_size=title_font,
+            width=text_width,
+            align="left",
+            anchor_x="left",
+            anchor_y="top",
+        )
+        line_y = title_y - title_font - 10
+        for line in help_lines:
+            arcade.draw_text(
+                line,
+                text_x,
+                line_y,
+                text_color,
+                font_size=line_font,
+                width=text_width,
+                align="left",
+                anchor_x="left",
+                anchor_y="top",
+            )
+            line_y -= line_font + 6
 
     def _overlay_color_for_background(self) -> tuple[int, int, int, int]:
         color = self.background_color
