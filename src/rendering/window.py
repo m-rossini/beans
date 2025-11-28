@@ -91,7 +91,7 @@ class WorldWindow(arcade.Window):
             if symbol == arcade.key.Y:
                 self._invoke_reports()
                 arcade.close_window()
-            elif symbol == arcade.key.N:
+            elif symbol == arcade.key.N or symbol == arcade.key.ESCAPE:
                 arcade.close_window()
             return
         if symbol == arcade.key.ESCAPE:
@@ -99,37 +99,66 @@ class WorldWindow(arcade.Window):
             arcade.close_window()
 
     def _draw_zero_bean_prompt(self) -> None:
-        overlay_width = self.width * 0.7
-        overlay_height = self.height * 0.3
+        overlay_width = self.width * 0.8
+        overlay_height = self.height * 0.8
+        if overlay_width <= 0 or overlay_height <= 0:
+            return
         center_x = self.width / 2
         center_y = self.height / 2
-        left = center_x - overlay_width / 2
-        right = center_x + overlay_width / 2
-        bottom = center_y - overlay_height / 2
-        top = center_y + overlay_height / 2
-        arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, arcade.color.DARK_SLATE_GRAY)
+        half_width = overlay_width / 2
+        half_height = overlay_height / 2
+        left = center_x - half_width
+        right = center_x + half_width
+        bottom = center_y - half_height
+        top = center_y + half_height
+        overlay_color = self._overlay_color_for_background()
+        arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, overlay_color)
         arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, border_width=2)
-        prompt = "No live beans remain. Press Y for report or N to exit."
+        prompt_text = "No Alive Beans left."
+        action_text = "Do you want a report? Y or N?"
+        margin = max(24, overlay_width * 0.05)
+        text_width = overlay_width - margin * 2
+        prompt_font = max(18, min(int(self.height * 0.06), 32))
+        action_font = max(14, prompt_font - 4)
+        prompt_y = center_y + overlay_height * 0.15
+        text_color = self.background_color
+        text_x = left + margin
         arcade.draw_text(
-            prompt,
-            center_x - overlay_width / 2 + 20,
-            center_y + overlay_height / 4,
-            arcade.color.WHITE,
-            font_size=16,
-            width=overlay_width - 40,
+            prompt_text,
+            text_x,
+            prompt_y,
+            text_color,
+            font_size=prompt_font,
+            width=text_width,
             align="left",
+            anchor_x="left",
+            anchor_y="center",
         )
-        subtext = "The simulation is paused while awaiting your response."
+        action_y = center_y
         arcade.draw_text(
-            subtext,
-            center_x - overlay_width / 2 + 20,
-            center_y - overlay_height / 8,
-            arcade.color.LIGHT_GRAY,
-            font_size=14,
-            width=overlay_width - 40,
+            action_text,
+            text_x,
+            action_y,
+            text_color,
+            font_size=action_font,
+            width=text_width,
             align="left",
+            anchor_x="left",
+            anchor_y="center",
         )
 
     def _invoke_reports(self) -> None:
         for reporter in self._reporters:
             reporter.generate(self.world_config, self.world.beans_config, self.world, self)
+
+    def _overlay_color_for_background(self) -> tuple[int, int, int, int]:
+        color = self.background_color
+        if len(color) == 4:
+            base = color[:3]
+        else:
+            base = color
+        r, g, b = base
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
+        if luminance > 180:
+            return (20, 20, 20, 200)
+        return (240, 240, 240, 200)

@@ -9,7 +9,7 @@ Below is a list of different files covering different topics that MUST be follow
 
 Follow the instrucitons on this sections and the the instrucitons on each file.
 
-- When Asked somethig, never change or add code, always ANSWER and give an educated answer with pros and cons of your choice
+- When Asked a question, never change or add code, always ANSWER and give an educated answer with pros and cons of your choice
 - When in doubt, ask clarification questions. Do not assume, ask.
 - Stick to the request, do not go beyond what is asked.
 - Always use the commands in the make file. If they are not there please suggest adding them
