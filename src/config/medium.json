@@ -3,6 +3,7 @@
     "width": 800,
     "height": 600,
     "population_density": 0.1,
+    "placement_validator": "consecutive_failure",
     "max_age_years": 100,
     "rounds_per_year": 12
   },

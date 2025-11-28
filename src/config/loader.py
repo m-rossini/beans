@@ -16,6 +16,7 @@ class WorldConfig:
     height: int
     population_density: float
     placement_strategy: str
+    placement_validator: str = "consecutive_failure"
     population_estimator: str = "density"
     background_color: str = "white"
     max_age_years: int = 100
@@ -43,6 +44,7 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
     height=600,
     population_density=0.1,
     placement_strategy="random",
+    placement_validator="consecutive_failure",
     population_estimator="density",
     background_color="white",
     max_age_years=100,
@@ -81,6 +83,7 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         height=world_data.get('height', DEFAULT_WORLD_CONFIG.height),
         population_density=world_data.get('population_density', DEFAULT_WORLD_CONFIG.population_density),
         placement_strategy=world_data.get('placement_strategy', DEFAULT_WORLD_CONFIG.placement_strategy),
+        placement_validator=world_data.get('placement_validator', DEFAULT_WORLD_CONFIG.placement_validator),
         population_estimator=world_data.get('population_estimator', DEFAULT_WORLD_CONFIG.population_estimator),
         background_color=world_data.get('background_color', DEFAULT_WORLD_CONFIG.background_color),
         max_age_years=world_data.get('max_age_years', DEFAULT_WORLD_CONFIG.max_age_years),

@@ -38,6 +38,7 @@ def test_load_config_with_valid_file():
         assert world_config.male_female_ratio == 1.0
         assert world_config.population_density == 0.5
         assert world_config.placement_strategy == "random"
+        assert world_config.placement_validator == "consecutive_failure"  # default
         assert world_config.width == 800
         assert world_config.height == 600
         assert beans_config.max_bean_age == 100
@@ -49,6 +50,23 @@ def test_load_config_with_valid_file():
     finally:
         os.unlink(temp_file)
 
+
+def test_load_config_placement_validator_loads_from_file():
+    config_data = {
+        "world": {
+            "placement_validator": "consecutive_failure"
+        },
+        "beans": {}
+    }
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        json.dump(config_data, f)
+        temp_file = f.name
+
+    try:
+        world_config, _ = load_config(temp_file)
+        assert world_config.placement_validator == "consecutive_failure"
+    finally:
+        os.unlink(temp_file)
 
 
 def test_load_config_invalid_values_raise():
