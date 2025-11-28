@@ -53,6 +53,15 @@ class WorldWindow(arcade.Window):
         self._paused = False
         self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
 
+    def _pause_for_empty_world(self) -> bool:
+        """Set pause/prompt state when no beans remain."""
+        if self.world.beans:
+            return False
+        if not self._prompt_active:
+            self._prompt_active = True
+            self._paused = True
+        return True
+
     def on_draw(self):
         self.clear()
         self.sprite_list.draw()
@@ -61,6 +70,8 @@ class WorldWindow(arcade.Window):
 
     def on_update(self, delta_time: float):
         logger.debug(f">>>>> WorldWindow.on_update: delta_time={delta_time}")
+        if self._pause_for_empty_world():
+            return
         if self._paused:
             return
         self.world.step(delta_time)
@@ -73,9 +84,7 @@ class WorldWindow(arcade.Window):
         for sprite in self.bean_sprites:
             self.sprite_list.append(sprite)
         logger.debug(f">>>>> WorldWindow.on_update: {len(self.bean_sprites)} sprites active")
-        if not self.world.beans and not self._prompt_active:
-            self._prompt_active = True
-            self._paused = True
+        self._pause_for_empty_world()
 
     def on_key_press(self, symbol: int, modifiers: int):
         if self._prompt_active:
@@ -94,8 +103,12 @@ class WorldWindow(arcade.Window):
         overlay_height = self.height * 0.3
         center_x = self.width / 2
         center_y = self.height / 2
-        arcade.draw_rectangle_filled(center_x, center_y, overlay_width, overlay_height, arcade.color.DARK_SLATE_GRAY)
-        arcade.draw_rectangle_outline(center_x, center_y, overlay_width, overlay_height, arcade.color.WHITE, border_width=2)
+        left = center_x - overlay_width / 2
+        right = center_x + overlay_width / 2
+        bottom = center_y - overlay_height / 2
+        top = center_y + overlay_height / 2
+        arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, arcade.color.DARK_SLATE_GRAY)
+        arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, border_width=2)
         prompt = "No live beans remain. Press Y for report or N to exit."
         arcade.draw_text(
             prompt,
