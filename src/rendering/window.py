@@ -31,11 +31,20 @@ class WorldWindow(arcade.Window):
         bg_color = _color_from_name(self.world_config.background_color)
         self.background_color = bg_color
         self.placement_strategy = world.placement_strategy
+        requested_count = len(self.world.beans)
         positions = self.placement_strategy.place(
-            len(self.world.beans), self.world.width, self.world.height, self.world.sprite_size
+            requested_count, self.world.width, self.world.height, self.world.sprite_size
         )
+        placed_count = len(positions)
+        if requested_count > 0 and placed_count < requested_count * 0.9:
+            raise ValueError(
+                f"Placement failed: only {placed_count} of {requested_count} beans placed "
+                f"({placed_count / requested_count * 100:.1f}%). "
+                f"Reduce population_density or increase world size."
+            )
         logger.info(
-            f"WorldWindow::__init__: Generated positions for beans with width={self.world.width}, height={self.world.height}, sprite_size={self.world.sprite_size}"
+            f"WorldWindow::__init__: Generated {placed_count} positions for {requested_count} beans "
+            f"with width={self.world.width}, height={self.world.height}, sprite_size={self.world.sprite_size}"
         )
         for pos in positions:
             logger.debug(f"WorldWindow::__init__: Position: {pos}")

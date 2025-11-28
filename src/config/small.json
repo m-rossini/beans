@@ -3,6 +3,7 @@
     "width": 400,
     "height": 300,
     "population_density": 0.005,
+    "placement_validator": "consecutive_failure",
     "max_age_years": 10,
     "rounds_per_year": 5,
     "background_color": "WHITE"

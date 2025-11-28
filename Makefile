@@ -64,4 +64,4 @@ build:  ## Build the package
 all: format lint type-check test  ## Run all checks (format, lint, type-check, test)
 
 run:  ## Run the main application. Use CONFIG=path/to/config.json LOGGING_LEVEL=level LOG_FILE=path to override.
-	set PYTHONPATH=src && python scripts/run_window.py $(CONFIG) --logging-level $(LOGGING_LEVEL) $(if $(LOG_FILE),--log-file $(LOG_FILE))
+	set PYTHONPATH=src && python scripts/run_window.py $(CONFIG) $(if $(LOGGING_LEVEL),--logging-level $(LOGGING_LEVEL)) $(if $(LOG_FILE),--log-file $(LOG_FILE))

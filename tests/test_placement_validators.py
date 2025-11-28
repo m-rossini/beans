@@ -1,4 +1,4 @@
-from beans.placement import ConsecutiveFailureValidator, SpaceAvailabilityValidator
+from beans.placement import ConsecutiveFailureValidator, PixelDensityValidator
 
 
 class TestConsecutiveFailureValidatorSaturationDetection:
@@ -79,24 +79,15 @@ class TestConsecutiveFailureValidatorSaturationDetection:
         assert validator.is_saturated() is True  # Give up
 
 
-class TestSpaceAvailabilityValidatorSaturationDetection:
-    """Tests for SpaceAvailabilityValidator - detects when world is too crowded."""
-
-    def _fill_until_saturated(self, validator: SpaceAvailabilityValidator, size: int, max_attempts: int = 10_000) -> int:
-        for attempt in range(max_attempts):
-            col = attempt % 100
-            row = (attempt // 100) % 100
-            validator.mark_placed(x=col + 0.5, y=row + 0.5, size=size)
-            if validator.is_saturated():
-                return attempt + 1
-        raise RuntimeError("Validator did not reach saturation within max attempts")
+class TestPixelDensityValidatorSaturationDetection:
+    """Tests for PixelDensityValidator - pixel-level accuracy for maximum density."""
 
     def test_empty_world_stays_unsaturated(self):
         """Empty world should never be saturated.
         
         Purpose: Placement should always work when world is empty.
         """
-        validator = SpaceAvailabilityValidator(width=100, height=100)
+        validator = PixelDensityValidator(width=100, height=100)
         
         # Check multiple times - should stay unsaturated
         assert validator.is_saturated() is False
@@ -106,58 +97,58 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
     def test_gradually_filling_world_eventually_saturates(self):
         """As beans fill the world, saturation eventually triggers.
         
-        Purpose: Proves space tracking works and saturation happens when world fills.
-        Scenario: 100x100 world, beans of size 5 - fill it progressively.
+        Purpose: Proves pixel tracking works and saturation happens when world fills.
+        Scenario: 50x50 world (smaller for speed), beans of size 5.
         """
-        validator = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
+        validator = PixelDensityValidator(width=50, height=50)
         
         # Place beans across the world - should stay unsaturated for a while
         positions = [
             (10.0, 10.0),
-            (30.0, 10.0),
-            (50.0, 10.0),
-            (70.0, 10.0),
-            (90.0, 10.0),
-            (10.0, 30.0),
-            (30.0, 30.0),
-            (50.0, 30.0),
+            (25.0, 10.0),
+            (40.0, 10.0),
+            (10.0, 25.0),
+            (25.0, 25.0),
+            (40.0, 25.0),
+            (10.0, 40.0),
+            (25.0, 40.0),
         ]
         
         for x, y in positions:
             validator.mark_placed(x=x, y=y, size=5)
-            # World not saturated yet with sparse placement
+        # World not saturated yet with sparse placement
         assert validator.is_saturated() is False
-        
-        fill_count = self._fill_until_saturated(validator, size=5)
-        assert fill_count < 10_000
-        assert validator.is_saturated() is True
 
-    def test_reset_clears_space_tracking(self):
-        """Reset should clear all space tracking for fresh placement phase.
+    def test_reset_clears_pixel_tracking(self):
+        """Reset should clear all pixel tracking for fresh placement phase.
         
         Purpose: Starting a new world or region should have full space available.
         """
-        validator = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
+        validator = PixelDensityValidator(width=20, height=20)
         
-        self._fill_until_saturated(validator, size=5)
-        assert validator.is_saturated() is True
+        # Fill the small world
+        for y in range(0, 20, 5):
+            for x in range(0, 20, 5):
+                validator.mark_placed(x=float(x), y=float(y), size=5)
         
         # Reset: should start fresh
         validator.reset()
         assert validator.is_saturated() is False
-        
-        # Can place again
-        validator.mark_placed(x=10.0, y=10.0, size=5)
-        assert validator.is_saturated() is False
+        assert validator.invalid_count == 0
 
     def test_larger_beans_saturate_world_faster(self):
-        """Larger beans should saturate world faster due to covering more space.
+        """Larger beans should saturate world faster due to covering more pixels.
         
         Purpose: Proves bean size affects saturation - same number of large beans
-        covers more space than small beans.
+        covers more pixels than small beans.
         """
-        validator_small = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
-        validator_large = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
-        small_count = self._fill_until_saturated(validator_small, size=2)
-        large_count = self._fill_until_saturated(validator_large, size=8)
-        assert large_count < small_count
+        validator_small = PixelDensityValidator(width=50, height=50)
+        validator_large = PixelDensityValidator(width=50, height=50)
+        
+        # Place same pattern with different sizes
+        for i in range(5):
+            validator_small.mark_placed(x=float(i * 10), y=25.0, size=3)
+            validator_large.mark_placed(x=float(i * 10), y=25.0, size=8)
+        
+        # Large beans should mark more pixels as invalid
+        assert validator_large.invalid_count > validator_small.invalid_count

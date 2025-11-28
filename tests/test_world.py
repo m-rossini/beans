@@ -24,7 +24,7 @@ def test_world_uses_config_dimensions_by_default():
 
 
 def test_world_window_title_displays_round_number():
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=20, height=20, population_density=1.0, placement_strategy='random')
+    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=100, height=100, population_density=0.1, placement_strategy='random')
     bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10)
     world = World(config=cfg, beans_config=bcfg)
     window = WorldWindow(world)

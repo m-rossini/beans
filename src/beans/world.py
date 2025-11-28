@@ -28,7 +28,10 @@ class World:
         self.sprite_size = beans_config.initial_bean_size
         self.population_density = config.population_density
         self.male_female_ratio = config.male_female_ratio
-        self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
+        self.placement_strategy = create_strategy_from_name(
+            self.world_config.placement_strategy,
+            self.world_config.placement_validator
+        )
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
