@@ -1,7 +1,7 @@
 import pytest
 import arcade
 import logging
-from beans.bean import Bean, Sex
+from beans.bean import Bean, Sex, Gene, Genotype
 from config.loader import BeansConfig
 from rendering.bean_sprite import BeanSprite
 
@@ -21,12 +21,21 @@ class TestBeanSprite:
         )
 
     @pytest.fixture
-    def male_bean(self, beans_config):
-        return Bean(config=beans_config, id=1, sex=Sex.MALE)
+    def sample_genotype(self):
+        return Genotype(genes={
+            Gene.METABOLISM_SPEED: 0.5,
+            Gene.MAX_GENETIC_SPEED: 0.5,
+            Gene.FAT_ACCUMULATION: 0.5,
+            Gene.MAX_GENETIC_AGE: 0.5,
+        })
 
     @pytest.fixture
-    def female_bean(self, beans_config):
-        return Bean(config=beans_config, id=2, sex=Sex.FEMALE)
+    def male_bean(self, beans_config, sample_genotype):
+        return Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype)
+
+    @pytest.fixture
+    def female_bean(self, beans_config, sample_genotype):
+        return Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype)
 
     def test_sprite_creation_male(self, male_bean):
         position = (100.0, 200.0)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 import logging
-from .bean import Bean, Sex
+from .bean import Bean, Sex, create_random_genotype
 from .placement import PlacementStrategy, create_strategy_from_name
 from .population import (
     PopulationEstimator,
@@ -50,7 +50,12 @@ class World:
         bean_count = male_count + female_count
         logger.info(f">>>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
         return [
-            Bean(config=self.beans_config, id=i, sex=Sex.MALE if i < male_count else Sex.FEMALE)
+            Bean(
+                config=self.beans_config,
+                id=i,
+                sex=Sex.MALE if i < male_count else Sex.FEMALE,
+                genotype=create_random_genotype(),
+            )
             for i in range(bean_count)
         ]
 
