@@ -57,3 +57,21 @@ class TestBeanSprite:
         # Currently does nothing, but test it doesn't crash
         sprite.update_from_bean()
         assert sprite.bean == male_bean
+
+    def test_sprite_direction_default_in_valid_range(self, male_bean):
+        position = (100.0, 200.0)
+        color = arcade.color.BLUE
+        sprite = BeanSprite(male_bean, position, color)
+        assert 0.0 <= sprite.direction < 360.0
+
+    def test_sprite_direction_explicit_value(self, female_bean):
+        position = (150.0, 250.0)
+        color = arcade.color.RED
+        sprite = BeanSprite(female_bean, position, color, direction=45.0)
+        assert sprite.direction == 45.0
+
+    def test_sprite_direction_normalized(self, male_bean):
+        position = (100.0, 200.0)
+        color = arcade.color.BLUE
+        sprite = BeanSprite(male_bean, position, color, direction=450.0)
+        assert sprite.direction == 90.0

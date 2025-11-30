@@ -14,11 +14,10 @@ logger = logging.getLogger(__name__)
 def test_create_bean_default_values():
     b = Bean(config=BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5), id=1, sex=Sex.MALE)
     assert b.age == 0.0
-    assert 0.0 <= b.direction < 360.0
 
 
 def test_bean_update_increments_age():
-    b = Bean(config=BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5), id=2, sex=Sex.FEMALE, speed=10.0, direction=0.0)
+    b = Bean(config=BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5), id=2, sex=Sex.FEMALE, speed=10.0)
     initial_age = b.age
     b.update(dt=1.0)
     assert b.age == initial_age + 1.0
