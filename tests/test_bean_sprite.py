@@ -1,7 +1,7 @@
 import pytest
 import arcade
 import logging
-from beans.bean import Bean, Sex, Gene, Genotype
+from beans.bean import Bean, Sex, Gene, Genotype, Phenotype
 from config.loader import BeansConfig
 from rendering.bean_sprite import BeanSprite
 
@@ -30,12 +30,17 @@ class TestBeanSprite:
         })
 
     @pytest.fixture
-    def male_bean(self, beans_config, sample_genotype):
-        return Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype)
+    def sample_phenotype(self):
+        """Create a phenotype for testing with controlled values."""
+        return Phenotype(age=0.0, speed=15.0, energy=50.0, size=5.0)
 
     @pytest.fixture
-    def female_bean(self, beans_config, sample_genotype):
-        return Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype)
+    def male_bean(self, beans_config, sample_genotype, sample_phenotype):
+        return Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=sample_phenotype)
+
+    @pytest.fixture
+    def female_bean(self, beans_config, sample_genotype, sample_phenotype):
+        return Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=sample_phenotype)
 
     def test_sprite_creation_male(self, male_bean):
         position = (100.0, 200.0)

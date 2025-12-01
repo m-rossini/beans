@@ -1,6 +1,7 @@
 import random
 import logging
-from typing import NamedTuple, Optional
+from dataclasses import dataclass, asdict
+from typing import NamedTuple
 from enum import Enum
 
 from pydantic import BaseModel, field_validator
@@ -68,14 +69,66 @@ def create_random_genotype() -> Genotype:
         genes={gene: random.uniform(gene.min, gene.max) for gene in Gene}
     )
 
+
+@dataclass
+class Phenotype:
+    """Mutable expression of genetic traits that change over time.
+    
+    Attributes:
+        age: Current age in simulation ticks
+        speed: Current movement speed (absolute, direction handled by sprite)
+        energy: Current energy level
+        size: Current size (represents fatness)
+    """
+    age: float
+    speed: float
+    energy: float
+    size: float
+
+    def to_dict(self) -> dict:
+        """Serialize phenotype to dictionary for state persistence."""
+        return asdict(self)
+
+
+def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
+    """Create initial phenotype from config and genotype.
+    
+    # TODO: Review initial values for phenotype creation
+    """
+    max_genetic_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
+    return Phenotype(
+        age=0.0,
+        speed=random.uniform(-max_genetic_speed, max_genetic_speed),
+        energy=config.initial_energy,
+        size=float(config.initial_bean_size),
+    )
+
+
+def can_survive_energy(energy: float) -> bool:
+    """Check if energy level is survivable.
+    
+    # TODO: Implement energy survival bounds check
+    """
+    return True
+
+
+def can_survive_size(size: float) -> bool:
+    """Check if size is survivable.
+    
+    # TODO: Implement size survival bounds check
+    """
+    return True
+
+
 class Sex(Enum):
     MALE = "male"
     FEMALE = "female"
 
 class Bean:
-    """Bean with mutable state, initialized from optional BeansConfig.
+    """Bean with mutable state, initialized from BeansConfig.
 
     Variables are expected to be set during construction. `update()` modifies the bean in place.
+    Phenotype contains the mutable traits (age, speed, energy, size) that change over time.
     """
 
     def __init__(
@@ -84,22 +137,35 @@ class Bean:
         id: int,
         sex: Sex,
         genotype: Genotype,
-        speed: Optional[float] = None,
+        phenotype: Phenotype,
     ) -> None:
 
         self.beans_config = config
         self.id = id
         self.sex = sex
         self.genotype = genotype
-        self.age = 0.0
-        self.speed = random.uniform(config.speed_min, config.speed_max) if speed is None else speed
-        self.energy = config.initial_energy
-        self.size = config.initial_bean_size
+        self._phenotype = phenotype
         logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, speed={self.speed:.2f}, energy={self.energy}, genotype={self.genotype.genes}")
+
+    @property
+    def age(self) -> float:
+        return self._phenotype.age
+
+    @property
+    def speed(self) -> float:
+        return self._phenotype.speed
+
+    @property
+    def energy(self) -> float:
+        return self._phenotype.energy
+
+    @property
+    def size(self) -> float:
+        return self._phenotype.size
 
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics."""
-        self.age += 1.0
+        self._phenotype.age += 1.0
         energy = self._energy_tick(dt)
         logger.debug(f">>>>> Bean {self.id} after update: age={self.age}, energy={energy:.2f}, dt={dt}")
         return {"energy": energy}
@@ -109,7 +175,7 @@ class Bean:
         gain = self.beans_config.energy_gain_per_step
         cost = abs(self.speed) * self.beans_config.energy_cost_per_speed
         old_energy = self.energy
-        self.energy += gain - cost
+        self._phenotype.energy += gain - cost
         logger.debug(f">>>>> Bean {self.id} _energy_tick: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, cost_per_speed={self.beans_config.energy_cost_per_speed}, dt={dt}")
         return self.energy
 

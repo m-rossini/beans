@@ -4,7 +4,7 @@ import pytest
 
 from pydantic import ValidationError
 
-from beans.bean import Bean, Sex, Gene, Genotype, create_random_genotype
+from beans.bean import Bean, Sex, Gene, Genotype, Phenotype, create_random_genotype
 from config.loader import BeansConfig
 from beans.placement import RandomPlacementStrategy
 
@@ -23,28 +23,36 @@ def sample_genotype() -> Genotype:
 
 
 @pytest.fixture
+def sample_phenotype() -> Phenotype:
+    """Create a phenotype for testing with controlled values."""
+    return Phenotype(age=0.0, speed=5.0, energy=100.0, size=5.0)
+
+
+@pytest.fixture
 def beans_config() -> BeansConfig:
     return BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5)
 
 
-def test_create_bean_default_values(beans_config, sample_genotype):
-    b = Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype)
+def test_create_bean_default_values(beans_config, sample_genotype, sample_phenotype):
+    b = Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=sample_phenotype)
     assert b.age == 0.0
     assert b.genotype == sample_genotype
 
 
 def test_bean_update_increments_age(beans_config, sample_genotype):
-    b = Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype, speed=10.0)
+    phenotype = Phenotype(age=0.0, speed=10.0, energy=100.0, size=5.0)
+    b = Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=phenotype)
     initial_age = b.age
     b.update(dt=1.0)
     assert b.age == initial_age + 1.0
 
 
-def test_bean_mutable_fields(beans_config, sample_genotype):
-    b = Bean(config=beans_config, id=3, sex=Sex.FEMALE, genotype=sample_genotype)
-    # Should be able to change attributes after creation
-    b.age = 1.0
-    assert b.age == 1.0
+def test_bean_mutable_fields(beans_config, sample_genotype, sample_phenotype):
+    b = Bean(config=beans_config, id=3, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=sample_phenotype)
+    # Phenotype changes through update cycle, not direct assignment
+    initial_age = b.age
+    b.update(dt=1.0)
+    assert b.age == initial_age + 1.0
 
 
 def test_random_placement_within_bounds():

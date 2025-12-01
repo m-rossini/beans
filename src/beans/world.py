@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 import logging
-from .bean import Bean, Sex, create_random_genotype
+from .bean import Bean, Sex, create_random_genotype, create_phenotype
 from .placement import PlacementStrategy, create_strategy_from_name
 from .population import (
     PopulationEstimator,
@@ -40,6 +40,7 @@ class World:
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
+        # TODO: Extract bean creation into a dedicated method
         male_count, female_count = self.population_estimator.estimate(
             width=self.width,
             height=self.height,
@@ -49,16 +50,25 @@ class World:
         )
         bean_count = male_count + female_count
         logger.info(f">>>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
-        return [
-            Bean(
-                config=self.beans_config,
+        beans = self._create_beans(self.beans_config, bean_count, male_count)
+
+        return beans
+
+    def _create_beans(self, beans_config: BeansConfig, bean_count: int, male_count: int) -> List[Bean]:
+        beans = []
+        for i in range(bean_count):
+            genotype = create_random_genotype()
+            phenotype = create_phenotype(beans_config, genotype)
+            bean = Bean(
+                config=beans_config,
                 id=i,
                 sex=Sex.MALE if i < male_count else Sex.FEMALE,
-                genotype=create_random_genotype(),
+                genotype=genotype,
+                phenotype=phenotype,
             )
-            for i in range(bean_count)
-        ]
-
+            beans.append(bean)
+        return beans
+        
     def step(self, dt: float) -> None:
         logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
         survivors: List[Bean] = []

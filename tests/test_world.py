@@ -1,7 +1,7 @@
 import logging
 import arcade
 from beans.world import World
-from beans.bean import Bean, Sex, create_random_genotype
+from beans.bean import Bean, Sex, create_random_genotype, Phenotype, create_phenotype
 from rendering.window import WorldWindow
 from config.loader import WorldConfig, BeansConfig
 
@@ -52,7 +52,9 @@ def test_world_kills_beans_when_age_limit_reached():
     )
     bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10)
     world = World(config=cfg, beans_config=bcfg)
-    bean = Bean(config=bcfg, id=0, sex=Sex.MALE, genotype=create_random_genotype())
+    genotype = create_random_genotype()
+    phenotype = create_phenotype(bcfg, genotype)
+    bean = Bean(config=bcfg, id=0, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     world.beans = [bean]
     for _ in range(world.max_age_months):
         world.step(dt=1.0)
