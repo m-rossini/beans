@@ -31,6 +31,10 @@ class BeansConfig:
     energy_gain_per_step: float = 1.0
     energy_cost_per_speed: float = 0.1
     initial_bean_size: int = 5
+    min_bean_size: float = 3.0       # starvation death
+    base_bean_size: float = 6.0      # normal healthy adult
+    max_bean_size: float = 16.0      # absolute physical limit
+    energy_baseline: float = 50.0    # neutral metabolism line
     male_bean_color: str = "blue"
     female_bean_color: str = "red"
 
@@ -57,6 +61,10 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     energy_gain_per_step=1.0,
     energy_cost_per_speed=0.1,
     initial_bean_size=5,
+    min_bean_size=3.0,
+    base_bean_size=6.0,
+    max_bean_size=16.0,
+    energy_baseline=50.0,
     male_bean_color="blue",
     female_bean_color="red",
 )
@@ -98,8 +106,6 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
         female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
     )
-
-
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
     def validate_world(cfg: WorldConfig) -> None:

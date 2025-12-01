@@ -32,7 +32,7 @@ class TestBeanSprite:
     @pytest.fixture
     def sample_phenotype(self):
         """Create a phenotype for testing with controlled values."""
-        return Phenotype(age=0.0, speed=15.0, energy=50.0, size=5.0)
+        return Phenotype(age=0.0, speed=15.0, energy=50.0, size=5.0, target_size=5.0)
 
     @pytest.fixture
     def male_bean(self, beans_config, sample_genotype, sample_phenotype):

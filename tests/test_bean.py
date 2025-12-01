@@ -25,7 +25,7 @@ def sample_genotype() -> Genotype:
 @pytest.fixture
 def sample_phenotype() -> Phenotype:
     """Create a phenotype for testing with controlled values."""
-    return Phenotype(age=0.0, speed=5.0, energy=100.0, size=5.0)
+    return Phenotype(age=0.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def test_create_bean_default_values(beans_config, sample_genotype, sample_phenot
 
 
 def test_bean_update_increments_age(beans_config, sample_genotype):
-    phenotype = Phenotype(age=0.0, speed=10.0, energy=100.0, size=5.0)
+    phenotype = Phenotype(age=0.0, speed=10.0, energy=100.0, size=5.0, target_size=5.0)
     b = Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=phenotype)
     initial_age = b.age
     b.update(dt=1.0)

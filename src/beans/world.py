@@ -40,7 +40,6 @@ class World:
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
-        # TODO: Extract bean creation into a dedicated method
         male_count, female_count = self.population_estimator.estimate(
             width=self.width,
             height=self.height,
