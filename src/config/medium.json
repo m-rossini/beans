@@ -13,7 +13,6 @@
     "rounds_per_year": 12
   },
   "beans": {
-    "max_bean_age": 1000,
     "speed_min": -80.0,
     "speed_max": 80.0,
     "initial_energy": 100.0,

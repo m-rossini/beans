@@ -41,8 +41,14 @@ class Bean:
         self.sex = sex
         self.genotype = genotype
         self._phenotype = phenotype
+        self._max_age = genetic_max_age(config, genotype)
         
-        logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, genotype={self.genotype.genes}, phenotype={self._phenotype.to_dict()}")
+        logger.debug(
+            f">>>>> Bean {self.id} created: sex={self.sex.value}, "
+            f"genotype={self.genotype.to_compact_str()}, "
+            f"phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, "
+            f"energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}"
+        )
 
     @property
     def age(self) -> float:
@@ -98,14 +104,13 @@ class Bean:
         return ret_val 
 
     def _update_speed(self):
-        max_age = genetic_max_age(self.beans_config, self.genotype)
         vmax = genetic_max_speed(self.beans_config, self.genotype)
 
-        life_factor = age_speed_factor(self.age, max_age)
+        life_factor = age_speed_factor(self.age, self._max_age)
         size_factor = self._size_speed_penalty()
 
         self._phenotype.speed = vmax * life_factor * size_factor
-        logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f}, new_speed={self._phenotype.speed:.2f}")    
+        logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f}, new_speed={self._phenotype.speed:.2f}")    
 
     def _update_energy(self, dt: float = 1.0) -> float:
         """Adjust energy based on per-step gains and movement costs."""
@@ -122,4 +127,21 @@ class Bean:
     @property
     def is_female(self) -> bool:
         return self.sex == Sex.FEMALE
+
+    def can_survive_age(self) -> bool:
+        """Check if bean can survive based on age vs genetic max age."""
+        return self.age < self._max_age
+
+    def survive(self) -> tuple[bool, str | None]:
+        """Check if bean survives this step.
+        
+        Returns:
+            (alive, reason): alive is True if bean survives, False otherwise.
+                            reason is None if alive, otherwise the death reason.
+        """
+        if not self.can_survive_age():
+            return False, "max_age_reached"
+        if self.energy <= 0:
+            return False, "energy_depleted"
+        return True, None
 

@@ -29,15 +29,15 @@ class World:
         self.sprite_size = beans_config.initial_bean_size
         self.population_density = config.population_density
         self.male_female_ratio = config.male_female_ratio
+        self.max_age_years = config.max_age_years
+        self.rounds_per_year = config.rounds_per_year
+        self.max_age_rounds = self.max_age_years * self.rounds_per_year
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
-        self.max_age_years = config.max_age_years
-        self.rounds_per_year = config.rounds_per_year
-        self.max_age_months = self.max_age_years * self.rounds_per_year
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
@@ -74,14 +74,10 @@ class World:
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
-            result = bean.update(dt)
-            if bean.age >= self.max_age_months:
-                self._mark_dead(bean, reason="max_age_reached")
-                deaths_this_step += 1
-                continue
-            phenotype_after_update = result["phenotype"]
-            if phenotype_after_update["energy"] <= 0:
-                self._mark_dead(bean, reason="energy_depleted")
+            bean.update(dt)
+            alive, reason = bean.survive()
+            if not alive:
+                self._mark_dead(bean, reason=reason)
                 deaths_this_step += 1
             else:
                 survivors.append(bean)

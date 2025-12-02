@@ -19,7 +19,6 @@ def test_load_config_with_valid_file():
             "placement_strategy": "random"
         },
         "beans": {
-            "max_bean_age": 100,
             "speed_min": -5,
             "speed_max": 5,
             "initial_bean_size": 10,
@@ -40,7 +39,6 @@ def test_load_config_with_valid_file():
         assert world_config.placement_strategy == "random"
         assert world_config.width == 800
         assert world_config.height == 600
-        assert beans_config.max_bean_age == 100
         assert beans_config.speed_min == -5
         assert beans_config.speed_max == 5
         assert beans_config.initial_bean_size == 10
@@ -67,7 +65,7 @@ def test_load_config_invalid_values_raise():
 
 def test_load_config_beans_invalid_speed_zero_raises():
     # speed_min or speed_max zero should raise
-    config_data = {"world": {}, "beans": {"max_bean_age": 100, "speed_min": 0, "speed_max": 5}}
+    config_data = {"world": {}, "beans": {"speed_min": 0, "speed_max": 5}}
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
@@ -135,20 +133,6 @@ def test_load_config_world_invalid_male_female_ratio_raises():
         os.unlink(temp_file)
 
 
-def test_load_config_beans_invalid_max_age_raises():
-    # max_bean_age <0 should raise
-    config_data = {"world": {}, "beans": {"max_bean_age": -1}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(config_data, f)
-        temp_file = f.name
-    try:
-        import pytest
-        with pytest.raises(ValueError):
-            load_config(temp_file)
-    finally:
-        os.unlink(temp_file)
-
-
 def test_load_config_beans_invalid_initial_energy_raises():
     # initial_energy <0 should raise
     config_data = {"world": {}, "beans": {"initial_energy": -10}}
@@ -193,7 +177,7 @@ def test_load_config_beans_invalid_energy_cost_raises():
 
 def test_load_config_beans_invalid_speed_zero_raises():
     # speed_min equal to zero should raise
-    config_data = {"world": {}, "beans": {"max_bean_age": 100, "speed_min": 0, "speed_max": 5}}
+    config_data = {"world": {}, "beans": {"speed_min": 0, "speed_max": 5}}
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
@@ -205,7 +189,7 @@ def test_load_config_beans_invalid_speed_zero_raises():
         os.unlink(temp_file)
 
     # speed_max equal to zero should raise
-    config_data = {"world": {}, "beans": {"max_bean_age": 100, "speed_min": -5, "speed_max": 0}}
+    config_data = {"world": {}, "beans": {"speed_min": -5, "speed_max": 0}}
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name

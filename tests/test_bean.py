@@ -31,7 +31,7 @@ def sample_phenotype() -> Phenotype:
 
 @pytest.fixture
 def beans_config() -> BeansConfig:
-    return BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5)
+    return BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100)
 
 
 def test_create_bean_default_values(beans_config, sample_genotype, sample_phenotype):

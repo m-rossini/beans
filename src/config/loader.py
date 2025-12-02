@@ -24,9 +24,9 @@ class WorldConfig:
 
 @dataclass
 class BeansConfig:
-    max_bean_age: int
     speed_min: float
     speed_max: float
+    max_age_rounds: int = 1200       # computed from world.max_age_years * world.rounds_per_year
     initial_energy: float = 100.0
     energy_gain_per_step: float = 1.0
     energy_cost_per_speed: float = 0.1
@@ -54,9 +54,9 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
 )
 
 DEFAULT_BEANS_CONFIG = BeansConfig(
-    max_bean_age=1000,
     speed_min=-80.0,
     speed_max=80.0,
+    max_age_rounds=1200,
     initial_energy=100.0,
     energy_gain_per_step=1.0,
     energy_cost_per_speed=0.1,
@@ -95,10 +95,13 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         rounds_per_year=world_data.get('rounds_per_year', DEFAULT_WORLD_CONFIG.rounds_per_year),
     )
 
+    # Compute max_age_rounds from world config
+    max_age_rounds = world_config.max_age_years * world_config.rounds_per_year
+
     beans_config = BeansConfig(
-        max_bean_age=beans_data.get('max_bean_age', DEFAULT_BEANS_CONFIG.max_bean_age),
         speed_min=beans_data.get('speed_min', DEFAULT_BEANS_CONFIG.speed_min),
         speed_max=beans_data.get('speed_max', DEFAULT_BEANS_CONFIG.speed_max),
+        max_age_rounds=max_age_rounds,
         initial_energy=beans_data.get('initial_energy', DEFAULT_BEANS_CONFIG.initial_energy),
         energy_gain_per_step=beans_data.get('energy_gain_per_step', DEFAULT_BEANS_CONFIG.energy_gain_per_step),
         energy_cost_per_speed=beans_data.get('energy_cost_per_speed', DEFAULT_BEANS_CONFIG.energy_cost_per_speed),
@@ -123,8 +126,6 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"rounds_per_year must be > 0, got {cfg.rounds_per_year}")
 
     def validate_beans(cfg: BeansConfig) -> None:
-        if cfg.max_bean_age < 0:
-            raise ValueError(f"Max bean age must be >= 0, got {cfg.max_bean_age}")
         if cfg.speed_min > cfg.speed_max:
             raise ValueError(f"speed_min ({cfg.speed_min}) cannot be greater than speed_max ({cfg.speed_max})")
         # Speeds cannot be zero, as zero speed is not allowed

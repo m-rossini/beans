@@ -13,12 +13,12 @@ class TestBeanSprite:
     @pytest.fixture
     def beans_config(self):
         return BeansConfig(
-            max_bean_age=100,
             speed_min=10.0,
             speed_max=20.0,
             initial_energy=50.0,
             male_bean_color="blue",
             female_bean_color="red",
+            max_age_rounds=100,
         )
 
     @pytest.fixture
