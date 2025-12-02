@@ -181,7 +181,7 @@ def size_target(age: float, genotype: Genotype, config: BeansConfig) -> float:
     
     Uses a bell curve centered at mid-life to model size changes.
     """
-    max_age = config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
+    max_age = genetic_max_age(config, genotype)
     x = min(max(age / max_age, 0), 1)
 
     Smin = config.min_bean_size

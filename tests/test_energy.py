@@ -57,6 +57,69 @@ def test_update_calls_energy_tick(sample_genotype):
     assert bean.energy == pytest.approx(expected)
     assert energy_after == pytest.approx(bean.energy)
 
+
+class TestBeanSurvival:
+    """Tests for Bean survival methods."""
+
+    def test_can_survive_age_true_when_below_max(self, sample_genotype):
+        """Bean can survive when age is below genetic max age."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        assert bean.can_survive_age() is True
+
+    def test_can_survive_age_false_when_at_max(self, sample_genotype):
+        """Bean cannot survive when age equals genetic max age."""
+        cfg = make_beans_config()
+        # Gene value 0.5 means max age = 100 * 0.5 = 50 rounds
+        phenotype = Phenotype(age=50.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        assert bean.can_survive_age() is False
+
+    def test_can_survive_age_false_when_above_max(self, sample_genotype):
+        """Bean cannot survive when age exceeds genetic max age."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=60.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        assert bean.can_survive_age() is False
+
+    def test_survive_returns_true_when_healthy(self, sample_genotype):
+        """survive() returns True when bean has energy and is young enough."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        alive, reason = bean.survive()
+        assert alive is True
+        assert reason is None
+
+    def test_survive_returns_false_with_reason_when_too_old(self, sample_genotype):
+        """survive() returns False with reason when bean exceeds max age."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=60.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        alive, reason = bean.survive()
+        assert alive is False
+        assert reason == "max_age_reached"
+
+    def test_survive_returns_false_with_reason_when_no_energy(self, sample_genotype):
+        """survive() returns False with reason when energy is depleted."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        alive, reason = bean.survive()
+        assert alive is False
+        assert reason == "energy_depleted"
+
+    def test_survive_age_takes_priority_over_energy(self, sample_genotype):
+        """When both conditions fail, age death reason takes priority."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=60.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        alive, reason = bean.survive()
+        assert alive is False
+        assert reason == "max_age_reached"
+
+
 def test_world_records_dead_bean_with_reason():
     world_cfg = WorldConfig(
         male_sprite_color='blue',
