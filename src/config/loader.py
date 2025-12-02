@@ -30,6 +30,7 @@ class BeansConfig:
     initial_energy: float = 100.0
     energy_gain_per_step: float = 1.0
     energy_cost_per_speed: float = 0.1
+    min_energy_efficiency: float = 0.3  # floor for age-based energy efficiency (0.3 = 30%)
     initial_bean_size: int = 5
     min_bean_size: float = 3.0       # starvation death
     base_bean_size: float = 6.0      # normal healthy adult
@@ -60,6 +61,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     initial_energy=100.0,
     energy_gain_per_step=1.0,
     energy_cost_per_speed=0.1,
+    min_energy_efficiency=0.3,
     initial_bean_size=5,
     min_bean_size=3.0,
     base_bean_size=6.0,
@@ -105,6 +107,7 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         initial_energy=beans_data.get('initial_energy', DEFAULT_BEANS_CONFIG.initial_energy),
         energy_gain_per_step=beans_data.get('energy_gain_per_step', DEFAULT_BEANS_CONFIG.energy_gain_per_step),
         energy_cost_per_speed=beans_data.get('energy_cost_per_speed', DEFAULT_BEANS_CONFIG.energy_cost_per_speed),
+        min_energy_efficiency=beans_data.get('min_energy_efficiency', DEFAULT_BEANS_CONFIG.min_energy_efficiency),
         initial_bean_size=beans_data.get('initial_bean_size', DEFAULT_BEANS_CONFIG.initial_bean_size),
         male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
         female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),

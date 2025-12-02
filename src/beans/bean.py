@@ -11,6 +11,7 @@ from .genetics import (
     genetic_max_age,
     genetic_max_speed,
     age_speed_factor,
+    age_energy_efficiency,
 )
 
 logger = logging.getLogger(__name__)
@@ -112,13 +113,39 @@ class Bean:
         self._phenotype.speed = vmax * life_factor * size_factor
         logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f}, new_speed={self._phenotype.speed:.2f}")    
 
+    def _calculate_energy_gain(self) -> float:
+        """Calculate energy gained this step."""
+        return self.beans_config.energy_gain_per_step
+
+    def _calculate_energy_cost(self) -> float:
+        """Calculate energy consumed this step based on speed, metabolism, and age efficiency.
+        
+        Formula: base_cost * metabolism_factor / age_efficiency
+        - base_cost = |speed| * config.energy_cost_per_speed
+        - metabolism_factor = 0.5 + metabolism_gene (range 0.5 to 1.5)
+        - age_efficiency = age_energy_efficiency() (range min_efficiency to 1.0)
+        
+        Lower efficiency means higher cost (division).
+        """
+        base_cost = abs(self.speed) * self.beans_config.energy_cost_per_speed
+        metabolism = self.genotype.genes[Gene.METABOLISM_SPEED]
+        metabolism_factor = 0.5 + metabolism  # Range: 0.5 to 1.5
+        
+        efficiency = age_energy_efficiency(
+            self.age,
+            self._max_age,
+            self.beans_config.min_energy_efficiency
+        )
+        
+        return base_cost * metabolism_factor / efficiency
+
     def _update_energy(self, dt: float = 1.0) -> float:
         """Adjust energy based on per-step gains and movement costs."""
-        gain = self.beans_config.energy_gain_per_step
-        cost = abs(self.speed) * self.beans_config.energy_cost_per_speed
+        gain = self._calculate_energy_gain()
+        cost = self._calculate_energy_cost()
         old_energy = self.energy
         self._phenotype.energy += gain - cost
-        logger.debug(f">>>>> Bean {self.id} _update_energy: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, cost_per_speed={self.beans_config.energy_cost_per_speed}, dt={dt}")
+        logger.debug(f">>>>> Bean {self.id} _update_energy: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, dt={dt}")
 
     @property
     def is_male(self) -> bool:
@@ -132,6 +159,10 @@ class Bean:
         """Check if bean can survive based on age vs genetic max age."""
         return self.age < self._max_age
 
+    def can_survive_energy(self) -> bool:
+        """Check if bean can survive based on energy level."""
+        return self.energy > 0
+
     def survive(self) -> tuple[bool, str | None]:
         """Check if bean survives this step.
         
@@ -141,7 +172,7 @@ class Bean:
         """
         if not self.can_survive_age():
             return False, "max_age_reached"
-        if self.energy <= 0:
+        if not self.can_survive_energy():
             return False, "energy_depleted"
         return True, None
 
