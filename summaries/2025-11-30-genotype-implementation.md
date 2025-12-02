@@ -3,6 +3,8 @@
 **Date:** 2025-11-30  
 **Branch:** genes
 
+> **Note:** As of 2025-12-02, genetics-related code has been extracted to a dedicated module. See [2025-12-02-genetics-module-extraction.md](./2025-12-02-genetics-module-extraction.md) for details.
+
 ## Overview
 
 Implemented a genetics system where each bean carries a `Genotype` - an immutable set of genetic traits that will influence bean behavior. Initial beans receive random genotypes; future beans will inherit from parents.

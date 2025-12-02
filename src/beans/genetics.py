@@ -1,0 +1,218 @@
+"""Genetics module for bean genetic traits and phenotype expression.
+
+This module contains:
+- GeneInfo: Gene metadata (name, min/max range)
+- Gene: Enum of gene types with validation ranges
+- Genotype: Immutable genetic blueprint (Pydantic model)
+- Phenotype: Mutable trait expression (dataclass)
+- Factory functions for creating genotypes and phenotypes
+- Helper functions for genetic calculations
+"""
+
+import random
+import logging
+import math
+from dataclasses import dataclass, asdict
+from typing import NamedTuple
+from enum import Enum
+
+from pydantic import BaseModel, field_validator
+
+from config.loader import BeansConfig
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Helper Functions
+# =============================================================================
+
+def size_sigma(target_size: float) -> float:
+    """Calculate standard deviation for size (±15% of target)."""
+    return target_size * 0.15
+
+
+def size_z_score(size: float, target: float) -> float:
+    """Calculate z-score for size deviation from target."""
+    sigma = size_sigma(target)
+    return (size - target) / sigma if sigma else 0.0
+
+
+def age_speed_factor(age: float, max_age: float) -> float:
+    """Calculate speed factor based on age lifecycle curve.
+    
+    Returns a value between 0 and 1 representing the speed multiplier
+    based on the bean's age relative to its maximum age.
+    """
+    if age <= 0:
+        return 0.0
+
+    x = min(max(age / max_age, 0.0), 1.0)
+
+    # shape parameters
+    p = 2.0   # childhood growth rate
+    q = 2.0   # maturity steepness
+    r = 4.0   # aging decay strength
+
+    growth = (x ** p) * math.exp(-q * x)
+    aging = (1 - x ** r)
+
+    return max(0.0, growth * aging)
+
+
+# =============================================================================
+# Core Classes
+# =============================================================================
+
+class GeneInfo(NamedTuple):
+    """Gene metadata: name and valid range."""
+    name: str
+    min: float
+    max: float
+
+
+class Gene(Enum):
+    """
+    Gene types for beans with validation ranges.
+    
+    Each gene influences a bean's characteristics. Values are between 0.0 and 1.0.
+    
+    - METABOLISM_SPEED: How quickly a bean burns energy (higher = faster metabolism)
+    - MAX_GENETIC_SPEED: Maximum speed a bean can achieve genetically
+    - FAT_ACCUMULATION: How efficiently a bean stores excess energy as fat
+    - MAX_GENETIC_AGE: Maximum age a bean can reach genetically
+    """
+    METABOLISM_SPEED = GeneInfo("metabolism_speed", 0.0, 1.0)
+    MAX_GENETIC_SPEED = GeneInfo("max_genetic_speed", 0.0, 1.0)
+    FAT_ACCUMULATION = GeneInfo("fat_accumulation", 0.0, 1.0)
+    MAX_GENETIC_AGE = GeneInfo("max_genetic_age", 0.0, 1.0)
+
+    @property
+    def min(self) -> float:
+        return self.value.min
+
+    @property
+    def max(self) -> float:
+        return self.value.max
+
+
+class Genotype(BaseModel):
+    """Immutable genetic blueprint for a bean."""
+    genes: dict[Gene, float]
+
+    model_config = {"frozen": True}
+
+    @field_validator("genes")
+    @classmethod
+    def validate_genes(cls, v: dict[Gene, float]) -> dict[Gene, float]:
+        for gene in Gene:
+            if gene not in v:
+                raise ValueError(f"Missing gene: {gene.name}")
+            value = v[gene]
+            if not gene.min <= value <= gene.max:
+                raise ValueError(f"Gene {gene.name} value {value} out of range [{gene.min}, {gene.max}]")
+        return v
+
+
+@dataclass
+class Phenotype:
+    """Mutable expression of genetic traits that change over time.
+    
+    Attributes:
+        age: Current age in simulation ticks
+        speed: Current movement speed (absolute, direction handled by sprite)
+        energy: Current energy level
+        size: Current size (represents fatness)
+        target_size: Computed fittest size at that age
+    """
+    age: float
+    speed: float
+    energy: float
+    size: float
+    target_size: float
+
+    def to_dict(self) -> dict:
+        """Serialize phenotype to dictionary for state persistence."""
+        return asdict(self)
+
+
+# =============================================================================
+# Genetic Calculation Functions
+# =============================================================================
+
+def genetic_max_age(config: BeansConfig, genotype: Genotype) -> float:
+    """Calculate maximum age from config and genotype."""
+    return config.max_bean_age * genotype.genes[Gene.MAX_GENETIC_AGE]
+
+
+def size_target(age: float, genotype: Genotype, config: BeansConfig) -> float:
+    """Calculate target size based on age and genotype.
+    
+    Uses a bell curve centered at mid-life to model size changes.
+    """
+    max_age = config.max_bean_age * genotype.genes[Gene.MAX_GENETIC_AGE]
+    x = min(max(age / max_age, 0), 1)
+
+    Smin = config.min_bean_size
+    Smax = config.max_bean_size * genotype.genes[Gene.FAT_ACCUMULATION]
+
+    k = 5.0  # width of life bell curve
+
+    bell = math.exp(-k * (x - 0.5) ** 2)
+    return Smin + (Smax - Smin) * bell
+
+
+def genetic_max_speed(config: BeansConfig, genotype: Genotype) -> float:
+    """Calculate maximum speed from config and genotype."""
+    return config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
+
+
+# =============================================================================
+# Factory Functions
+# =============================================================================
+
+def create_random_genotype() -> Genotype:
+    """Create a genotype with random values within each gene's valid range."""
+    genes = {gene: random.uniform(gene.min, gene.max) for gene in Gene}
+    genotype = Genotype(genes=genes)
+    logger.debug(f">>>>> genetics::create_random_genotype: created genotype with genes={genes}")
+    return genotype
+
+
+def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
+    """Create initial phenotype from config and genotype.
+    
+    Newborn beans start with age=0 and speed=0 (since age_speed_factor(0) = 0).
+    Initial values have ±5% random variation.
+    """
+    max_age = config.max_bean_age * genotype.genes[Gene.MAX_GENETIC_AGE]
+    max_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
+
+    initial_speed = max_speed * age_speed_factor(0, max_age)
+
+    random_low_bound = 0.95
+    random_high_bound = 1.05
+
+    phenotype = Phenotype(
+        age=0.0,
+        speed=random.choice([-1, 1]) * initial_speed * random.uniform(random_low_bound, random_high_bound),
+        energy=config.initial_energy * random.uniform(random_low_bound, random_high_bound),
+        size=float(config.initial_bean_size) * random.uniform(random_low_bound, random_high_bound),
+        target_size=size_target(0.0, genotype, config),
+    )
+    logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}")
+    return phenotype
+
+
+# =============================================================================
+# Survival Checks (TODO)
+# =============================================================================
+
+def can_survive_energy(energy: float) -> bool:
+    """Check if energy level allows survival."""
+    raise NotImplementedError('Need to implement and use')
+
+
+def can_survive_size(size: float) -> bool:
+    """Check if size allows survival."""
+    raise NotImplementedError('Need to implement and use')

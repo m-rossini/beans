@@ -4,7 +4,8 @@ import pytest
 
 from pydantic import ValidationError
 
-from beans.bean import Bean, Sex, Gene, Genotype, Phenotype, create_random_genotype
+from beans.bean import Bean, Sex
+from beans.genetics import Gene, Genotype, Phenotype, create_random_genotype
 from config.loader import BeansConfig
 from beans.placement import RandomPlacementStrategy
 

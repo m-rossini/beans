@@ -1,5 +1,6 @@
 import logging
-from beans.bean import Bean, Sex, Gene, Genotype, Phenotype, create_random_genotype, create_phenotype
+from beans.bean import Bean, Sex
+from beans.genetics import Gene, Genotype, Phenotype, create_random_genotype, create_phenotype
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
 import pytest
@@ -40,10 +41,9 @@ def test_update_applies_gain_and_cost(sample_genotype):
     bean = Bean(config=cfg, id=2, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=phenotype)
     before = bean.energy
     result = bean.update(dt=1.0)
-    energy_after = result["energy"]
+    energy_after = result["phenotype"]["energy"]
     assert bean.energy == pytest.approx(before + 2.0 - 3.0)
     assert energy_after == pytest.approx(bean.energy)
-
 
 def test_update_calls_energy_tick(sample_genotype):
     cfg = make_beans_config(initial_energy=20.0, energy_gain_per_step=1.0, energy_cost_per_speed=0.5)
@@ -52,10 +52,11 @@ def test_update_calls_energy_tick(sample_genotype):
     before = bean.energy
     initial_speed = bean.speed
     result = bean.update(dt=2.0)
-    energy_after = result["energy"]
+    energy_after = result["phenotype"]["energy"]
     expected = before + (cfg.energy_gain_per_step) - (cfg.energy_cost_per_speed * initial_speed)
     assert bean.energy == pytest.approx(expected)
     assert energy_after == pytest.approx(bean.energy)
+
 def test_world_records_dead_bean_with_reason():
     world_cfg = WorldConfig(
         male_sprite_color='blue',

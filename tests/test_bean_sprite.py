@@ -1,7 +1,8 @@
 import pytest
 import arcade
 import logging
-from beans.bean import Bean, Sex, Gene, Genotype, Phenotype
+from beans.bean import Bean, Sex
+from beans.genetics import Gene, Genotype, Phenotype
 from config.loader import BeansConfig
 from rendering.bean_sprite import BeanSprite
 
