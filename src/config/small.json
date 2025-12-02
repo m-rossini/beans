@@ -18,6 +18,7 @@
     "initial_energy": 100.0,
     "energy_gain_per_step": 1.0,
     "energy_cost_per_speed": 0.1,
+    "min_energy_efficiency": 0.3,
     "initial_bean_size": 5,
     "min_bean_size": 3.0,
     "base_bean_size": 6.0,
