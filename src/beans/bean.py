@@ -42,7 +42,12 @@ class Bean:
         self.genotype = genotype
         self._phenotype = phenotype
         
-        logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, genotype={self.genotype.genes}, phenotype={self._phenotype.to_dict()}")
+        logger.debug(
+            f">>>>> Bean {self.id} created: sex={self.sex.value}, "
+            f"genotype={self.genotype.to_compact_str()}, "
+            f"phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, "
+            f"energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}"
+        )
 
     @property
     def age(self) -> float:

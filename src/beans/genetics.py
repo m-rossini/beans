@@ -113,6 +113,17 @@ class Genotype(BaseModel):
                 raise ValueError(f"Gene {gene.name} value {value} out of range [{gene.min}, {gene.max}]")
         return v
 
+    def to_compact_str(self) -> str:
+        """Return compact string for logging: {MET:0.32, SPD:0.75, FAT:0.36, AGE:0.05}."""
+        abbrev = {
+            Gene.METABOLISM_SPEED: "MET",
+            Gene.MAX_GENETIC_SPEED: "SPD",
+            Gene.FAT_ACCUMULATION: "FAT",
+            Gene.MAX_GENETIC_AGE: "AGE",
+        }
+        parts = [f"{abbrev[g]}:{v:.2f}" for g, v in self.genes.items()]
+        return "{" + ", ".join(parts) + "}"
+
 
 @dataclass
 class Phenotype:

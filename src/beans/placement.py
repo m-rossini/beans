@@ -242,13 +242,10 @@ def create_strategy_from_name(name: str) -> PlacementStrategy:
     logger.info(f">>>>> create_strategy_from_name: name={name}")
     match name.lower() if name else '':
         case 'random':
-            logger.debug(">>>>> Creating RandomPlacementStrategy")
             return RandomPlacementStrategy()
         case 'grid':
-            logger.debug(">>>>> Creating GridPlacementStrategy")
             return GridPlacementStrategy()
         case 'clustered' | 'cluster':
-            logger.debug(">>>>> Creating ClusteredPlacementStrategy")
             return ClusteredPlacementStrategy()
         case _:
             logger.debug(f">>>>> Unknown strategy '{name}', defaulting to RandomPlacementStrategy")
