@@ -1,7 +1,8 @@
 import logging
 import arcade
 from beans.world import World
-from beans.bean import Bean, Sex, create_random_genotype, Phenotype, create_phenotype
+from beans.bean import Bean, Sex
+from beans.genetics import create_random_genotype, Phenotype, create_phenotype
 from rendering.window import WorldWindow
 from config.loader import WorldConfig, BeansConfig
 

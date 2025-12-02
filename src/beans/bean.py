@@ -1,123 +1,19 @@
-import random
 import logging
-from dataclasses import dataclass, asdict
-from typing import NamedTuple
 from enum import Enum
 
-from pydantic import BaseModel, field_validator
-
 from config.loader import BeansConfig
+from .genetics import (
+    Gene,
+    Genotype,
+    Phenotype,
+    size_z_score,
+    size_target,
+    genetic_max_age,
+    genetic_max_speed,
+    age_speed_factor,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class GeneInfo(NamedTuple):
-    """Gene metadata: name and valid range."""
-    name: str
-    min: float
-    max: float
-
-
-class Gene(Enum):
-    """
-    Gene types for beans with validation ranges.
-    
-    Each gene influences a bean's characteristics. Values are between 0.0 and 1.0.
-    
-    - METABOLISM_SPEED: How quickly a bean burns energy (higher = faster metabolism)
-    - MAX_GENETIC_SPEED: Maximum speed a bean can achieve genetically
-    - FAT_ACCUMULATION: How efficiently a bean stores excess energy as fat
-    - MAX_GENETIC_AGE: Maximum age a bean can reach genetically
-    """
-    METABOLISM_SPEED = GeneInfo("metabolism_speed", 0.0, 1.0)
-    MAX_GENETIC_SPEED = GeneInfo("max_genetic_speed", 0.0, 1.0)
-    FAT_ACCUMULATION = GeneInfo("fat_accumulation", 0.0, 1.0)
-    MAX_GENETIC_AGE = GeneInfo("max_genetic_age", 0.0, 1.0)
-
-    @property
-    def min(self) -> float:
-        return self.value.min
-
-    @property
-    def max(self) -> float:
-        return self.value.max
-
-
-class Genotype(BaseModel):
-    """Immutable genetic blueprint for a bean."""
-    genes: dict[Gene, float]
-
-    model_config = {"frozen": True}
-
-    @field_validator("genes")
-    @classmethod
-    def validate_genes(cls, v: dict[Gene, float]) -> dict[Gene, float]:
-        for gene in Gene:
-            if gene not in v:
-                raise ValueError(f"Missing gene: {gene.name}")
-            value = v[gene]
-            if not gene.min <= value <= gene.max:
-                raise ValueError(
-                    f"Gene {gene.name} value {value} out of range [{gene.min}, {gene.max}]"
-                )
-        return v
-
-
-def create_random_genotype() -> Genotype:
-    """Create a genotype with random values within each gene's valid range."""
-    return Genotype(
-        genes={gene: random.uniform(gene.min, gene.max) for gene in Gene}
-    )
-
-
-@dataclass
-class Phenotype:
-    """Mutable expression of genetic traits that change over time.
-    
-    Attributes:
-        age: Current age in simulation ticks
-        speed: Current movement speed (absolute, direction handled by sprite)
-        energy: Current energy level
-        size: Current size (represents fatness)
-    """
-    age: float
-    speed: float
-    energy: float
-    size: float
-
-    def to_dict(self) -> dict:
-        """Serialize phenotype to dictionary for state persistence."""
-        return asdict(self)
-
-
-def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
-    """Create initial phenotype from config and genotype.
-    
-    # TODO: Review initial values for phenotype creation
-    """
-    max_genetic_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
-    return Phenotype(
-        age=0.0,
-        speed=random.uniform(-max_genetic_speed, max_genetic_speed),
-        energy=config.initial_energy,
-        size=float(config.initial_bean_size),
-    )
-
-
-def can_survive_energy(energy: float) -> bool:
-    """Check if energy level is survivable.
-    
-    # TODO: Implement energy survival bounds check
-    """
-    return True
-
-
-def can_survive_size(size: float) -> bool:
-    """Check if size is survivable.
-    
-    # TODO: Implement size survival bounds check
-    """
-    return True
 
 
 class Sex(Enum):
@@ -145,7 +41,8 @@ class Bean:
         self.sex = sex
         self.genotype = genotype
         self._phenotype = phenotype
-        logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, speed={self.speed:.2f}, energy={self.energy}, genotype={self.genotype.genes}")
+        
+        logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, genotype={self.genotype.genes}, phenotype={self._phenotype.to_dict()}")
 
     @property
     def age(self) -> float:
@@ -166,18 +63,57 @@ class Bean:
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics."""
         self._phenotype.age += 1.0
-        energy = self._energy_tick(dt)
-        logger.debug(f">>>>> Bean {self.id} after update: age={self.age}, energy={energy:.2f}, dt={dt}")
-        return {"energy": energy}
+        energy = self._update_energy(dt)
+        self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
+        self._update_speed()
+        logger.debug(f">>>>> Bean {self.id} after update: dt={dt}, genotype={self.genotype.genes}, phenotype={self._phenotype.to_dict()}")
+        return {"phenotype": self._phenotype.to_dict()}
 
-    def _energy_tick(self, dt: float = 1.0) -> float:
+    def _size_speed_penalty(self) -> float:
+        """
+        Compute speed penalty due to deviation from genetic target size.
+        
+        Uses z-score logic:
+        - no penalty inside ±2σ
+        - stronger penalty when overweight
+        - slightly weaker when underweight
+        """
+
+        actual = self._phenotype.size
+        target = self._phenotype.target_size
+        if target <= 0:
+            return 1.0
+
+        z = size_z_score(actual, target)
+        
+        if z < -2:
+            ret_val = max(0.4, 1 + z * 0.15)
+
+        if z > 2:
+            ret_val = max(0.2, 1 - z * 0.25)
+        
+        ret_val = 1.0
+
+        logger.debug(f">>>>> Bean {self.id} _size_speed_penalty: size={actual:.2f}, target={target:.2f}, z={z:.2f}, return value={ret_val:.2f}")
+        return ret_val 
+
+    def _update_speed(self):
+        max_age = genetic_max_age(self.beans_config, self.genotype)
+        vmax = genetic_max_speed(self.beans_config, self.genotype)
+
+        life_factor = age_speed_factor(self.age, max_age)
+        size_factor = self._size_speed_penalty()
+
+        self._phenotype.speed = vmax * life_factor * size_factor
+        logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f}, new_speed={self._phenotype.speed:.2f}")    
+
+    def _update_energy(self, dt: float = 1.0) -> float:
         """Adjust energy based on per-step gains and movement costs."""
         gain = self.beans_config.energy_gain_per_step
         cost = abs(self.speed) * self.beans_config.energy_cost_per_speed
         old_energy = self.energy
         self._phenotype.energy += gain - cost
-        logger.debug(f">>>>> Bean {self.id} _energy_tick: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, cost_per_speed={self.beans_config.energy_cost_per_speed}, dt={dt}")
-        return self.energy
+        logger.debug(f">>>>> Bean {self.id} _update_energy: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, cost_per_speed={self.beans_config.energy_cost_per_speed}, dt={dt}")
 
     @property
     def is_male(self) -> bool:
@@ -186,3 +122,4 @@ class Bean:
     @property
     def is_female(self) -> bool:
         return self.sex == Sex.FEMALE
+

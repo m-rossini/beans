@@ -3,8 +3,28 @@
     "width": 1600,
     "height": 1200,
     "population_density": 0.7,
+    "male_female_ratio": 1.0,
+    "placement_strategy": "random",
+    "population_estimator": "density",
+    "male_sprite_color": "blue",
+    "female_sprite_color": "red",
+    "background_color": "white",
     "max_age_years": 100,
     "rounds_per_year": 12
   },
-  "beans": {}
+  "beans": {
+    "max_bean_age": 1000,
+    "speed_min": -80.0,
+    "speed_max": 80.0,
+    "initial_energy": 100.0,
+    "energy_gain_per_step": 1.0,
+    "energy_cost_per_speed": 0.1,
+    "initial_bean_size": 5,
+    "min_bean_size": 3.0,
+    "base_bean_size": 6.0,
+    "max_bean_size": 16.0,
+    "energy_baseline": 50.0,
+    "male_bean_color": "blue",
+    "female_bean_color": "red"
+  }
 } 

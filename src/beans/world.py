@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 import logging
-from .bean import Bean, Sex, create_random_genotype, create_phenotype
+from .bean import Bean, Sex
+from .genetics import create_random_genotype, create_phenotype
 from .placement import PlacementStrategy, create_strategy_from_name
 from .population import (
     PopulationEstimator,
@@ -40,7 +41,6 @@ class World:
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
-        # TODO: Extract bean creation into a dedicated method
         male_count, female_count = self.population_estimator.estimate(
             width=self.width,
             height=self.height,
@@ -75,12 +75,12 @@ class World:
         deaths_this_step = 0
         for bean in self.beans:
             result = bean.update(dt)
-            energy_after_update = result["energy"]
             if bean.age >= self.max_age_months:
                 self._mark_dead(bean, reason="max_age_reached")
                 deaths_this_step += 1
                 continue
-            if energy_after_update <= 0:
+            phenotype_after_update = result["phenotype"]
+            if phenotype_after_update["energy"] <= 0:
                 self._mark_dead(bean, reason="energy_depleted")
                 deaths_this_step += 1
             else:
