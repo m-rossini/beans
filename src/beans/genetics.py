@@ -38,6 +38,22 @@ def size_z_score(size: float, target: float) -> float:
     return (size - target) / sigma if sigma else 0.0
 
 
+def apply_age_gene_curve(raw_value: float) -> float:
+    """Apply logarithmic curve to MAX_GENETIC_AGE gene value.
+    
+    Transforms a uniform random value [0,1] into a logarithmic distribution
+    that favors longevity:
+    - raw 0.0 → 0.1 (minimum 10% lifespan)
+    - raw 0.5 → ~0.73 (logarithmic midpoint favors longevity)
+    - raw 1.0 → 1.0 (full lifespan)
+    """
+    min_fraction = 0.1  # Minimum 10% lifespan even with gene=0
+    k = 5.0  # Steepness of logarithmic curve
+    
+    log_factor = math.log(1 + k * raw_value) / math.log(1 + k)
+    return min_fraction + (1 - min_fraction) * log_factor
+
+
 def age_speed_factor(age: float, max_age: float) -> float:
     """Calculate speed factor based on age lifecycle curve.
     
@@ -152,7 +168,11 @@ class Phenotype:
 # =============================================================================
 
 def genetic_max_age(config: BeansConfig, genotype: Genotype) -> float:
-    """Calculate maximum age from config and genotype."""
+    """Calculate maximum age from config and genotype.
+    
+    The gene value is already transformed via apply_age_gene_curve() at
+    genotype creation, so this is a simple multiplication.
+    """
     return config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
 
 
@@ -183,8 +203,18 @@ def genetic_max_speed(config: BeansConfig, genotype: Genotype) -> float:
 # =============================================================================
 
 def create_random_genotype() -> Genotype:
-    """Create a genotype with random values within each gene's valid range."""
-    genes = {gene: random.uniform(gene.min, gene.max) for gene in Gene}
+    """Create a genotype with random values within each gene's valid range.
+    
+    MAX_GENETIC_AGE uses a logarithmic curve to favor longevity.
+    """
+    genes = {}
+    for gene in Gene:
+        raw_value = random.uniform(gene.min, gene.max)
+        if gene == Gene.MAX_GENETIC_AGE:
+            genes[gene] = apply_age_gene_curve(raw_value)
+        else:
+            genes[gene] = raw_value
+    
     genotype = Genotype(genes=genes)
     logger.debug(f">>>>> genetics::create_random_genotype: created genotype with genes={genes}")
     return genotype
