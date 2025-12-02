@@ -219,7 +219,7 @@ class RandomPlacementStrategy(PlacementStrategy):
         logger.info(f">>>>> Generated {len(positions)} positions")
         return positions
     
-
+#TODO Implement strategy: GridPlacementStrategy
 class GridPlacementStrategy(PlacementStrategy):
     def __init__(self) -> None:
         pass
@@ -228,7 +228,7 @@ class GridPlacementStrategy(PlacementStrategy):
         logger.info(f">>>>> GridPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
         raise NotImplementedError("GridPlacementStrategy is not yet implemented.")
 
-
+#TODO Implement strategy: ClusteredPlacementStrategy
 class ClusteredPlacementStrategy(PlacementStrategy):
     def __init__(self) -> None:
         pass

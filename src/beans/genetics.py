@@ -76,6 +76,42 @@ def age_speed_factor(age: float, max_age: float) -> float:
     return max(0.0, growth * aging)
 
 
+def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> float:
+    """Calculate energy efficiency based on age lifecycle curve.
+    
+    Returns a value between min_efficiency and 1.0 representing how
+    efficiently a bean uses energy at its current age.
+    
+    - Newborns start at min_efficiency (inefficient)
+    - Peak efficiency (~1.0) at maturity
+    - Declines in old age but never below min_efficiency
+    
+    Uses similar curve shape to age_speed_factor.
+    """
+    if max_age <= 0:
+        return min_efficiency
+    
+    x = min(max(age / max_age, 0.0), 1.0)
+    
+    # shape parameters (similar to age_speed_factor)
+    p = 2.0   # childhood growth rate
+    q = 2.0   # maturity steepness
+    r = 4.0   # aging decay strength
+    
+    growth = (x ** p) * math.exp(-q * x)
+    aging = (1 - x ** r)
+    
+    raw_efficiency = max(0.0, growth * aging)
+    
+    # Scale to range [min_efficiency, 1.0]
+    # Normalize raw_efficiency (which peaks around 0.09) to [0, 1]
+    # age_speed_factor peaks around x=0.25 with value ~0.09
+    peak_value = 0.09  # approximate peak of the curve
+    normalized = min(raw_efficiency / peak_value, 1.0)
+    
+    return min_efficiency + (1.0 - min_efficiency) * normalized
+
+
 # =============================================================================
 # Core Classes
 # =============================================================================
