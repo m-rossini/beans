@@ -24,7 +24,7 @@ def _fake_arcade_init(self, width, height, title):
 
 def test_world_window_esc_closes(monkeypatch):
     cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
     world = World(cfg, bcfg)
 
     closed = {'called': False}
@@ -38,7 +38,7 @@ def test_world_window_esc_closes(monkeypatch):
 
 def test_world_window_calls_placement(monkeypatch):
     cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
     world = World(cfg, bcfg)
 
     called = {'count': 0}
@@ -67,7 +67,7 @@ def test_world_window_calls_placement(monkeypatch):
 
 def test_world_window_sprite_colors(monkeypatch):
     cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='green', female_bean_color='yellow')
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='green', female_bean_color='yellow')
     world = World(cfg, bcfg)
 
     monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
@@ -85,7 +85,7 @@ def test_world_window_sprite_colors(monkeypatch):
 
 def test_world_window_reports_when_empty(monkeypatch):
     cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy='random')
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
     world = World(cfg, bcfg)
 
     class SpyReporter(SimulationReport):
@@ -109,7 +109,7 @@ def test_world_window_reports_when_empty(monkeypatch):
 
 def test_world_window_pauses_when_empty(monkeypatch):
     cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy='random')
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
     world = World(cfg, bcfg)
     world.beans = []
 

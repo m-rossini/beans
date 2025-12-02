@@ -72,7 +72,7 @@ def test_world_initialization_respects_density_and_ratio():
         population_density=1.0,
         placement_strategy='random',
     )
-    bcfg = BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, initial_bean_size=10)
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
     world = World(config=cfg, beans_config=bcfg)
     total = 4
     assert len(world.beans) == total

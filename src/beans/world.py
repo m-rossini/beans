@@ -35,9 +35,6 @@ class World:
         self.initial_beans: int = len(self.beans)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
-        self.max_age_years = config.max_age_years
-        self.rounds_per_year = config.rounds_per_year
-        self.max_age_months = self.max_age_years * self.rounds_per_year
         logger.info(f"World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
@@ -75,7 +72,7 @@ class World:
         deaths_this_step = 0
         for bean in self.beans:
             result = bean.update(dt)
-            if bean.age >= self.max_age_months:
+            if bean.age >= self.beans_config.max_age_rounds:
                 self._mark_dead(bean, reason="max_age_reached")
                 deaths_this_step += 1
                 continue

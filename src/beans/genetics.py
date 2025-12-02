@@ -153,7 +153,7 @@ class Phenotype:
 
 def genetic_max_age(config: BeansConfig, genotype: Genotype) -> float:
     """Calculate maximum age from config and genotype."""
-    return config.max_bean_age * genotype.genes[Gene.MAX_GENETIC_AGE]
+    return config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
 
 
 def size_target(age: float, genotype: Genotype, config: BeansConfig) -> float:
@@ -161,7 +161,7 @@ def size_target(age: float, genotype: Genotype, config: BeansConfig) -> float:
     
     Uses a bell curve centered at mid-life to model size changes.
     """
-    max_age = config.max_bean_age * genotype.genes[Gene.MAX_GENETIC_AGE]
+    max_age = config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
     x = min(max(age / max_age, 0), 1)
 
     Smin = config.min_bean_size
@@ -196,7 +196,7 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
     Newborn beans start with age=0 and speed=0 (since age_speed_factor(0) = 0).
     Initial values have ±5% random variation.
     """
-    max_age = config.max_bean_age * genotype.genes[Gene.MAX_GENETIC_AGE]
+    max_age = config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
     max_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
 
     initial_speed = max_speed * age_speed_factor(0, max_age)

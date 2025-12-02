@@ -25,7 +25,7 @@ def sample_phenotype() -> Phenotype:
 
 
 def make_beans_config(**overrides) -> BeansConfig:
-    return BeansConfig(max_bean_age=100, speed_min=-5, speed_max=5, **overrides)
+    return BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, **overrides)
 
 
 def test_bean_initial_energy_from_config(sample_genotype):
