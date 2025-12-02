@@ -285,11 +285,6 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
 # Survival Checks (TODO)
 # =============================================================================
 
-def can_survive_energy(energy: float) -> bool:
-    """Check if energy level allows survival."""
-    raise NotImplementedError('Need to implement and use')
-
-
 def can_survive_size(size: float) -> bool:
     """Check if size allows survival."""
     raise NotImplementedError('Need to implement and use')

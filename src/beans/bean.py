@@ -159,6 +159,10 @@ class Bean:
         """Check if bean can survive based on age vs genetic max age."""
         return self.age < self._max_age
 
+    def can_survive_energy(self) -> bool:
+        """Check if bean can survive based on energy level."""
+        return self.energy > 0
+
     def survive(self) -> tuple[bool, str | None]:
         """Check if bean survives this step.
         
@@ -168,7 +172,7 @@ class Bean:
         """
         if not self.can_survive_age():
             return False, "max_age_reached"
-        if self.energy <= 0:
+        if not self.can_survive_energy():
             return False, "energy_depleted"
         return True, None
 

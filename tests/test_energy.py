@@ -96,6 +96,27 @@ class TestBeanSurvival:
         assert alive is False
         assert reason == "max_age_reached"
 
+    def test_can_survive_energy_true_when_positive(self, sample_genotype):
+        """can_survive_energy returns True when energy is positive."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        assert bean.can_survive_energy() is True
+
+    def test_can_survive_energy_false_when_zero(self, sample_genotype):
+        """can_survive_energy returns False when energy is zero."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        assert bean.can_survive_energy() is False
+
+    def test_can_survive_energy_false_when_negative(self, sample_genotype):
+        """can_survive_energy returns False when energy is negative."""
+        cfg = make_beans_config()
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=-10.0, size=5.0, target_size=5.0)
+        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        assert bean.can_survive_energy() is False
+
 
 class TestEnergyCalculations:
     """Tests for private energy calculation methods."""
