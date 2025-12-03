@@ -79,11 +79,12 @@ class World:
             if not alive:
                 self._mark_dead(bean, reason=reason)
                 deaths_this_step += 1
+                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}")
             else:
                 survivors.append(bean)
         self.beans = survivors
         if deaths_this_step > 0:
-            logger.debug(f">>>>> World.step: {deaths_this_step} beans died, {len(survivors)} survived")
+            logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
         self.round += 1
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:

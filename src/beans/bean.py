@@ -73,7 +73,7 @@ class Bean:
         energy = self._update_energy(dt)
         self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
         self._update_speed()
-        logger.debug(f">>>>> Bean {self.id} after update: dt={dt}, genotype={self.genotype.genes}, phenotype={self._phenotype.to_dict()}")
+        logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
         return {"phenotype": self._phenotype.to_dict()}
 
     def _size_speed_penalty(self) -> float:
@@ -95,23 +95,22 @@ class Bean:
         
         if z < -2:
             ret_val = max(0.4, 1 + z * 0.15)
-
-        if z > 2:
+        elif z > 2:
             ret_val = max(0.2, 1 - z * 0.25)
-        
-        ret_val = 1.0
+        else:
+            ret_val = 1.0
 
         logger.debug(f">>>>> Bean {self.id} _size_speed_penalty: size={actual:.2f}, target={target:.2f}, z={z:.2f}, return value={ret_val:.2f}")
         return ret_val 
 
     def _update_speed(self):
         vmax = genetic_max_speed(self.beans_config, self.genotype)
-
+        old_speed = self._phenotype.speed
         life_factor = age_speed_factor(self.age, self._max_age)
         size_factor = self._size_speed_penalty()
 
         self._phenotype.speed = vmax * life_factor * size_factor
-        logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f}, new_speed={self._phenotype.speed:.2f}")    
+        logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f},old_speed={old_speed:.2f}, new_speed={self._phenotype.speed:.2f}")    
 
     def _calculate_energy_gain(self) -> float:
         """Calculate energy gained this step."""
