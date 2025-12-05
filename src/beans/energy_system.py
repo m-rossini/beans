@@ -53,6 +53,15 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def apply_movement_cost(self, bean) -> None:
+        """Apply movement cost to a bean.
+        
+        Args:
+            bean: The bean to apply movement cost to.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -102,3 +111,15 @@ class StandardEnergySystem(EnergySystem):
         size = bean.size
         burn = self.config.metabolism_base_burn * metabolism_factor * size
         bean._phenotype.energy -= burn
+
+    def apply_movement_cost(self, bean) -> None:
+        """Apply movement cost to a bean.
+        
+        Deducts energy based on absolute speed:
+        cost = abs(speed) * energy_cost_per_speed
+        
+        Args:
+            bean: The bean to apply movement cost to.
+        """
+        cost = abs(bean.speed) * self.config.energy_cost_per_speed
+        bean._phenotype.energy -= cost
