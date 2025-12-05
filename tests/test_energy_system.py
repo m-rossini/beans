@@ -566,3 +566,73 @@ class TestHandleNegativeEnergy:
         
         assert bean.size == initial_size
         assert bean.energy == 0.0
+
+
+class TestClampSize:
+    """Tests for StandardEnergySystem.clamp_size method."""
+
+    def test_clamp_size_enforces_minimum(self):
+        """Size cannot go below min_bean_size."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            min_bean_size=3.0,
+            max_bean_size=20.0
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 1.0  # Below minimum
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        energy_system.clamp_size(bean)
+        
+        assert bean.size == config.min_bean_size
+
+    def test_clamp_size_enforces_maximum(self):
+        """Size cannot exceed max_bean_size."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            min_bean_size=3.0,
+            max_bean_size=20.0
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 50.0  # Above maximum
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        energy_system.clamp_size(bean)
+        
+        assert bean.size == config.max_bean_size
+
+    def test_clamp_size_does_nothing_when_within_range(self):
+        """Size is unchanged when within valid range."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            min_bean_size=3.0,
+            max_bean_size=20.0
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 10.0  # Within range
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        energy_system.clamp_size(bean)
+        
+        assert bean.size == 10.0

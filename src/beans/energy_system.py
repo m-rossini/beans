@@ -90,6 +90,15 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def clamp_size(self, bean: Bean) -> None:
+        """Clamp bean size to valid range.
+        
+        Args:
+            bean: The bean to clamp size for.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean: Bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -214,3 +223,20 @@ class StandardEnergySystem(EnergySystem):
         fat_burned = abs(bean.energy) / self.config.fat_to_energy_ratio
         bean._phenotype.size -= fat_burned
         bean._phenotype.energy = 0.0
+        logger.debug(f">>>>> Bean {bean.id} handle_negative_energy: negative_energy={bean.energy:.2f}, fat_burned={fat_burned:.2f}, new_energy={bean.energy:.2f}")
+
+    def clamp_size(self, bean: Bean) -> None:
+        """Clamp bean size to valid range.
+        
+        Ensures size stays within [min_bean_size, max_bean_size].
+        
+        Args:
+            bean: The bean to clamp size for.
+        """
+        # TODO: Extract size changes and clamping to separate sizing subsystem
+        if bean.size < self.config.min_bean_size:
+            bean._phenotype.size = self.config.min_bean_size
+        elif bean.size > self.config.max_bean_size:
+            bean._phenotype.size = self.config.max_bean_size
+            
+        logger.debug(f">>>>> Bean {bean.id} clamp_size: clamped_size={bean.size:.2f}, clamp_range=({self.config.min_bean_size}, {self.config.max_bean_size})")
