@@ -114,6 +114,18 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def can_survive_starvation(self, bean: Bean) -> bool:
+        """Check if bean survives starvation based on size.
+        
+        Args:
+            bean: The bean to check.
+            
+        Returns:
+            True if size > min_bean_size, False otherwise.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean: Bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -289,3 +301,18 @@ class StandardEnergySystem(EnergySystem):
         
         logger.debug(f">>>>> Bean {bean.id} size_speed_penalty: size={bean.size:.2f}, z_score={z_score:.2f}, penalty={result:.3f}")
         return result
+
+    def can_survive_starvation(self, bean: Bean) -> bool:
+        """Check if bean survives starvation based on size.
+        
+        Bean dies of starvation when size reaches minimum (no more fat to burn).
+        
+        Args:
+            bean: The bean to check.
+            
+        Returns:
+            True if size > min_bean_size, False otherwise.
+        """
+        survives = bean.size > self.config.min_bean_size
+        logger.debug(f">>>>> Bean {bean.id} can_survive_starvation: size={bean.size:.2f}, min_size={self.config.min_bean_size:.2f}, survives={survives}")
+        return survives

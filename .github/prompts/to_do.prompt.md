@@ -1,6 +1,9 @@
 ---
 agent: agent
 ---
+
+1 ENSURE ENERGY SYSTEM SUPPORTS IS BEING CALLED BY BEAN UPDATES
+
 # TODO List
 ## Beans should be pluggable and have different types:
 - Human
@@ -22,3 +25,5 @@ agent: agent
 - Ensure death strategys can be implemented as interface and concrete classes
 - Ensure health system is modular and can be replaced
 - Energy systemn is already a module and can be replaced
+
+
