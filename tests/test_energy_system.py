@@ -111,3 +111,63 @@ class TestApplyBasalMetabolism:
         
         # Higher metabolism should burn more energy
         assert high_bean.energy < low_bean.energy
+
+
+class TestApplyMovementCost:
+    """Tests for StandardEnergySystem.apply_movement_cost method."""
+
+    def test_apply_movement_cost_deducts_based_on_speed(self):
+        """apply_movement_cost should deduct abs(speed) * energy_cost_per_speed."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            energy_cost_per_speed=0.5
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.speed = 3.0  # Set known speed
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        bean._phenotype.energy = 100.0
+        
+        initial_energy = bean.energy
+        energy_system.apply_movement_cost(bean)
+        
+        # cost = abs(3.0) * 0.5 = 1.5
+        expected_cost = abs(3.0) * config.energy_cost_per_speed
+        assert bean.energy == initial_energy - expected_cost
+
+    def test_apply_movement_cost_uses_absolute_speed(self):
+        """apply_movement_cost should use absolute value of speed (negative speed costs same as positive)."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            energy_cost_per_speed=0.5
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        
+        # Create two beans with opposite speeds
+        pos_phenotype = create_phenotype(config, genotype)
+        neg_phenotype = create_phenotype(config, genotype)
+        pos_phenotype.speed = 4.0
+        neg_phenotype.speed = -4.0
+        
+        pos_bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=pos_phenotype)
+        neg_bean = Bean(config=config, id=2, sex=Sex.MALE, genotype=genotype, phenotype=neg_phenotype)
+        pos_bean._phenotype.energy = 100.0
+        neg_bean._phenotype.energy = 100.0
+        
+        energy_system.apply_movement_cost(pos_bean)
+        energy_system.apply_movement_cost(neg_bean)
+        
+        # Both should have same energy after (same absolute speed)
+        assert pos_bean.energy == neg_bean.energy
