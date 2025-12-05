@@ -1,5 +1,6 @@
 import pytest
 import logging
+from abc import ABC
 from config.loader import BeansConfig
 from beans.bean import Bean, Sex
 from beans.genetics import create_random_genotype, create_phenotype, Genotype, Gene
@@ -7,17 +8,31 @@ from beans.genetics import create_random_genotype, create_phenotype, Genotype, G
 logger = logging.getLogger(__name__)
 
 
-class TestEnergySystemCreation:
-    """Tests for EnergySystem class instantiation."""
+class TestEnergySystemABC:
+    """Tests for EnergySystem abstract base class structure."""
 
-    def test_energy_system_can_be_instantiated_with_config(self):
-        """EnergySystem should be instantiable with a BeansConfig."""
+    def test_energy_system_is_abstract_base_class(self):
+        """EnergySystem should be an abstract base class."""
+        from beans.energy_system import EnergySystem
+        
+        assert issubclass(EnergySystem, ABC)
+
+    def test_energy_system_cannot_be_instantiated_directly(self):
+        """EnergySystem should not be directly instantiable."""
         from beans.energy_system import EnergySystem
         
         config = BeansConfig(speed_min=-5, speed_max=5)
-        energy_system = EnergySystem(config)
+        with pytest.raises(TypeError):
+            EnergySystem(config)
+
+    def test_standard_energy_system_is_concrete_implementation(self):
+        """StandardEnergySystem should be a concrete implementation."""
+        from beans.energy_system import EnergySystem, StandardEnergySystem
         
-        assert energy_system is not None
+        config = BeansConfig(speed_min=-5, speed_max=5)
+        energy_system = StandardEnergySystem(config)
+        
+        assert isinstance(energy_system, EnergySystem)
         assert energy_system.config == config
 
 
