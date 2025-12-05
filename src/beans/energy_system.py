@@ -214,3 +214,4 @@ class StandardEnergySystem(EnergySystem):
         fat_burned = abs(bean.energy) / self.config.fat_to_energy_ratio
         bean._phenotype.size -= fat_burned
         bean._phenotype.energy = 0.0
+        logger.debug(f">>>>> Bean {bean.id} handle_negative_energy: negative_energy={bean.energy:.2f}, fat_burned={fat_burned:.2f}, new_energy={bean.energy:.2f}")
