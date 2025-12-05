@@ -98,3 +98,11 @@ class World:
         TODO: Implement dynamic energy intake based on world state.
         """
         return 1.0
+
+    def get_temperature(self) -> float:
+        """Return the current world temperature.
+        
+        Currently returns a hardcoded default value.
+        TODO: Implement dynamic temperature based on world state.
+        """
+        return 1.0
