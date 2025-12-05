@@ -38,6 +38,18 @@ class BeansConfig:
     energy_baseline: float = 50.0    # neutral metabolism line
     male_bean_color: str = "blue"
     female_bean_color: str = "red"
+    # Energy system configuration fields (from spec)
+    fat_gain_rate: float = 0.02           # rate of fat storage from surplus energy
+    fat_burn_rate: float = 0.02           # rate of fat burning from energy deficit
+    metabolism_base_burn: float = 0.01    # basal metabolism burn rate per tick
+    energy_to_fat_ratio: float = 1.0      # energy units consumed per fat unit stored
+    fat_to_energy_ratio: float = 0.9      # energy units recovered per fat unit burned
+    energy_max_storage: float = 200.0     # maximum circulating energy storage
+    size_sigma_frac: float = 0.15         # sigma fraction for z-score calculation
+    size_penalty_above_k: float = 0.20    # penalty factor when overweight
+    size_penalty_below_k: float = 0.15    # penalty factor when underweight
+    size_penalty_min_above: float = 0.3   # minimum speed multiplier when overweight
+    size_penalty_min_below: float = 0.4   # minimum speed multiplier when underweight
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -69,6 +81,18 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     energy_baseline=50.0,
     male_bean_color="blue",
     female_bean_color="red",
+    # Energy system configuration fields (from spec)
+    fat_gain_rate=0.02,
+    fat_burn_rate=0.02,
+    metabolism_base_burn=0.01,
+    energy_to_fat_ratio=1.0,
+    fat_to_energy_ratio=0.9,
+    energy_max_storage=200.0,
+    size_sigma_frac=0.15,
+    size_penalty_above_k=0.20,
+    size_penalty_below_k=0.15,
+    size_penalty_min_above=0.3,
+    size_penalty_min_below=0.4,
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
