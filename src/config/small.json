@@ -25,6 +25,17 @@
     "max_bean_size": 16.0,
     "energy_baseline": 50.0,
     "male_bean_color": "blue",
-    "female_bean_color": "red"
+    "female_bean_color": "red",
+    "fat_gain_rate": 0.02,
+    "fat_burn_rate": 0.02,
+    "metabolism_base_burn": 0.01,
+    "energy_to_fat_ratio": 1.0,
+    "fat_to_energy_ratio": 0.9,
+    "energy_max_storage": 200.0,
+    "size_sigma_frac": 0.15,
+    "size_penalty_above_k": 0.20,
+    "size_penalty_below_k": 0.15,
+    "size_penalty_min_above": 0.3,
+    "size_penalty_min_below": 0.4
   }
 }
