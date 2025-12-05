@@ -114,6 +114,7 @@ class StandardEnergySystem(EnergySystem):
             energy_eu: Amount of energy units to add.
         """
         bean._phenotype.energy += energy_eu
+        logger.debug(f">>>>> Bean {bean.id} apply_intake: energy_eu={energy_eu}, new_energy={bean.energy:.2f}")
 
     def apply_basal_metabolism(self, bean: Bean) -> None:
         """Apply basal metabolic cost to a bean.
@@ -130,6 +131,7 @@ class StandardEnergySystem(EnergySystem):
         size = bean.size
         burn = self.config.metabolism_base_burn * metabolism_factor * size
         bean._phenotype.energy -= burn
+        logger.debug(f">>>>> Bean {bean.id} apply_basal_metabolism: size={size:.2f}, metabolism_factor={metabolism_factor:.2f}, burn={burn:.2f}")
 
     def apply_movement_cost(self, bean: Bean) -> None:
         """Apply movement cost to a bean.
@@ -142,6 +144,7 @@ class StandardEnergySystem(EnergySystem):
         """
         cost = abs(bean.speed) * self.config.energy_cost_per_speed
         bean._phenotype.energy -= cost
+        logger.debug(f">>>>> Bean {bean.id} apply_movement_cost: speed={bean.speed:.2f}, cost={cost:.2f}, energy_cost_per_speed={self.config.energy_cost_per_speed:.2f}")
 
     def apply_fat_storage(self, bean: Bean) -> None:
         """Apply fat storage from energy surplus.
@@ -163,6 +166,7 @@ class StandardEnergySystem(EnergySystem):
         
         bean._phenotype.size += fat_gain
         bean._phenotype.energy -= energy_cost
+        logger.debug(f">>>>> Bean {bean.id} apply_fat_storage: surplus={surplus:.2f}, fat_gain={fat_gain:.2f}, energy_cost={energy_cost:.2f}")
 
     def apply_fat_burning(self, bean: Bean) -> None:
         """Apply fat burning from energy deficit.
@@ -184,3 +188,4 @@ class StandardEnergySystem(EnergySystem):
         
         bean._phenotype.size -= fat_burned
         bean._phenotype.energy += energy_gain
+        logger.debug(f">>>>> Bean {bean.id} apply_fat_burning: deficit={deficit:.2f}, fat_burned={fat_burned:.2f}, energy_gain={energy_gain:.2f}")

@@ -461,3 +461,108 @@ class TestApplyFatBurning:
         
         assert bean.size == initial_size
         assert bean.energy == initial_energy
+
+
+class TestHandleNegativeEnergy:
+    """Tests for StandardEnergySystem.handle_negative_energy method."""
+
+    def test_handle_negative_energy_burns_fat_to_compensate(self):
+        """When energy is negative, fat is burned to bring energy to 0."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            fat_to_energy_ratio=0.8
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 20.0
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        bean._phenotype.energy = -10.0  # Negative energy
+        
+        initial_size = bean.size
+        energy_system.handle_negative_energy(bean)
+        
+        # Energy should be 0 after handling
+        assert bean.energy == 0.0
+        # Size should decrease (fat burned)
+        assert bean.size < initial_size
+
+    def test_handle_negative_energy_burns_correct_amount_of_fat(self):
+        """Fat burned = abs(energy) / fat_to_energy_ratio."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            fat_to_energy_ratio=0.5  # 0.5 energy per 1 fat unit
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 50.0
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        bean._phenotype.energy = -10.0  # Need to burn fat to get 10 energy
+        
+        initial_size = bean.size
+        energy_system.handle_negative_energy(bean)
+        
+        # fat_burned = abs(-10) / 0.5 = 20
+        expected_fat_burned = 10.0 / config.fat_to_energy_ratio
+        assert bean.size == pytest.approx(initial_size - expected_fat_burned)
+        assert bean.energy == 0.0
+
+    def test_handle_negative_energy_does_nothing_when_energy_positive(self):
+        """No action when energy is already positive."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            fat_to_energy_ratio=0.8
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 20.0
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        bean._phenotype.energy = 50.0  # Positive energy
+        
+        initial_size = bean.size
+        initial_energy = bean.energy
+        energy_system.handle_negative_energy(bean)
+        
+        assert bean.size == initial_size
+        assert bean.energy == initial_energy
+
+    def test_handle_negative_energy_does_nothing_when_energy_zero(self):
+        """No action when energy is exactly zero."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            fat_to_energy_ratio=0.8
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 20.0
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        bean._phenotype.energy = 0.0
+        
+        initial_size = bean.size
+        energy_system.handle_negative_energy(bean)
+        
+        assert bean.size == initial_size
+        assert bean.energy == 0.0
