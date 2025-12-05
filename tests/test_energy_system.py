@@ -636,3 +636,86 @@ class TestClampSize:
         energy_system.clamp_size(bean)
         
         assert bean.size == 10.0
+
+
+class TestSizeSpeedPenalty:
+    """Tests for StandardEnergySystem.size_speed_penalty method."""
+
+    def test_size_speed_penalty_returns_one_within_normal_range(self):
+        """size_speed_penalty should return 1.0 when size is within ±2σ of target."""
+        from beans.energy_system import StandardEnergySystem
+        
+        # target_size = initial_bean_size = 10
+        # sigma = target * size_sigma_frac = 10 * 0.15 = 1.5
+        # 2σ range = [10 - 3, 10 + 3] = [7, 13]
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            initial_bean_size=10,
+            size_sigma_frac=0.15
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 10.0  # Exactly at target
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        penalty = energy_system.size_speed_penalty(bean)
+        
+        assert penalty == 1.0
+
+    def test_size_speed_penalty_less_than_one_when_overweight(self):
+        """size_speed_penalty should return < 1.0 when size > target + 2σ."""
+        from beans.energy_system import StandardEnergySystem
+        
+        # target = 10, sigma = 1.5, 2σ = 3
+        # size = 15 > 13 (target + 2σ) → overweight
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            initial_bean_size=10,
+            size_sigma_frac=0.15,
+            size_penalty_above_k=0.20,
+            size_penalty_min_above=0.3
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 15.0  # Above target + 2σ
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        penalty = energy_system.size_speed_penalty(bean)
+        
+        assert penalty < 1.0
+        assert penalty >= config.size_penalty_min_above
+
+    def test_size_speed_penalty_less_than_one_when_underweight(self):
+        """size_speed_penalty should return < 1.0 when size < target - 2σ."""
+        from beans.energy_system import StandardEnergySystem
+        
+        # target = 10, sigma = 1.5, 2σ = 3
+        # size = 5 < 7 (target - 2σ) → underweight
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            initial_bean_size=10,
+            size_sigma_frac=0.15,
+            size_penalty_below_k=0.15,
+            size_penalty_min_below=0.4
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 5.0  # Below target - 2σ
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        penalty = energy_system.size_speed_penalty(bean)
+        
+        assert penalty < 1.0
+        assert penalty >= config.size_penalty_min_below
