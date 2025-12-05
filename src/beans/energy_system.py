@@ -12,6 +12,7 @@ The module uses an abstract base class pattern to allow different
 energy system implementations while sharing common logic.
 """
 import logging
+import math
 from abc import ABC, abstractmethod
 from config.loader import BeansConfig
 from beans.bean import Bean
@@ -96,6 +97,20 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to clamp size for.
+        """
+        ...
+
+    @abstractmethod
+    def size_speed_penalty(self, bean: Bean) -> float:
+        """Calculate speed penalty based on bean size deviation from target.
+        
+        Returns 1.0 when within ±2σ of target size, otherwise a penalty < 1.0.
+        
+        Args:
+            bean: The bean to calculate penalty for.
+            
+        Returns:
+            Penalty multiplier between min_penalty and 1.0.
         """
         ...
 
@@ -240,3 +255,37 @@ class StandardEnergySystem(EnergySystem):
             bean._phenotype.size = self.config.max_bean_size
             
         logger.debug(f">>>>> Bean {bean.id} clamp_size: clamped_size={bean.size:.2f}, clamp_range=({self.config.min_bean_size}, {self.config.max_bean_size})")
+
+    def size_speed_penalty(self, bean: Bean) -> float:
+        """Calculate speed penalty based on bean size deviation from target.
+        
+        Returns 1.0 when within ±2σ of target size, otherwise applies
+        exponential decay penalty based on z-score.
+        
+        Args:
+            bean: The bean to calculate penalty for.
+            
+        Returns:
+            Penalty multiplier between min_penalty and 1.0.
+        """
+        # TODO: Extract size speed penalty to sizing subsystem
+        target_size = self.config.initial_bean_size
+        sigma = target_size * self.config.size_sigma_frac
+        z_score = (bean.size - target_size) / sigma
+        
+        if abs(z_score) <= 2:
+            return 1.0
+        
+        if z_score > 2:
+            # Overweight penalty
+            excess_z = z_score - 2
+            penalty = math.exp(-self.config.size_penalty_above_k * excess_z)
+            result = max(penalty, self.config.size_penalty_min_above)
+        else:
+            # Underweight penalty
+            deficit_z = abs(z_score) - 2
+            penalty = math.exp(-self.config.size_penalty_below_k * deficit_z)
+            result = max(penalty, self.config.size_penalty_min_below)
+        
+        logger.debug(f">>>>> Bean {bean.id} size_speed_penalty: size={bean.size:.2f}, z_score={z_score:.2f}, penalty={result:.3f}")
+        return result
