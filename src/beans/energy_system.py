@@ -126,6 +126,18 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def can_survive_health(self, bean: Bean) -> bool:
+        """Check if bean survives obesity-related health issues.
+        
+        Args:
+            bean: The bean to check.
+            
+        Returns:
+            True if survives, False if dies from obesity.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean: Bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -315,4 +327,30 @@ class StandardEnergySystem(EnergySystem):
         """
         survives = bean.size > self.config.min_bean_size
         logger.debug(f">>>>> Bean {bean.id} can_survive_starvation: size={bean.size:.2f}, min_size={self.config.min_bean_size:.2f}, survives={survives}")
+        return survives
+
+    def can_survive_health(self, bean: Bean) -> bool:
+        """Check if bean survives obesity-related health issues.
+        
+        When size > target_size * 2.5, there's a probability of death.
+        The probability increases with excess size.
+        
+        Args:
+            bean: The bean to check.
+            
+        Returns:
+            True if survives, False if dies from obesity.
+        """
+        import random
+        
+        obesity_threshold = self.config.initial_bean_size * 2.5
+        if bean.size <= obesity_threshold:
+            return True
+        
+        # Probability of death increases with excess size
+        excess_ratio = (bean.size - obesity_threshold) / obesity_threshold
+        death_probability = min(0.5, excess_ratio * 0.2)  # Max 50% death chance
+        
+        survives = random.random() > death_probability
+        logger.debug(f">>>>> Bean {bean.id} can_survive_health: size={bean.size:.2f}, obesity_threshold={obesity_threshold:.2f}, death_prob={death_probability:.2f}, survives={survives}")
         return survives
