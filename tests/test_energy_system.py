@@ -719,3 +719,45 @@ class TestSizeSpeedPenalty:
         
         assert penalty < 1.0
         assert penalty >= config.size_penalty_min_below
+
+
+class TestCanSurviveStarvation:
+    """Tests for StandardEnergySystem.can_survive_starvation method."""
+
+    def test_can_survive_starvation_returns_false_when_at_min_size(self):
+        """can_survive_starvation should return False when size <= min_bean_size."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            min_bean_size=3.0
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 3.0  # At minimum size
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        assert energy_system.can_survive_starvation(bean) is False
+
+    def test_can_survive_starvation_returns_true_when_above_min_size(self):
+        """can_survive_starvation should return True when size > min_bean_size."""
+        from beans.energy_system import StandardEnergySystem
+        
+        config = BeansConfig(
+            speed_min=-5, 
+            speed_max=5, 
+            initial_energy=100.0,
+            min_bean_size=3.0
+        )
+        energy_system = StandardEnergySystem(config)
+        
+        genotype = create_random_genotype()
+        phenotype = create_phenotype(config, genotype)
+        phenotype.size = 5.0  # Above minimum size
+        bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        
+        assert energy_system.can_survive_starvation(bean) is True
