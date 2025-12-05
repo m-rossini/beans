@@ -81,6 +81,15 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def handle_negative_energy(self, bean: Bean) -> None:
+        """Handle negative energy by burning fat to compensate.
+        
+        Args:
+            bean: The bean to handle negative energy for.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean: Bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -189,3 +198,19 @@ class StandardEnergySystem(EnergySystem):
         bean._phenotype.size -= fat_burned
         bean._phenotype.energy += energy_gain
         logger.debug(f">>>>> Bean {bean.id} apply_fat_burning: deficit={deficit:.2f}, fat_burned={fat_burned:.2f}, energy_gain={energy_gain:.2f}")
+
+    def handle_negative_energy(self, bean: Bean) -> None:
+        """Handle negative energy by burning fat to compensate.
+        
+        When energy < 0, burns fat to bring energy back to 0:
+        fat_burned = abs(energy) / fat_to_energy_ratio
+        
+        Args:
+            bean: The bean to handle negative energy for.
+        """
+        if bean.energy >= 0:
+            return
+        
+        fat_burned = abs(bean.energy) / self.config.fat_to_energy_ratio
+        bean._phenotype.size -= fat_burned
+        bean._phenotype.energy = 0.0
