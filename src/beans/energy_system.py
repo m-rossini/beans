@@ -28,3 +28,14 @@ class EnergySystem:
             config: BeansConfig containing energy system parameters.
         """
         self.config = config
+
+    def apply_intake(self, bean, energy_eu: float) -> None:
+        """Apply energy intake to a bean.
+        
+        Called when the bean eats. Directly increases circulating energy.
+        
+        Args:
+            bean: The bean to apply intake to.
+            energy_eu: Amount of energy units to add.
+        """
+        bean._phenotype.energy += energy_eu
