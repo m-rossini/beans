@@ -62,3 +62,39 @@ def test_world_kills_beans_when_age_limit_reached():
 
     assert bean not in world.beans
     assert any(record.reason == "max_age_reached" for record in world.dead_beans)
+
+
+class TestWorldEnvironmentStubs:
+    """Tests for world environment stubs (energy intake and temperature)."""
+
+    def test_world_get_energy_intake_returns_default(self):
+        """World.get_energy_intake() should return DEFAULT_ENERGY_INTAKE (1.0)."""
+        cfg = WorldConfig(
+            male_sprite_color='blue',
+            female_sprite_color='red',
+            male_female_ratio=1.0,
+            width=20,
+            height=20,
+            population_density=0.0,
+            placement_strategy='random',
+        )
+        bcfg = BeansConfig(speed_min=-5, speed_max=5)
+        world = World(config=cfg, beans_config=bcfg)
+        
+        assert world.get_energy_intake() == 1.0
+
+    def test_world_get_temperature_returns_default(self):
+        """World.get_temperature() should return DEFAULT_TEMPERATURE (1.0)."""
+        cfg = WorldConfig(
+            male_sprite_color='blue',
+            female_sprite_color='red',
+            male_female_ratio=1.0,
+            width=20,
+            height=20,
+            population_density=0.0,
+            placement_strategy='random',
+        )
+        bcfg = BeansConfig(speed_min=-5, speed_max=5)
+        world = World(config=cfg, beans_config=bcfg)
+        
+        assert world.get_temperature() == 1.0

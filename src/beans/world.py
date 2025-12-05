@@ -90,3 +90,19 @@ class World:
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")
         self.dead_beans.append(DeadBeanRecord(bean=bean, reason=reason))
+
+    def get_energy_intake(self) -> float:
+        """Return the energy intake available from the world.
+        
+        Currently returns a hardcoded default value.
+        TODO: Implement dynamic energy intake based on world state.
+        """
+        return 1.0
+
+    def get_temperature(self) -> float:
+        """Return the current world temperature.
+        
+        Currently returns a hardcoded default value.
+        TODO: Implement dynamic temperature based on world state.
+        """
+        return 1.0
