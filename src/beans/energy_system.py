@@ -71,6 +71,15 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def apply_fat_burning(self, bean) -> None:
+        """Apply fat burning from energy deficit.
+        
+        Args:
+            bean: The bean to apply fat burning to.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -153,3 +162,24 @@ class StandardEnergySystem(EnergySystem):
         
         bean._phenotype.size += fat_gain
         bean._phenotype.energy -= energy_cost
+
+    def apply_fat_burning(self, bean) -> None:
+        """Apply fat burning from energy deficit.
+        
+        When energy < energy_baseline, burns fat (size) to gain energy:
+        fat_burned = fat_burn_rate * FAT_ACCUMULATION * deficit
+        energy_gain = fat_burned * fat_to_energy_ratio
+        
+        Args:
+            bean: The bean to apply fat burning to.
+        """
+        deficit = self.config.energy_baseline - bean.energy
+        if deficit <= 0:
+            return
+        
+        fat_accumulation = bean.genotype.genes[Gene.FAT_ACCUMULATION]
+        fat_burned = self.config.fat_burn_rate * fat_accumulation * deficit
+        energy_gain = fat_burned * self.config.fat_to_energy_ratio
+        
+        bean._phenotype.size -= fat_burned
+        bean._phenotype.energy += energy_gain

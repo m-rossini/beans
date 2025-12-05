@@ -387,7 +387,7 @@ class TestApplyFatBurning:
         size_decrease = initial_size - bean.size
         energy_increase = bean.energy - initial_energy
         
-        assert energy_increase == size_decrease * config.fat_to_energy_ratio
+        assert energy_increase == pytest.approx(size_decrease * config.fat_to_energy_ratio)
 
     def test_higher_fat_accumulation_gene_increases_fat_burn(self):
         """Higher FAT_ACCUMULATION gene should burn more fat from same deficit."""
