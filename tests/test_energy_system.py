@@ -44,26 +44,38 @@ class TestApplyIntake:
 class TestApplyBasalMetabolism:
     """Tests for EnergySystem.apply_basal_metabolism method."""
 
-    def test_apply_basal_metabolism_decreases_energy_by_base_burn(self):
-        """apply_basal_metabolism should decrease energy by metabolism_base_burn."""
+    def test_apply_basal_metabolism_uses_correct_formula(self):
+        """apply_basal_metabolism should use: burn = base * (1 + 0.5 * metabolism) * size."""
         from beans.energy_system import EnergySystem
         
         config = BeansConfig(
             speed_min=-5, 
             speed_max=5, 
             initial_energy=100.0,
-            metabolism_base_burn=0.05
+            initial_bean_size=10,
+            metabolism_base_burn=0.10
         )
         energy_system = EnergySystem(config)
         
-        genotype = create_random_genotype()
+        # Create genotype with known metabolism value
+        genes = {
+            Gene.METABOLISM_SPEED: 0.5,
+            Gene.MAX_GENETIC_SPEED: 0.5,
+            Gene.FAT_ACCUMULATION: 0.5,
+            Gene.MAX_GENETIC_AGE: 0.5,
+        }
+        genotype = Genotype(genes=genes)
         phenotype = create_phenotype(config, genotype)
+        phenotype.size = 10.0
         bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+        bean._phenotype.energy = 100.0
         
         initial_energy = bean.energy
         energy_system.apply_basal_metabolism(bean)
         
-        assert bean.energy == initial_energy - config.metabolism_base_burn
+        # burn = 0.10 * (1 + 0.5 * 0.5) * 10 = 0.10 * 1.25 * 10 = 1.25
+        expected_burn = config.metabolism_base_burn * (1 + 0.5 * 0.5) * 10.0
+        assert bean.energy == initial_energy - expected_burn
 
     def test_higher_metabolism_gene_increases_burn_rate(self):
         """Higher METABOLISM_SPEED gene value should increase basal burn rate."""
