@@ -10,6 +10,7 @@ This module provides a pluggable energy system responsible for:
 """
 import logging
 from config.loader import BeansConfig
+from beans.genetics import Gene
 
 logger = logging.getLogger(__name__)
 
@@ -39,3 +40,19 @@ class EnergySystem:
             energy_eu: Amount of energy units to add.
         """
         bean._phenotype.energy += energy_eu
+
+    def apply_basal_metabolism(self, bean) -> None:
+        """Apply basal metabolic cost to a bean.
+        
+        Deducts metabolism burn from the bean's energy based on:
+        burn = metabolism_base_burn * (1 + 0.5 * METABOLISM_SPEED) * size
+        
+        Higher metabolism gene and larger size increase burn rate.
+        
+        Args:
+            bean: The bean to apply basal metabolism to.
+        """
+        metabolism_speed = bean.genotype.genes[Gene.METABOLISM_SPEED]
+        size = bean.size
+        burn = self.config.metabolism_base_burn * (1 + 0.5 * metabolism_speed) * size
+        bean._phenotype.energy -= burn
