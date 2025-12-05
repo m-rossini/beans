@@ -169,10 +169,10 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
 
     logger.debug(">>>>> Validating world config")
     validate_world(world_config)
-    logger.debug(">>>>> World config validation passed")
+    logger.debug(f">>>>> World config validation passed, WorldConfig: {world_config}")
     
     logger.debug(">>>>> Validating beans config")
     validate_beans(beans_config)
-    logger.debug(">>>>> Beans config validation passed")
+    logger.debug(f">>>>> Beans config validation passed, BeansConfig: {beans_config}")
 
     return world_config, beans_config

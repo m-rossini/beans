@@ -62,6 +62,15 @@ class EnergySystem(ABC):
         """
         ...
 
+    @abstractmethod
+    def apply_fat_storage(self, bean) -> None:
+        """Apply fat storage from energy surplus.
+        
+        Args:
+            bean: The bean to apply fat storage to.
+        """
+        ...
+
     def _get_metabolism_factor(self, bean) -> float:
         """Calculate metabolism factor from bean's genetics.
         
@@ -123,3 +132,24 @@ class StandardEnergySystem(EnergySystem):
         """
         cost = abs(bean.speed) * self.config.energy_cost_per_speed
         bean._phenotype.energy -= cost
+
+    def apply_fat_storage(self, bean) -> None:
+        """Apply fat storage from energy surplus.
+        
+        When energy > energy_baseline, converts surplus to fat (size):
+        fat_gain = fat_gain_rate * FAT_ACCUMULATION * surplus
+        energy_cost = fat_gain * energy_to_fat_ratio
+        
+        Args:
+            bean: The bean to apply fat storage to.
+        """
+        surplus = bean.energy - self.config.energy_baseline
+        if surplus <= 0:
+            return
+        
+        fat_accumulation = bean.genotype.genes[Gene.FAT_ACCUMULATION]
+        fat_gain = self.config.fat_gain_rate * fat_accumulation * surplus
+        energy_cost = fat_gain * self.config.energy_to_fat_ratio
+        
+        bean._phenotype.size += fat_gain
+        bean._phenotype.energy -= energy_cost
