@@ -39,3 +39,14 @@ class EnergySystem:
             energy_eu: Amount of energy units to add.
         """
         bean._phenotype.energy += energy_eu
+
+    def apply_basal_metabolism(self, bean) -> None:
+        """Apply basal metabolic cost to a bean.
+        
+        Deducts the base metabolism burn from the bean's energy.
+        This represents the minimum energy cost of being alive.
+        
+        Args:
+            bean: The bean to apply basal metabolism to.
+        """
+        bean._phenotype.energy -= self.config.metabolism_base_burn
