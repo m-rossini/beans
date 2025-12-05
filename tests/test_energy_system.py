@@ -7,29 +7,15 @@ from beans.genetics import create_random_genotype, create_phenotype, Genotype, G
 logger = logging.getLogger(__name__)
 
 
-class TestEnergySystemCreation:
-    """Tests for EnergySystem class instantiation."""
-
-    def test_energy_system_can_be_instantiated_with_config(self):
-        """EnergySystem should be instantiable with a BeansConfig."""
-        from beans.energy_system import EnergySystem
-        
-        config = BeansConfig(speed_min=-5, speed_max=5)
-        energy_system = EnergySystem(config)
-        
-        assert energy_system is not None
-        assert energy_system.config == config
-
-
 class TestApplyIntake:
-    """Tests for EnergySystem.apply_intake method."""
+    """Tests for StandardEnergySystem.apply_intake method."""
 
     def test_apply_intake_increases_bean_energy(self):
         """apply_intake should increase bean's energy by the given amount."""
-        from beans.energy_system import EnergySystem
+        from beans.energy_system import StandardEnergySystem
         
         config = BeansConfig(speed_min=-5, speed_max=5, initial_energy=50.0)
-        energy_system = EnergySystem(config)
+        energy_system = StandardEnergySystem(config)
         
         genotype = create_random_genotype()
         phenotype = create_phenotype(config, genotype)
@@ -42,11 +28,11 @@ class TestApplyIntake:
 
 
 class TestApplyBasalMetabolism:
-    """Tests for EnergySystem.apply_basal_metabolism method."""
+    """Tests for StandardEnergySystem.apply_basal_metabolism method."""
 
     def test_apply_basal_metabolism_uses_correct_formula(self):
         """apply_basal_metabolism should use: burn = base * (1 + 0.5 * metabolism) * size."""
-        from beans.energy_system import EnergySystem
+        from beans.energy_system import StandardEnergySystem
         
         config = BeansConfig(
             speed_min=-5, 
@@ -55,7 +41,7 @@ class TestApplyBasalMetabolism:
             initial_bean_size=10,
             metabolism_base_burn=0.10
         )
-        energy_system = EnergySystem(config)
+        energy_system = StandardEnergySystem(config)
         
         # Create genotype with known metabolism value
         genes = {
@@ -79,7 +65,7 @@ class TestApplyBasalMetabolism:
 
     def test_higher_metabolism_gene_increases_burn_rate(self):
         """Higher METABOLISM_SPEED gene value should increase basal burn rate."""
-        from beans.energy_system import EnergySystem
+        from beans.energy_system import StandardEnergySystem
         
         config = BeansConfig(
             speed_min=-5, 
@@ -88,7 +74,7 @@ class TestApplyBasalMetabolism:
             initial_bean_size=10,
             metabolism_base_burn=0.10
         )
-        energy_system = EnergySystem(config)
+        energy_system = StandardEnergySystem(config)
         
         # Create two genotypes with different metabolism speeds
         low_metabolism_genes = {
