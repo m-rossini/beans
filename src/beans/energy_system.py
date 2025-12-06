@@ -354,3 +354,22 @@ class StandardEnergySystem(EnergySystem):
         survives = random.random() > death_probability
         logger.debug(f">>>>> Bean {bean.id} can_survive_health: size={bean.size:.2f}, obesity_threshold={obesity_threshold:.2f}, death_prob={death_probability:.2f}, survives={survives}")
         return survives
+
+
+def create_energy_system_from_name(name: str, config: BeansConfig) -> EnergySystem:
+    """Factory function to create an EnergySystem from a name.
+    
+    Args:
+        name: Name of the energy system to create ("standard" or empty).
+        config: BeansConfig containing energy system parameters.
+        
+    Returns:
+        An EnergySystem instance.
+        
+    Raises:
+        ValueError: If the name is not recognized.
+    """
+    logger.info(f">>>>> create_energy_system_from_name: name={name}")
+    if not name or name.lower() == "standard":
+        return StandardEnergySystem(config)
+    raise ValueError(f"Unknown energy system: {name}")
