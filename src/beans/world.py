@@ -77,10 +77,8 @@ class World:
         deaths_this_step = 0
         for bean in self.beans:
             # Apply world-managed energy system
-            self.energy_system.apply_basal_metabolism(bean)
-            self.energy_system.apply_movement_cost(bean)
-            
-            # Bean internal update (age, speed, etc.)
+            self._update_bean(bean)
+
             bean.update(dt)
             
             alive, reason = bean.survive()
@@ -90,10 +88,16 @@ class World:
                 logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}")
             else:
                 survivors.append(bean)
+
         self.beans = survivors
         if deaths_this_step > 0:
             logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
+
         self.round += 1
+        
+    def _update_bean(self, bean: Bean) -> None:
+        self.energy_system.apply_basal_metabolism(bean)
+        self.energy_system.apply_movement_cost(bean)
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")
