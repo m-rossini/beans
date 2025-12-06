@@ -2,9 +2,11 @@
 agent: agent
 ---
 
-1 ENSURE ENERGY SYSTEM SUPPORTS IS BEING CALLED BY BEAN UPDATES
-
 # TODO List
+
+1. Package world update method in high abstractions level such as calculate_energy and then call lower level methods inside.
+1. Energy System should be a world configuraiton
+
 ## Beans should be pluggable and have different types:
 - Human
 - Random Action
@@ -24,6 +26,7 @@ agent: agent
 - Ensure agent implementations can be plugged in and swapped out easily
 - Ensure death strategys can be implemented as interface and concrete classes
 - Ensure health system is modular and can be replaced
-- Energy systemn is already a module and can be replaced
+- Create a Survival system module, which is for now the current existing one in bean
+- Ensure all Systems are defined at configuration time
 
 

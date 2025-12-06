@@ -1,6 +1,5 @@
 import logging
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from config.loader import BeansConfig
 from .genetics import (
@@ -14,9 +13,6 @@ from .genetics import (
     age_speed_factor,
     age_energy_efficiency,
 )
-
-if TYPE_CHECKING:
-    from .energy_system import EnergySystem
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +35,6 @@ class Bean:
         sex: Sex,
         genotype: Genotype,
         phenotype: Phenotype,
-        energy_system: "EnergySystem | None" = None,
     ) -> None:
 
         self.beans_config = config
@@ -48,7 +43,6 @@ class Bean:
         self.genotype = genotype
         self._phenotype = phenotype
         self._max_age = genetic_max_age(config, genotype)
-        self._energy_system = energy_system
         
         logger.debug(
             f">>>>> Bean {self.id} created: sex={self.sex.value}, "
@@ -74,17 +68,12 @@ class Bean:
         return self._phenotype.size
 
     def update(self, dt: float = 1.0) -> dict[str, float]:
-        """Update bean in-place and return outcome metrics."""
+        """Update bean in-place and return outcome metrics.
+        
+        Note: Energy system methods (basal metabolism, movement cost, etc.)
+        are called by World, not by Bean itself.
+        """
         self._phenotype.age += 1.0
-        
-        if self._energy_system:
-            # Use pluggable energy system
-            self._energy_system.apply_basal_metabolism(self)
-            self._energy_system.apply_movement_cost(self)
-        else:
-            # Legacy behavior
-            self._update_energy(dt)
-        
         self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
         self._update_speed()
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")

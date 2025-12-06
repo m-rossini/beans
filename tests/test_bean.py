@@ -121,57 +121,23 @@ def test_gene_enum_has_min_max_properties():
         assert gene.min <= gene.max
 
 
-class TestBeanEnergySystemIntegration:
-    """Tests for Bean integration with EnergySystem."""
+class TestBeanIsDataOnly:
+    """Tests verifying Bean is a pure data entity (no EnergySystem ownership)."""
 
-    def test_bean_accepts_optional_energy_system(self, beans_config, sample_genotype, sample_phenotype):
-        """Bean should accept an optional EnergySystem in constructor."""
-        from beans.energy_system import StandardEnergySystem
-        
-        energy_system = StandardEnergySystem(beans_config)
+    def test_bean_has_no_energy_system_attribute(self, beans_config, sample_genotype, sample_phenotype):
+        """Bean should not have an energy_system attribute - World owns it."""
         bean = Bean(
             config=beans_config, 
             id=1, 
             sex=Sex.MALE, 
             genotype=sample_genotype, 
-            phenotype=sample_phenotype,
-            energy_system=energy_system
+            phenotype=sample_phenotype
         )
         
-        assert bean._energy_system is energy_system
+        assert not hasattr(bean, '_energy_system')
 
-    def test_bean_uses_energy_system_for_basal_metabolism(self, beans_config, sample_genotype):
-        """Bean.update() should delegate basal metabolism to EnergySystem when provided."""
-        from beans.energy_system import StandardEnergySystem
-        
-        config = BeansConfig(
-            speed_min=-5, 
-            speed_max=5, 
-            initial_energy=100.0,
-            metabolism_base_burn=0.1,
-            initial_bean_size=10
-        )
-        energy_system = StandardEnergySystem(config)
-        
-        phenotype = Phenotype(age=0.0, speed=5.0, energy=100.0, size=10.0, target_size=10.0)
-        bean = Bean(
-            config=config, 
-            id=1, 
-            sex=Sex.MALE, 
-            genotype=sample_genotype, 
-            phenotype=phenotype,
-            energy_system=energy_system
-        )
-        
-        initial_energy = bean.energy
-        bean.update(dt=1.0)
-        
-        # Energy should have changed (basal metabolism applied)
-        # With metabolism_base_burn=0.1, size=10, metabolism_factor~1.25 → burn ~1.25
-        assert bean.energy != initial_energy
-
-    def test_bean_without_energy_system_uses_legacy_behavior(self, beans_config, sample_genotype):
-        """Bean without EnergySystem should use existing energy calculation methods."""
+    def test_bean_update_only_increments_age(self, beans_config, sample_genotype):
+        """Bean.update() should only increment age, not apply energy calculations."""
         phenotype = Phenotype(age=0.0, speed=5.0, energy=100.0, size=10.0, target_size=10.0)
         bean = Bean(
             config=beans_config, 
@@ -182,7 +148,10 @@ class TestBeanEnergySystemIntegration:
         )
         
         initial_energy = bean.energy
+        initial_age = bean.age
         bean.update(dt=1.0)
         
-        # Legacy behavior: gain - cost calculation still works
-        assert bean.energy != initial_energy
+        # Age should increment
+        assert bean.age == initial_age + 1.0
+        # Energy should NOT change (World applies energy system, not Bean)
+        assert bean.energy == initial_energy

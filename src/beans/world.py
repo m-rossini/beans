@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Tuple
 import logging
 from .bean import Bean, Sex
+from .energy_system import EnergySystem, StandardEnergySystem
 from .genetics import create_random_genotype, create_phenotype
 from .placement import PlacementStrategy, create_strategy_from_name
 from .population import (
@@ -34,6 +35,7 @@ class World:
         self.max_age_rounds = self.max_age_years * self.rounds_per_year
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
+        self.energy_system: EnergySystem = StandardEnergySystem(beans_config)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.dead_beans: List[DeadBeanRecord] = []
@@ -74,7 +76,13 @@ class World:
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
+            # Apply world-managed energy system
+            self.energy_system.apply_basal_metabolism(bean)
+            self.energy_system.apply_movement_cost(bean)
+            
+            # Bean internal update (age, speed, etc.)
             bean.update(dt)
+            
             alive, reason = bean.survive()
             if not alive:
                 self._mark_dead(bean, reason=reason)
