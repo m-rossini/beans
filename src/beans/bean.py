@@ -68,9 +68,12 @@ class Bean:
         return self._phenotype.size
 
     def update(self, dt: float = 1.0) -> dict[str, float]:
-        """Update bean in-place and return outcome metrics."""
+        """Update bean in-place and return outcome metrics.
+        
+        Note: Energy system methods (basal metabolism, movement cost, etc.)
+        are called by World, not by Bean itself.
+        """
         self._phenotype.age += 1.0
-        energy = self._update_energy(dt)
         self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
         self._update_speed()
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")

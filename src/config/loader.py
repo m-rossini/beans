@@ -17,6 +17,7 @@ class WorldConfig:
     population_density: float
     placement_strategy: str
     population_estimator: str = "density"
+    energy_system: str = "standard"
     background_color: str = "white"
     max_age_years: int = 100
     rounds_per_year: int = 12
@@ -61,6 +62,7 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
     population_density=0.1,
     placement_strategy="random",
     population_estimator="density",
+    energy_system="standard",
     background_color="white",
     max_age_years=100,
     rounds_per_year=12,

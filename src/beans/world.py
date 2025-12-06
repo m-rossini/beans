@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Tuple
 import logging
 from .bean import Bean, Sex
+from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_random_genotype, create_phenotype
 from .placement import PlacementStrategy, create_strategy_from_name
 from .population import (
@@ -34,6 +35,7 @@ class World:
         self.max_age_rounds = self.max_age_years * self.rounds_per_year
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
+        self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.dead_beans: List[DeadBeanRecord] = []
@@ -74,7 +76,11 @@ class World:
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
+            # Apply world-managed energy system
+            self._update_bean(bean)
+
             bean.update(dt)
+            
             alive, reason = bean.survive()
             if not alive:
                 self._mark_dead(bean, reason=reason)
@@ -82,10 +88,16 @@ class World:
                 logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}")
             else:
                 survivors.append(bean)
+
         self.beans = survivors
         if deaths_this_step > 0:
             logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
+
         self.round += 1
+        
+    def _update_bean(self, bean: Bean) -> None:
+        self.energy_system.apply_basal_metabolism(bean)
+        self.energy_system.apply_movement_cost(bean)
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")
