@@ -1,4 +1,5 @@
 import logging
+from pydantic import BaseModel
 from enum import Enum
 
 from config.loader import BeansConfig
@@ -15,6 +16,36 @@ from .genetics import (
 )
 
 logger = logging.getLogger(__name__)
+class BeanState(BaseModel):
+    """Pydantic-based DTO for Bean mutable state.
+
+    This DTO represents a snapshot of mutable bean properties that
+    systems operate on. It is intentionally lightweight and
+    supports a reusable `load()` method for reuse to avoid repeated allocation
+    in tight simulation loops.
+    """
+
+    id: int
+    age: float
+    speed: float
+    energy: float
+    size: float
+
+    def __setattr__(self, name, value):
+        # Prevent id from being changed after initialization
+        if name == "id" and "id" in self.__dict__:
+            raise AttributeError("id is read-only and cannot be modified after creation")
+        super().__setattr__(name, value)
+
+    def load(self, age: float, speed: float, energy: float, size: float) -> None:
+        """Update fields in-place for efficient reuse. id is immutable and not changed."""
+        # Assign directly so pydantic validation is applied on assignment
+        self.age = age
+        self.speed = speed
+        self.energy = energy
+        self.size = size
+
+
 
 
 class Sex(Enum):
@@ -50,6 +81,9 @@ class Bean:
             f"phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, "
             f"energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}"
         )
+
+
+    
 
     @property
     def age(self) -> float:
