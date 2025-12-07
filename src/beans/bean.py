@@ -37,13 +37,21 @@ class BeanState(BaseModel):
             raise AttributeError("id is read-only and cannot be modified after creation")
         super().__setattr__(name, value)
 
-    def load(self, age: float, speed: float, energy: float, size: float) -> None:
-        """Update fields in-place for efficient reuse. id is immutable and not changed."""
-        # Assign directly so pydantic validation is applied on assignment
-        self.age = age
-        self.speed = speed
-        self.energy = energy
-        self.size = size
+    def store(self, *, age: float | None = None, speed: float | None = None, energy: float | None = None, size: float | None = None) -> None:
+        """Update only provided fields in-place for efficient reuse.
+
+        Example::
+            state.store(age=1.0)  # update only age
+        """
+        # Assign only values that were provided
+        if age is not None:
+            self.age = age
+        if speed is not None:
+            self.speed = speed
+        if energy is not None:
+            self.energy = energy
+        if size is not None:
+            self.size = size
 
 
 
@@ -74,6 +82,8 @@ class Bean:
         self.genotype = genotype
         self._phenotype = phenotype
         self._max_age = genetic_max_age(config, genotype)
+        # Cached DTO for state reuse
+        self._dto: BeanState | None = None
         
         logger.debug(
             f">>>>> Bean {self.id} created: sex={self.sex.value}, "
@@ -112,6 +122,30 @@ class Bean:
         self._update_speed()
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
         return {"phenotype": self._phenotype.to_dict()}
+
+    def to_state(self) -> BeanState:
+        """Return a `BeanState` DTO representing the current mutable bean state.
+
+        Reuses a single DTO instance per Bean to minimize allocation in tight loops.
+        """
+        if self._dto is None:
+            self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size)
+        else:
+            self._dto.store(age=self.age, speed=self.speed, energy=self.energy, size=self.size)
+        return self._dto
+
+    def update_from_state(self, state: BeanState) -> None:
+        """Apply values from a `BeanState` DTO to this bean's phenotype.
+
+        Raises:
+            ValueError: if the DTO `id` doesn't match this bean's id.
+        """
+        if state.id != self.id:
+            raise ValueError(f"BeanState id {state.id} does not match Bean id {self.id}")
+        self._phenotype.age = state.age
+        self._phenotype.speed = state.speed
+        self._phenotype.energy = state.energy
+        self._phenotype.size = state.size
 
     def _size_speed_penalty(self) -> float:
         """
