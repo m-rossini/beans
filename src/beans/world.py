@@ -96,8 +96,7 @@ class World:
         self.round += 1
         
     def _update_bean(self, bean: Bean) -> None:
-        self.energy_system.apply_basal_metabolism(bean)
-        self.energy_system.apply_movement_cost(bean)
+        self.energy_system.apply_energy_system(bean, self.get_energy_intake())
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")

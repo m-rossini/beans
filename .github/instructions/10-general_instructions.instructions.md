@@ -9,10 +9,21 @@ Below is a list of different files covering different topics that MUST be follow
 
 Follow the instrucitons on this sections and the the instrucitons on each file.
 
+- When python, ensure you are on the correct environment
 - When Asked a question, never change or add code, always ANSWER and give an educated answer with pros and cons of your choice
 - When in doubt, ask clarification questions. Do not assume, ask.
 - Stick to the request, do not go beyond what is asked.
 - Always use the commands in the make file. If they are not there please suggest adding them
+
+## Procedures
+- Always plan first
+- Divide the problem in phases
+- For each phase create a TODO list
+- For each TODO item create a plan of attack
+- Implement each TODO item one at a time
+- Each phase should be a different branch
+- After each phase commit and ask if it is to push or not 
+- After push ask for a PR and for a nudge when PR was merged
 
 ## Architecture & Design
 [See design.instructions.md](./20-design.instructions.md)

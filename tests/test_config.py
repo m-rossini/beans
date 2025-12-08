@@ -206,56 +206,45 @@ class TestEnergySystemConfigFields:
 
     def test_beans_config_has_fat_gain_rate(self):
         """BeansConfig should have fat_gain_rate with default 0.02."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'fat_gain_rate')
         assert DEFAULT_BEANS_CONFIG.fat_gain_rate == 0.02
 
     def test_beans_config_has_fat_burn_rate(self):
         """BeansConfig should have fat_burn_rate with default 0.02."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'fat_burn_rate')
         assert DEFAULT_BEANS_CONFIG.fat_burn_rate == 0.02
 
     def test_beans_config_has_metabolism_base_burn(self):
         """BeansConfig should have metabolism_base_burn with default 0.01."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'metabolism_base_burn')
         assert DEFAULT_BEANS_CONFIG.metabolism_base_burn == 0.01
 
     def test_beans_config_has_energy_to_fat_ratio(self):
         """BeansConfig should have energy_to_fat_ratio with default 1.0."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'energy_to_fat_ratio')
         assert DEFAULT_BEANS_CONFIG.energy_to_fat_ratio == 1.0
 
     def test_beans_config_has_fat_to_energy_ratio(self):
         """BeansConfig should have fat_to_energy_ratio with default 0.9."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'fat_to_energy_ratio')
         assert DEFAULT_BEANS_CONFIG.fat_to_energy_ratio == 0.9
 
     def test_beans_config_has_energy_max_storage(self):
         """BeansConfig should have energy_max_storage with default 200.0."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'energy_max_storage')
         assert DEFAULT_BEANS_CONFIG.energy_max_storage == 200.0
 
     def test_beans_config_has_size_sigma_frac(self):
         """BeansConfig should have size_sigma_frac with default 0.15."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'size_sigma_frac')
         assert DEFAULT_BEANS_CONFIG.size_sigma_frac == 0.15
 
     def test_beans_config_has_size_penalty_above_k(self):
         """BeansConfig should have size_penalty_above_k with default 0.20."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'size_penalty_above_k')
         assert DEFAULT_BEANS_CONFIG.size_penalty_above_k == 0.20
 
     def test_beans_config_has_size_penalty_below_k(self):
         """BeansConfig should have size_penalty_below_k with default 0.15."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'size_penalty_below_k')
         assert DEFAULT_BEANS_CONFIG.size_penalty_below_k == 0.15
 
     def test_beans_config_has_size_penalty_min_above(self):
         """BeansConfig should have size_penalty_min_above with default 0.3."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'size_penalty_min_above')
         assert DEFAULT_BEANS_CONFIG.size_penalty_min_above == 0.3
 
     def test_beans_config_has_size_penalty_min_below(self):
         """BeansConfig should have size_penalty_min_below with default 0.4."""
-        assert hasattr(DEFAULT_BEANS_CONFIG, 'size_penalty_min_below')
         assert DEFAULT_BEANS_CONFIG.size_penalty_min_below == 0.4
 

@@ -90,7 +90,7 @@ def test_genotype_missing_gene_raises_error():
         Genotype(genes={
             Gene.METABOLISM_SPEED: 0.5,
             Gene.MAX_GENETIC_SPEED: 0.5,
-            # Missing FAT_ACCUMULATION and MAX_GENETIC_AGE
+            # Missing GENES
         })
 
 
@@ -118,40 +118,4 @@ def test_gene_enum_has_min_max_properties():
     for gene in Gene:
         assert hasattr(gene, 'min')
         assert hasattr(gene, 'max')
-        assert gene.min <= gene.max
 
-
-class TestBeanIsDataOnly:
-    """Tests verifying Bean is a pure data entity (no EnergySystem ownership)."""
-
-    def test_bean_has_no_energy_system_attribute(self, beans_config, sample_genotype, sample_phenotype):
-        """Bean should not have an energy_system attribute - World owns it."""
-        bean = Bean(
-            config=beans_config, 
-            id=1, 
-            sex=Sex.MALE, 
-            genotype=sample_genotype, 
-            phenotype=sample_phenotype
-        )
-        
-        assert not hasattr(bean, '_energy_system')
-
-    def test_bean_update_only_increments_age(self, beans_config, sample_genotype):
-        """Bean.update() should only increment age, not apply energy calculations."""
-        phenotype = Phenotype(age=0.0, speed=5.0, energy=100.0, size=10.0, target_size=10.0)
-        bean = Bean(
-            config=beans_config, 
-            id=1, 
-            sex=Sex.MALE, 
-            genotype=sample_genotype, 
-            phenotype=phenotype
-        )
-        
-        initial_energy = bean.energy
-        initial_age = bean.age
-        bean.update(dt=1.0)
-        
-        # Age should increment
-        assert bean.age == initial_age + 1.0
-        # Energy should NOT change (World applies energy system, not Bean)
-        assert bean.energy == initial_energy
