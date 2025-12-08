@@ -108,6 +108,14 @@ class Bean:
     def size(self) -> float:
         return self._phenotype.size
     
+    @property
+    def is_male(self) -> bool:
+        return self.sex == Sex.MALE
+
+    @property
+    def is_female(self) -> bool:
+        return self.sex == Sex.FEMALE
+        
     def die(self) -> None:
         """Mark the bean as dead."""
         self._alive = False
@@ -142,6 +150,7 @@ class Bean:
             speed=self.speed,
             energy=self.energy,
             size=self.size,
+            alive=self.alive
         )
         return self._dto
 
@@ -207,14 +216,6 @@ class Bean:
 
         self._phenotype.speed = vmax * life_factor * size_factor
         logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f},old_speed={old_speed:.2f}, new_speed={self._phenotype.speed:.2f}")    
-
-    @property
-    def is_male(self) -> bool:
-        return self.sex == Sex.MALE
-
-    @property
-    def is_female(self) -> bool:
-        return self.sex == Sex.FEMALE
 
     def can_survive_age(self) -> bool:
         """Check if bean can survive based on age vs genetic max age."""

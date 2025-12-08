@@ -27,6 +27,11 @@ agent: agent
 - Ensure death strategys can be implemented as interface and concrete classes
 - Ensure health system is modular and can be replaced
 - Create a Survival system module, which is for now the current existing one in bean
+- Implement a matting system
+  - age constrained
+  - energy constrained
+  - size constrained
+  
 - Ensure all Systems are defined at configuration time
 
 
