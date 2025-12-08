@@ -22,5 +22,8 @@ class BeanSprite(arcade.Sprite):
         self.color = color
 
     def update_from_bean(self):
-        """Update sprite based on bean state (placeholder for future features)."""
-        logger.debug(f">>>>> BeanSprite.update_from_bean: bean_id={self.bean.id}")
+        """Update sprite based on bean state (size changes)."""
+        # Scale the sprite based on current bean size relative to initial size
+        scale_factor = self.bean.size / self.diameter
+        self.scale = scale_factor
+        logger.debug(f">>>>> BeanSprite.update_from_bean: bean_id={self.bean.id}, size={self.bean.size:.2f}, initial_diameter={self.diameter:.2f}, scale={scale_factor:.2f}")

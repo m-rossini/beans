@@ -69,9 +69,21 @@ class TestBeanSprite:
         position = (0.0, 0.0)
         color = arcade.color.BLUE
         sprite = BeanSprite(male_bean, position, color)
-        # Currently does nothing, but test it doesn't crash
+        
+        # Initial scale should be 1.0 (bean size equals initial size)
+        initial_size = male_bean.size
         sprite.update_from_bean()
-        assert sprite.bean == male_bean
+        assert sprite.scale == (1.0, 1.0)  # scale is a tuple (x, y)
+        
+        # Change bean size and verify scale updates
+        male_bean._phenotype.size = initial_size * 1.5  # Make bean 50% larger
+        sprite.update_from_bean()
+        assert sprite.scale == (1.5, 1.5)
+        
+        # Change bean size again
+        male_bean._phenotype.size = initial_size * 0.8  # Make bean 20% smaller
+        sprite.update_from_bean()
+        assert sprite.scale == (0.8, 0.8)
 
     def test_sprite_direction_default_in_valid_range(self, male_bean):
         position = (100.0, 200.0)

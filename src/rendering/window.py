@@ -85,6 +85,7 @@ class WorldWindow(arcade.Window):
             logger.debug(f"WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
+            sprite.update_from_bean()  # Update sprite appearance based on current bean state
             self.sprite_list.append(sprite)
         logger.debug(f">>>>> WorldWindow.on_update: {len(self.bean_sprites)} sprites active")
         self._pause_for_empty_world()
