@@ -16,6 +16,7 @@ from .genetics import (
 )
 
 logger = logging.getLogger(__name__)
+
 class BeanState(BaseModel):
     """Pydantic-based DTO for Bean mutable state.
 
@@ -30,6 +31,7 @@ class BeanState(BaseModel):
     speed: float
     energy: float
     size: float
+    alive: bool
 
     def __setattr__(self, name, value):
         # Prevent id from being changed after initialization
@@ -52,9 +54,6 @@ class BeanState(BaseModel):
             self.energy = energy
         if size is not None:
             self.size = size
-
-
-
 
 class Sex(Enum):
     MALE = "male"
@@ -82,18 +81,16 @@ class Bean:
         self.genotype = genotype
         self._phenotype = phenotype
         self._max_age = genetic_max_age(config, genotype)
-        # Cached DTO for state reuse
-        self._dto: BeanState | None = None
-        
+        self.alive = True
+        self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size, alive=self.alive)
+
         logger.debug(
             f">>>>> Bean {self.id} created: sex={self.sex.value}, "
             f"genotype={self.genotype.to_compact_str()}, "
             f"phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, "
+            f"alive:{self.alive}, "
             f"energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}"
         )
-
-
-    
 
     @property
     def age(self) -> float:
@@ -110,13 +107,25 @@ class Bean:
     @property
     def size(self) -> float:
         return self._phenotype.size
+    
+    def die(self) -> None:
+        """Mark the bean as dead."""
+        self._alive = False
 
+    def _is_dead(self) -> bool:
+        """Check if the bean is dead."""
+        return not self.alive
+    
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics.
         
         Note: Energy system methods (basal metabolism, movement cost, etc.)
         are called by World, not by Bean itself.
         """
+        if self._is_dead():
+            logger.warning(f">>>>> Bean {self.id} update called on dead bean. No update performed.")
+            return {"phenotype": self._phenotype.to_dict()}
+        
         self._phenotype.age += 1.0
         self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
         self._update_speed()
@@ -128,13 +137,15 @@ class Bean:
 
         Reuses a single DTO instance per Bean to minimize allocation in tight loops.
         """
-        if self._dto is None:
-            self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size)
-        else:
-            self._dto.store(age=self.age, speed=self.speed, energy=self.energy, size=self.size)
+        self._dto.store(
+            age=self.age,
+            speed=self.speed,
+            energy=self.energy,
+            size=self.size,
+        )
         return self._dto
 
-    def update_from_state(self, state: BeanState) -> None:
+    def update_from_state(self, state: BeanState) -> BeanState:
         """Apply values from a `BeanState` DTO to this bean's phenotype.
 
         Raises:
@@ -142,10 +153,17 @@ class Bean:
         """
         if state.id != self.id:
             raise ValueError(f"BeanState id {state.id} does not match Bean id {self.id}")
+        
+        if self._is_dead():
+            logger.warning(f">>>>> Bean {self.id} update_from_state called on dead bean. No update performed.")
+            return
+        
         self._phenotype.age = state.age
         self._phenotype.speed = state.speed
         self._phenotype.energy = state.energy
         self._phenotype.size = state.size
+
+        return self.to_state()
 
     def _size_speed_penalty(self) -> float:
         """
@@ -156,7 +174,10 @@ class Bean:
         - stronger penalty when overweight
         - slightly weaker when underweight
         """
-
+        if self._is_dead():
+            logger.warning(f">>>>> Bean {self.id} _size_speed_penalty called on dead bean. Returning penalty of 0.0.")
+            return 0.0
+        
         actual = self._phenotype.size
         target = self._phenotype.target_size
         if target <= 0:
@@ -175,6 +196,10 @@ class Bean:
         return ret_val 
 
     def _update_speed(self):
+        if self._is_dead():
+            logger.warning(f">>>>> Bean {self.id} _update_speed called on dead bean. No update performed.")
+            return
+
         vmax = genetic_max_speed(self.beans_config, self.genotype)
         old_speed = self._phenotype.speed
         life_factor = age_speed_factor(self.age, self._max_age)
@@ -182,40 +207,6 @@ class Bean:
 
         self._phenotype.speed = vmax * life_factor * size_factor
         logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f},old_speed={old_speed:.2f}, new_speed={self._phenotype.speed:.2f}")    
-
-    def _calculate_energy_gain(self) -> float:
-        """Calculate energy gained this step."""
-        return self.beans_config.energy_gain_per_step
-
-    def _calculate_energy_cost(self) -> float:
-        """Calculate energy consumed this step based on speed, metabolism, and age efficiency.
-        
-        Formula: base_cost * metabolism_factor / age_efficiency
-        - base_cost = |speed| * config.energy_cost_per_speed
-        - metabolism_factor = 0.5 + metabolism_gene (range 0.5 to 1.5)
-        - age_efficiency = age_energy_efficiency() (range min_efficiency to 1.0)
-        
-        Lower efficiency means higher cost (division).
-        """
-        base_cost = abs(self.speed) * self.beans_config.energy_cost_per_speed
-        metabolism = self.genotype.genes[Gene.METABOLISM_SPEED]
-        metabolism_factor = 0.5 + metabolism  # Range: 0.5 to 1.5
-        
-        efficiency = age_energy_efficiency(
-            self.age,
-            self._max_age,
-            self.beans_config.min_energy_efficiency
-        )
-        
-        return base_cost * metabolism_factor / efficiency
-
-    def _update_energy(self, dt: float = 1.0) -> float:
-        """Adjust energy based on per-step gains and movement costs."""
-        gain = self._calculate_energy_gain()
-        cost = self._calculate_energy_cost()
-        old_energy = self.energy
-        self._phenotype.energy += gain - cost
-        logger.debug(f">>>>> Bean {self.id} _update_energy: gain={gain}, cost={cost:.2f}, old_energy={old_energy:.2f}, new_energy={self.energy:.2f}, speed={self.speed:.2f}, dt={dt}")
 
     @property
     def is_male(self) -> bool:
@@ -229,10 +220,6 @@ class Bean:
         """Check if bean can survive based on age vs genetic max age."""
         return self.age < self._max_age
 
-    def can_survive_energy(self) -> bool:
-        """Check if bean can survive based on energy level."""
-        return self.energy > 0
-
     def survive(self) -> tuple[bool, str | None]:
         """Check if bean survives this step.
         
@@ -242,7 +229,9 @@ class Bean:
         """
         if not self.can_survive_age():
             return False, "max_age_reached"
-        if not self.can_survive_energy():
+
+        if self.energy <= 0:
             return False, "energy_depleted"
+
         return True, None
 
