@@ -10,6 +10,7 @@ from .population import (
     create_population_estimator_from_name,
 )
 from config.loader import WorldConfig, BeansConfig
+from src.beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,7 @@ class World:
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
+        self.bean_dynamics = BeanDynamics(beans_config)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
         logger.info(f"World initialized with {len(self.beans)} beans")
@@ -79,6 +81,10 @@ class World:
             # Apply world-managed energy system
             self._update_bean(bean)
 
+            # Use BeanDynamics to update movement
+            bean_state = bean.to_state()
+            bean._phenotype.speed = self.bean_dynamics.calculate_speed(bean_state)
+            # Optionally update position/direction here if needed
             bean.update(dt)
             
             alive, reason = bean.survive()
