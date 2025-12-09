@@ -51,6 +51,9 @@ class BeansConfig:
     size_penalty_below_k: float = 0.15    # penalty factor when underweight
     size_penalty_min_above: float = 0.3   # minimum speed multiplier when overweight
     size_penalty_min_below: float = 0.4   # minimum speed multiplier when underweight
+    # Movement and bounce configuration (rendering layer)
+    pixels_per_unit_speed: float = 1.0
+    energy_loss_on_bounce: float = 2.0
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -95,6 +98,9 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     size_penalty_below_k=0.15,
     size_penalty_min_above=0.3,
     size_penalty_min_below=0.4,
+    # Movement defaults
+    pixels_per_unit_speed=1.0,
+    energy_loss_on_bounce=2.0,
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
@@ -137,6 +143,8 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         initial_bean_size=beans_data.get('initial_bean_size', DEFAULT_BEANS_CONFIG.initial_bean_size),
         male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
         female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
+        pixels_per_unit_speed=beans_data.get('pixels_per_unit_speed', DEFAULT_BEANS_CONFIG.pixels_per_unit_speed),
+        energy_loss_on_bounce=beans_data.get('energy_loss_on_bounce', DEFAULT_BEANS_CONFIG.energy_loss_on_bounce),
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
@@ -168,6 +176,10 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"energy_cost_per_speed must be >= 0, got {cfg.energy_cost_per_speed}")
         if cfg.initial_bean_size <= 0:
             raise ValueError(f"initial_bean_size must be > 0, got {cfg.initial_bean_size}")
+        if cfg.pixels_per_unit_speed <= 0:
+            raise ValueError(f"pixels_per_unit_speed must be > 0, got {cfg.pixels_per_unit_speed}")
+        if cfg.energy_loss_on_bounce < 0:
+            raise ValueError(f"energy_loss_on_bounce must be >= 0, got {cfg.energy_loss_on_bounce}")
 
     logger.debug(">>>>> Validating world config")
     validate_world(world_config)

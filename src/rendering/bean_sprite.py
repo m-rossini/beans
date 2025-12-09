@@ -21,9 +21,35 @@ class BeanSprite(arcade.Sprite):
         self.bean = bean
         self.color = color
 
-    def update_from_bean(self):
-        """Update sprite based on bean state (size changes)."""
-        # Scale the sprite based on current bean size relative to initial size
+    def update_from_bean(self, delta_time: float = 1.0, movement_system=None, bounds: tuple[int, int] | None = None):
+        """Update sprite based on bean state (size changes and optional movement).
+
+        delta_time is used for visual interpolation only. Movement is performed by
+        the optional movement_system which returns a target position; the sprite
+        then interpolates towards it for smoother animation.
+        """
+        # Save previous visual center for interpolation
+        prev_x = self.center_x
+        prev_y = self.center_y
+
+        # Update visual scale from bean size
         scale_factor = self.bean.size / self.diameter
         self.scale = scale_factor
-        logger.debug(f">>>>> BeanSprite.update_from_bean: bean_id={self.bean.id}, size={self.bean.size:.2f}, initial_diameter={self.diameter:.2f}, scale={scale_factor:.2f}")
+
+        target_x = self.center_x
+        target_y = self.center_y
+        collisions = 0
+        if movement_system is not None and bounds is not None:
+            # Movement system returns target coords and collision count
+            tx, ty, collisions = movement_system.move_sprite(self, bounds[0], bounds[1])
+            target_x = tx
+            target_y = ty
+
+        # Interpolate for visual smoothing; dt controls fraction (constant multiplier)
+        lerp = min(0.1, delta_time * 6.0)
+        self.center_x = prev_x + (target_x - prev_x) * lerp
+        self.center_y = prev_y + (target_y - prev_y) * lerp
+
+        # Orient sprite visually to the direction
+        self.angle = self.direction
+        logger.debug(f">>>>> BeanSprite.update_from_bean: bean_id={self.bean.id}, prev=({prev_x:.2f},{prev_y:.2f}), target=({target_x:.2f},{target_y:.2f}), lerp={lerp:.2f}, new=({self.center_x:.2f},{self.center_y:.2f}), direction={self.direction:.2f}, scale={scale_factor:.2f}")

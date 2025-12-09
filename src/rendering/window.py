@@ -5,6 +5,7 @@ from typing import List, Sequence
 
 from beans.world import World
 from .bean_sprite import BeanSprite
+from .movement import SpriteMovementSystem
 from reporting.report import ConsoleSimulationReport, SimulationReport
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,8 @@ class WorldWindow(arcade.Window):
             sprite = BeanSprite(bean, pos, color)
             self.bean_sprites.append(sprite)
             self.sprite_list.append(sprite)
+        # Movement system for sprite animation and bouncing
+        self._movement_system = SpriteMovementSystem()
         logger.info(f"WorldWindow initialized with {len(self.bean_sprites)} bean sprites. title={title}, beans_count={len(world.beans)}")
         self._prompt_active = False
         self._paused = False
@@ -85,7 +88,7 @@ class WorldWindow(arcade.Window):
             logger.debug(f"WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
-            sprite.update_from_bean()  # Update sprite appearance based on current bean state
+            sprite.update_from_bean(delta_time, movement_system=self._movement_system, bounds=(self.width, self.height))  # Update sprite appearance based on current bean state
             self.sprite_list.append(sprite)
         logger.debug(f">>>>> WorldWindow.on_update: {len(self.bean_sprites)} sprites active")
         self._pause_for_empty_world()
