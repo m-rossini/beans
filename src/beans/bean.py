@@ -1,7 +1,6 @@
 import logging
 from pydantic import BaseModel
 from enum import Enum
-
 from config.loader import BeansConfig
 from .genetics import (
     Gene,
@@ -14,6 +13,7 @@ from .genetics import (
     age_speed_factor,
     age_energy_efficiency,
 )
+from beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class Bean:
         genotype: Genotype,
         phenotype: Phenotype,
     ) -> None:
-
+        # import already at top
         self.beans_config = config
         self.id = id
         self.sex = sex
@@ -84,6 +84,7 @@ class Bean:
         self._max_age = genetic_max_age(config, genotype)
         self.alive = True
         self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size, alive=self.alive)
+        self.dynamics = BeanDynamics(config)
 
         logger.debug(
             f">>>>> Bean {self.id} created: sex={self.sex.value}, "
@@ -137,7 +138,7 @@ class Bean:
         
         self._phenotype.age += 1.0
         self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
-        self._update_speed()
+        # Position and direction updates can be added here if needed
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
         return {"phenotype": self._phenotype.to_dict()}
 

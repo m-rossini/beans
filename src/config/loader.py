@@ -9,52 +9,50 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WorldConfig:
-    male_sprite_color: str
-    female_sprite_color: str
-    male_female_ratio: float
-    width: int
-    height: int
-    population_density: float
-    placement_strategy: str
-    population_estimator: str = "density"
-    energy_system: str = "standard"
-    background_color: str = "white"
-    max_age_years: int = 100
-    rounds_per_year: int = 12
+    male_sprite_color: str           # Color for male bean sprites.
+    female_sprite_color: str         # Color for female bean sprites.
+    male_female_ratio: float         # Ratio of males to females in population.
+    width: int                      # World width in pixels.
+    height: int                     # World height in pixels.
+    population_density: float        # Number of beans per area unit.
+    placement_strategy: str          # Algorithm for initial bean placement.
+    population_estimator: str = "density"  # Method for estimating initial population.
+    energy_system: str = "standard"        # Energy system type used in simulation.
+    background_color: str = "white"        # Background color of the world.
+    max_age_years: int = 100               # Maximum bean age in years.
+    rounds_per_year: int = 12              # Simulation rounds per year.
 
 
 @dataclass
 class BeansConfig:
-    speed_min: float
-    speed_max: float
-    max_age_rounds: int = 1200       # computed from world.max_age_years * world.rounds_per_year
-    initial_energy: float = 100.0
-    energy_gain_per_step: float = 1.0
-    energy_cost_per_speed: float = 0.1
-    min_energy_efficiency: float = 0.3  # floor for age-based energy efficiency (0.3 = 30%)
-    min_speed_factor: float = 0.07      # NEW: minimum speed factor for age_speed_factor
-    initial_bean_size: int = 5
-    min_bean_size: float = 3.0       # starvation death
-    base_bean_size: float = 6.0      # normal healthy adult
-    max_bean_size: float = 16.0      # absolute physical limit
-    energy_baseline: float = 50.0    # neutral metabolism line
-    male_bean_color: str = "blue"
-    female_bean_color: str = "red"
-    # Energy system configuration fields (from spec)
-    fat_gain_rate: float = 0.02           # rate of fat storage from surplus energy
-    fat_burn_rate: float = 0.02           # rate of fat burning from energy deficit
-    metabolism_base_burn: float = 0.01    # basal metabolism burn rate per tick
-    energy_to_fat_ratio: float = 1.0      # energy units consumed per fat unit stored
-    fat_to_energy_ratio: float = 0.9      # energy units recovered per fat unit burned
-    energy_max_storage: float = 200.0     # maximum circulating energy storage
-    size_sigma_frac: float = 0.15         # sigma fraction for z-score calculation
-    size_penalty_above_k: float = 0.20    # penalty factor when overweight
-    size_penalty_below_k: float = 0.15    # penalty factor when underweight
-    size_penalty_min_above: float = 0.3   # minimum speed multiplier when overweight
-    size_penalty_min_below: float = 0.4   # minimum speed multiplier when underweight
-    # Movement and bounce configuration (rendering layer)
-    pixels_per_unit_speed: float = 1.0
-    energy_loss_on_bounce: float = 2.0
+    speed_min: float                      # Minimum allowed bean speed.
+    speed_max: float                      # Maximum allowed bean speed.
+    max_age_rounds: int = 1200            # Maximum bean age in simulation rounds.
+    initial_energy: float = 100.0         # Starting energy for each bean.
+    energy_gain_per_step: float = 1.0     # Energy gained per simulation step.
+    energy_cost_per_speed: float = 0.1    # Energy cost per unit speed.
+    min_energy_efficiency: float = 0.3    # Minimum energy efficiency by age.
+    min_speed_factor: float = 0.07        # Minimum speed factor by age.
+    initial_bean_size: int = 5            # Starting size for beans.
+    min_bean_size: float = 3.0            # Minimum bean size before starvation.
+    base_bean_size: float = 6.0           # Normal healthy adult bean size.
+    max_bean_size: float = 16.0           # Maximum possible bean size.
+    energy_baseline: float = 50.0         # Neutral metabolism energy line.
+    male_bean_color: str = "blue"         # Color for male beans.
+    female_bean_color: str = "red"        # Color for female beans.
+    fat_gain_rate: float = 0.02           # Rate of fat storage from surplus energy.
+    fat_burn_rate: float = 0.02           # Rate of fat burning from energy deficit.
+    metabolism_base_burn: float = 0.01    # Basal metabolism burn rate per tick.
+    energy_to_fat_ratio: float = 1.0      # Energy units consumed per fat unit stored.
+    fat_to_energy_ratio: float = 0.9      # Energy units recovered per fat unit burned.
+    energy_max_storage: float = 200.0     # Maximum circulating energy storage.
+    size_sigma_frac: float = 0.15         # Sigma fraction for size z-score calculation.
+    size_penalty_above_k: float = 0.20    # Penalty factor when overweight.
+    size_penalty_below_k: float = 0.15    # Penalty factor when underweight.
+    size_penalty_min_above: float = 0.3   # Minimum speed multiplier when overweight.
+    size_penalty_min_below: float = 0.4   # Minimum speed multiplier when underweight.
+    pixels_per_unit_speed: float = 1.0    # Rendering scale for movement speed.
+    energy_loss_on_bounce: float = 2.0    # Energy lost when bean bounces.
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
