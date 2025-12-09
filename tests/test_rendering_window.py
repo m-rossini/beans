@@ -126,3 +126,25 @@ def test_world_window_pauses_when_empty(monkeypatch):
     assert step_calls['count'] == 0
     assert win._prompt_active
     assert win._paused
+
+
+def test_window_bounce_deducts_energy(monkeypatch):
+    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
+    bcfg = BeansConfig(speed_min=1.0, speed_max=200.0, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    world = World(cfg, bcfg)
+
+    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
+    from rendering.window import WorldWindow
+    win = WorldWindow(world)
+    # pick the first sprite
+    sprite = win.bean_sprites[0]
+    # set sprite near the right edge with direction toward the edge
+    sprite.center_x = win.width - (sprite.bean.size / 2.0) - 1
+    sprite.center_y = win.height / 2
+    sprite.direction = 0.0
+    sprite.bean._phenotype.speed = 50.0
+    initial_energy = sprite.bean.energy
+    # call on_update which will cause movement and bounce in the rendering layer
+    win.on_update(0.1)
+    # energy should be reduced by at least one bounce deduction
+    assert sprite.bean.energy < initial_energy

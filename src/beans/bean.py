@@ -54,6 +54,7 @@ class BeanState(BaseModel):
             self.energy = energy
         if size is not None:
             self.size = size
+        # 'alive' is not set via store; use Bean.die() to change alive state.
 
 class Sex(Enum):
     MALE = "male"
@@ -118,7 +119,7 @@ class Bean:
         
     def die(self) -> None:
         """Mark the bean as dead."""
-        self._alive = False
+        self.alive = False
 
     def _is_dead(self) -> bool:
         """Check if the bean is dead."""
@@ -150,7 +151,6 @@ class Bean:
             speed=self.speed,
             energy=self.energy,
             size=self.size,
-            alive=self.alive
         )
         return self._dto
 
