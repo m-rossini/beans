@@ -13,7 +13,6 @@ from .genetics import (
     age_speed_factor,
     age_energy_efficiency,
 )
-from beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +30,7 @@ class BeanState(BaseModel):
     speed: float
     energy: float
     size: float
+    target_size: float
     alive: bool
 
     def __setattr__(self, name, value):
@@ -39,7 +39,7 @@ class BeanState(BaseModel):
             raise AttributeError("id is read-only and cannot be modified after creation")
         super().__setattr__(name, value)
 
-    def store(self, *, age: float | None = None, speed: float | None = None, energy: float | None = None, size: float | None = None) -> None:
+    def store(self, *, age: float | None = None, speed: float | None = None, energy: float | None = None, size: float | None = None, target_size: float | None = None) -> None:
         """Update only provided fields in-place for efficient reuse.
 
         Example::
@@ -54,6 +54,8 @@ class BeanState(BaseModel):
             self.energy = energy
         if size is not None:
             self.size = size
+        if target_size is not None:
+            self.target_size = target_size
         # 'alive' is not set via store; use Bean.die() to change alive state.
 
 class Sex(Enum):
@@ -83,8 +85,7 @@ class Bean:
         self._phenotype = phenotype
         self._max_age = genetic_max_age(config, genotype)
         self.alive = True
-        self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size, alive=self.alive)
-        self.dynamics = BeanDynamics(config)
+        self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size, target_size=self._phenotype.target_size, alive=self.alive)
 
         logger.debug(
             f">>>>> Bean {self.id} created: sex={self.sex.value}, "
@@ -137,8 +138,6 @@ class Bean:
             return {"phenotype": self._phenotype.to_dict()}
         
         self._phenotype.age += 1.0
-        self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
-        # Position and direction updates can be added here if needed
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
         return {"phenotype": self._phenotype.to_dict()}
 
