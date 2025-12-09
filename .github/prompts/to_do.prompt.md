@@ -24,7 +24,6 @@ agent: agent
 
 ## Modularization
 - Ensure agent implementations can be plugged in and swapped out easily
-- Ensure death strategys can be implemented as interface and concrete classes
 - Ensure health system is modular and can be replaced
 - Create a Survival system module, which is for now the current existing one in bean
 - Implement a matting system

@@ -22,12 +22,18 @@ from typing import Tuple
 logger = logging.getLogger(__name__)
 
 
+
 class EnergySystem(ABC):
     """Abstract base class for energy system implementations.
     
     Defines the interface for energy management and provides common
     helper methods that concrete implementations can use.
     """
+
+    def calculate_target_size(self, bean: Bean) -> float:
+        """Calculate the target size for a bean using genotype and config."""
+        from beans.genetics import size_target
+        return size_target(bean.age, bean.genotype, self.config)
 
     def __init__(self, config: BeansConfig) -> None:
         """Initialize the EnergySystem with configuration.
@@ -54,6 +60,8 @@ class EnergySystem(ABC):
             energy_intake_eu: Amount of energy units the bean has ingested.
         """
         bean_state: BeanState = bean.to_state()
+        # Set target_size every step
+        bean_state.target_size = self.calculate_target_size(bean)
 
         bean_state.energy = self._apply_intake(bean_state, energy_intake_eu)
         bean_state.energy = self._apply_basal_metabolism(bean_state, self._get_metabolism_factor(bean))
