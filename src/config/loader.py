@@ -32,6 +32,7 @@ class BeansConfig:
     energy_gain_per_step: float = 1.0
     energy_cost_per_speed: float = 0.1
     min_energy_efficiency: float = 0.3  # floor for age-based energy efficiency (0.3 = 30%)
+    min_speed_factor: float = 0.07      # NEW: minimum speed factor for age_speed_factor
     initial_bean_size: int = 5
     min_bean_size: float = 3.0       # starvation death
     base_bean_size: float = 6.0      # normal healthy adult
@@ -79,6 +80,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     energy_gain_per_step=1.0,
     energy_cost_per_speed=0.1,
     min_energy_efficiency=0.3,
+    min_speed_factor=0.07,
     initial_bean_size=5,
     min_bean_size=3.0,
     base_bean_size=6.0,
@@ -140,9 +142,25 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         energy_gain_per_step=beans_data.get('energy_gain_per_step', DEFAULT_BEANS_CONFIG.energy_gain_per_step),
         energy_cost_per_speed=beans_data.get('energy_cost_per_speed', DEFAULT_BEANS_CONFIG.energy_cost_per_speed),
         min_energy_efficiency=beans_data.get('min_energy_efficiency', DEFAULT_BEANS_CONFIG.min_energy_efficiency),
+        min_speed_factor=beans_data.get('min_speed_factor', DEFAULT_BEANS_CONFIG.min_speed_factor),
         initial_bean_size=beans_data.get('initial_bean_size', DEFAULT_BEANS_CONFIG.initial_bean_size),
+        min_bean_size=beans_data.get('min_bean_size', DEFAULT_BEANS_CONFIG.min_bean_size),
+        base_bean_size=beans_data.get('base_bean_size', DEFAULT_BEANS_CONFIG.base_bean_size),
+        max_bean_size=beans_data.get('max_bean_size', DEFAULT_BEANS_CONFIG.max_bean_size),
+        energy_baseline=beans_data.get('energy_baseline', DEFAULT_BEANS_CONFIG.energy_baseline),
         male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
         female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
+        fat_gain_rate=beans_data.get('fat_gain_rate', DEFAULT_BEANS_CONFIG.fat_gain_rate),
+        fat_burn_rate=beans_data.get('fat_burn_rate', DEFAULT_BEANS_CONFIG.fat_burn_rate),
+        metabolism_base_burn=beans_data.get('metabolism_base_burn', DEFAULT_BEANS_CONFIG.metabolism_base_burn),
+        energy_to_fat_ratio=beans_data.get('energy_to_fat_ratio', DEFAULT_BEANS_CONFIG.energy_to_fat_ratio),
+        fat_to_energy_ratio=beans_data.get('fat_to_energy_ratio', DEFAULT_BEANS_CONFIG.fat_to_energy_ratio),
+        energy_max_storage=beans_data.get('energy_max_storage', DEFAULT_BEANS_CONFIG.energy_max_storage),
+        size_sigma_frac=beans_data.get('size_sigma_frac', DEFAULT_BEANS_CONFIG.size_sigma_frac),
+        size_penalty_above_k=beans_data.get('size_penalty_above_k', DEFAULT_BEANS_CONFIG.size_penalty_above_k),
+        size_penalty_below_k=beans_data.get('size_penalty_below_k', DEFAULT_BEANS_CONFIG.size_penalty_below_k),
+        size_penalty_min_above=beans_data.get('size_penalty_min_above', DEFAULT_BEANS_CONFIG.size_penalty_min_above),
+        size_penalty_min_below=beans_data.get('size_penalty_min_below', DEFAULT_BEANS_CONFIG.size_penalty_min_below),
         pixels_per_unit_speed=beans_data.get('pixels_per_unit_speed', DEFAULT_BEANS_CONFIG.pixels_per_unit_speed),
         energy_loss_on_bounce=beans_data.get('energy_loss_on_bounce', DEFAULT_BEANS_CONFIG.energy_loss_on_bounce),
     )
@@ -180,6 +198,8 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"pixels_per_unit_speed must be > 0, got {cfg.pixels_per_unit_speed}")
         if cfg.energy_loss_on_bounce < 0:
             raise ValueError(f"energy_loss_on_bounce must be >= 0, got {cfg.energy_loss_on_bounce}")
+        if not (0.0 <= cfg.min_speed_factor <= 1.0):
+            raise ValueError(f"min_speed_factor must be between 0.0 and 1.0, got {cfg.min_speed_factor}")
 
     logger.debug(">>>>> Validating world config")
     validate_world(world_config)

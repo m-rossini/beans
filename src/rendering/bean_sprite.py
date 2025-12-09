@@ -46,7 +46,7 @@ class BeanSprite(arcade.Sprite):
             target_y = ty
 
         # Interpolate for visual smoothing; dt controls fraction (constant multiplier)
-        lerp = min(0.1, delta_time * 6.0)
+        lerp = min(1.0, delta_time * 6.0)
         self.center_x = prev_x + (target_x - prev_x) * lerp
         self.center_y = prev_y + (target_y - prev_y) * lerp
 

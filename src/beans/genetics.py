@@ -54,14 +54,14 @@ def apply_age_gene_curve(raw_value: float) -> float:
     return min_fraction + (1 - min_fraction) * log_factor
 
 
-def age_speed_factor(age: float, max_age: float) -> float:
-    """Calculate speed factor based on age lifecycle curve.
+def age_speed_factor(age: float, max_age: float, min_speed_factor: float = 0.0) -> float:
+    """Calculate speed factor based on age lifecycle curve, with configurable minimum.
     
-    Returns a value between 0 and 1 representing the speed multiplier
+    Returns a value between min_speed_factor and 1 representing the speed multiplier
     based on the bean's age relative to its maximum age.
     """
     if age <= 0:
-        return 0.0
+        return min_speed_factor
 
     x = min(max(age / max_age, 0.0), 1.0)
 
@@ -73,7 +73,8 @@ def age_speed_factor(age: float, max_age: float) -> float:
     growth = (x ** p) * math.exp(-q * x)
     aging = (1 - x ** r)
 
-    return max(0.0, growth * aging)
+    raw = max(0.0, growth * aging)
+    return max(min_speed_factor, raw)
 
 
 def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> float:
@@ -277,7 +278,7 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
         size=float(config.initial_bean_size) * random.uniform(random_low_bound, random_high_bound),
         target_size=size_target(0.0, genotype, config),
     )
-    logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}")
+    logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, spped_base={initial_speed:.2f}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}")
     return phenotype
 
 

@@ -1,17 +1,50 @@
-"""Tests for genetics module functions."""
+import math
 import pytest
 import logging
-
-from beans.genetics import Gene, Genotype, genetic_max_age, apply_age_gene_curve, create_random_genotype
-from config.loader import BeansConfig
+import json
+from beans.genetics import Gene, Genotype, genetic_max_age, apply_age_gene_curve, create_random_genotype, age_speed_factor
+from config.loader import BeansConfig, load_config
 
 logger = logging.getLogger(__name__)
 
+def test_age_speed_factor_respects_min_speed(monkeypatch):
+    """age_speed_factor should never return less than config min_speed_factor (now uses config)."""
+    class DummyConfig:
+        min_speed_factor = 0.07
+    min_speed = DummyConfig.min_speed_factor
+    max_age = 100
+    # Test for newborn (age=0) and very young (age=1)
+    assert age_speed_factor(0, max_age, min_speed) >= min_speed
+    assert age_speed_factor(1, max_age, min_speed) >= min_speed
+
+def test_beans_config_min_speed_factor_validation_loader(tmp_path):
+    """Config loader should raise ValueError if min_speed_factor is out of [0,1]."""
+    # Valid config
+    valid = {
+        "world": {"width": 10, "height": 10, "population_density": 0.1, "male_female_ratio": 1.0, "max_age_years": 1, "rounds_per_year": 1},
+        "beans": {"speed_min": -5, "speed_max": 5, "min_speed_factor": 0.0}
+    }
+    path = tmp_path / "valid.json"
+    path.write_text(json.dumps(valid))
+    load_config(str(path))
+    # Invalid low
+    invalid_low = valid.copy()
+    invalid_low["beans"] = dict(valid["beans"], min_speed_factor=-0.1)
+    path_low = tmp_path / "low.json"
+    path_low.write_text(json.dumps(invalid_low))
+    with pytest.raises(ValueError):
+        load_config(str(path_low))
+    # Invalid high
+    invalid_high = valid.copy()
+    invalid_high["beans"] = dict(valid["beans"], min_speed_factor=1.1)
+    path_high = tmp_path / "high.json"
+    path_high.write_text(json.dumps(invalid_high))
+    with pytest.raises(ValueError):
+        load_config(str(path_high))
 
 @pytest.fixture
 def beans_config():
     return BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=1200, initial_bean_size=10)
-
 
 class TestApplyAgeGeneCurve:
     """Tests for the logarithmic age gene curve transformation."""
@@ -35,7 +68,6 @@ class TestApplyAgeGeneCurve:
         values = [apply_age_gene_curve(x) for x in [0.0, 0.25, 0.5, 0.75, 1.0]]
         for i in range(len(values) - 1):
             assert values[i] < values[i + 1]
-
 
 class TestGeneticMaxAge:
     """Tests for genetic_max_age with pre-transformed gene values."""
@@ -61,7 +93,6 @@ class TestGeneticMaxAge:
         })
         result = genetic_max_age(beans_config, genotype)
         assert result == beans_config.max_age_rounds * 0.1
-
 
 class TestCreateRandomGenotype:
     """Tests for create_random_genotype applying age curve."""

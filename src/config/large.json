@@ -39,6 +39,7 @@
     "size_penalty_min_above": 0.3,
     "size_penalty_min_below": 0.4,
     "pixels_per_unit_speed": 1.0,
-    "energy_loss_on_bounce": 2.0
+    "energy_loss_on_bounce": 2.0,
+    "min_speed_factor": 0.07
   }
 } 
