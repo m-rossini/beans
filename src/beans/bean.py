@@ -13,7 +13,7 @@ from .genetics import (
     age_speed_factor,
     age_energy_efficiency,
 )
-from src.beans.dynamics.bean_dynamics import BeanDynamics
+from beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class Bean:
         genotype: Genotype,
         phenotype: Phenotype,
     ) -> None:
-        from src.beans.dynamics.bean_dynamics import BeanDynamics
+        # import already at top
         self.beans_config = config
         self.id = id
         self.sex = sex
@@ -138,9 +138,6 @@ class Bean:
         
         self._phenotype.age += 1.0
         self._phenotype.target_size = size_target(self.age, self.genotype, self.beans_config)
-        # Use BeanDynamics for speed update
-        bean_state = self.to_state()
-        self._phenotype.speed = self.dynamics.calculate_speed(bean_state)
         # Position and direction updates can be added here if needed
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
         return {"phenotype": self._phenotype.to_dict()}

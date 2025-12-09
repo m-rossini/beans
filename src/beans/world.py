@@ -1,7 +1,7 @@
+import logging
 from dataclasses import dataclass
 from typing import List, Tuple
-import logging
-from .bean import Bean, Sex
+from .bean import Bean, Sex, BeanState
 from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_random_genotype, create_phenotype
 from .placement import PlacementStrategy, create_strategy_from_name
@@ -10,10 +10,9 @@ from .population import (
     create_population_estimator_from_name,
 )
 from config.loader import WorldConfig, BeansConfig
-from src.beans.dynamics.bean_dynamics import BeanDynamics
+from beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
-
 
 @dataclass
 class DeadBeanRecord:
@@ -78,13 +77,10 @@ class World:
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
-            # Apply world-managed energy system
-            self._update_bean(bean)
-
-            # Use BeanDynamics to update movement
-            bean_state = bean.to_state()
-            bean._phenotype.speed = self.bean_dynamics.calculate_speed(bean_state)
-            # Optionally update position/direction here if needed
+            state: BeanState = self._update_bean(bean)
+            speed = self.bean_dynamics.calculate_speed(state)
+            state.store(speed=speed)
+            bean.update_from_state(state)
             bean.update(dt)
             
             alive, reason = bean.survive()
@@ -100,9 +96,9 @@ class World:
             logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
 
         self.round += 1
-        
-    def _update_bean(self, bean: Bean) -> None:
-        self.energy_system.apply_energy_system(bean, self.get_energy_intake())
+    
+    def _update_bean(self, bean: Bean) -> BeanState:
+        return self.energy_system.apply_energy_system(bean, self.get_energy_intake())
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")

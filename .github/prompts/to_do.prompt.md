@@ -6,8 +6,7 @@ agent: agent
 
 1. ✅ Package world update method in high abstractions level such as calculate_energy and then call lower level methods inside.
 1. ✅ Energy System should be a world configuraiton
-
-1. Ensure speed calculations can be implemented as interface and concrete classes - Speed System.Fix Initial Speed
+1. ✅ Ensure speed calculations can be implemented as interface and concrete classes - Speed System.Fix Initial Speed
 
 ## Beans should be pluggable and have different types:
 - Human
