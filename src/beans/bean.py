@@ -174,48 +174,6 @@ class Bean:
 
         return self.to_state()
 
-    def _size_speed_penalty(self) -> float:
-        """
-        Compute speed penalty due to deviation from genetic target size.
-        
-        Uses z-score logic:
-        - no penalty inside ±2σ
-        - stronger penalty when overweight
-        - slightly weaker when underweight
-        """
-        if self._is_dead():
-            logger.warning(f">>>>> Bean {self.id} _size_speed_penalty called on dead bean. Returning penalty of 0.0.")
-            return 0.0
-        
-        actual = self._phenotype.size
-        target = self._phenotype.target_size
-        if target <= 0:
-            return 1.0
-
-        z = size_z_score(actual, target)
-        
-        if z < -2:
-            ret_val = max(0.4, 1 + z * 0.15)
-        elif z > 2:
-            ret_val = max(0.2, 1 - z * 0.25)
-        else:
-            ret_val = 1.0
-
-        logger.debug(f">>>>> Bean {self.id} _size_speed_penalty: size={actual:.2f}, target={target:.2f}, z={z:.2f}, return value={ret_val:.2f}")
-        return ret_val 
-
-    def _update_speed(self):
-        if self._is_dead():
-            logger.warning(f">>>>> Bean {self.id} _update_speed called on dead bean. No update performed.")
-            return
-
-        vmax = genetic_max_speed(self.beans_config, self.genotype)
-        old_speed = self._phenotype.speed
-        life_factor = age_speed_factor(self.age, self._max_age)
-        size_factor = self._size_speed_penalty()
-
-        self._phenotype.speed = vmax * life_factor * size_factor
-        logger.debug(f">>>>> Bean {self.id} _update_speed: max_age={self._max_age:.2f}, vmax={vmax:.2f}, life_factor={life_factor:.2f}, size_factor={size_factor:.2f},old_speed={old_speed:.2f}, new_speed={self._phenotype.speed:.2f}")    
 
     def can_survive_age(self) -> bool:
         """Check if bean can survive based on age vs genetic max age."""
