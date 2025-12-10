@@ -51,6 +51,10 @@ applyTo: '**'
 - Include relevant context in log messages
 - Logging statements should be concise and to the point
 - Log messages should include class::method for easier tracing or file::function if not in class
-- Log messages of debug level should always have >>>>> just before the message
+- Log messages of debug level should always have >>>>> (5 chevrons) just before the message
+- INFO level log messages should have >>>> (4 chevrons)
+- WARNING level log messages should have >>> (3 chevrons) 
+- ERROR level log messages should have >> (2 chevrons)
+- CRITICAL level log messages should have > (1 chevron)
 
 

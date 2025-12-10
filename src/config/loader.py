@@ -1,8 +1,7 @@
 import json
-import os
 import logging
+import os
 from dataclasses import dataclass
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -104,63 +103,63 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
-    logger.info(f">>>>> load_config called with config_file_path={config_file_path}")
+    logger.info(f">>>> load_config called with config_file_path={config_file_path}")
     if not config_file_path or not os.path.exists(config_file_path):
-        logger.error(f"Configuration file not found: {config_file_path}")
+        logger.error(f">> Configuration file not found: {config_file_path}")
         raise FileNotFoundError(f"Configuration file not found: {config_file_path}")
 
-    with open(config_file_path, 'r') as f:
+    with open(config_file_path, "r") as f:
         data = json.load(f)
 
-    world_data = data.get('world', {})
-    beans_data = data.get('beans', {})
+    world_data = data.get("world", {})
+    beans_data = data.get("beans", {})
 
     world_config = WorldConfig(
-        male_sprite_color=world_data.get('male_sprite_color', DEFAULT_WORLD_CONFIG.male_sprite_color),
-        female_sprite_color=world_data.get('female_sprite_color', DEFAULT_WORLD_CONFIG.female_sprite_color),
-        male_female_ratio=world_data.get('male_female_ratio', DEFAULT_WORLD_CONFIG.male_female_ratio),
-        width=world_data.get('width', DEFAULT_WORLD_CONFIG.width),
-        height=world_data.get('height', DEFAULT_WORLD_CONFIG.height),
-        population_density=world_data.get('population_density', DEFAULT_WORLD_CONFIG.population_density),
-        placement_strategy=world_data.get('placement_strategy', DEFAULT_WORLD_CONFIG.placement_strategy),
-        population_estimator=world_data.get('population_estimator', DEFAULT_WORLD_CONFIG.population_estimator),
-        background_color=world_data.get('background_color', DEFAULT_WORLD_CONFIG.background_color),
-        max_age_years=world_data.get('max_age_years', DEFAULT_WORLD_CONFIG.max_age_years),
-        rounds_per_year=world_data.get('rounds_per_year', DEFAULT_WORLD_CONFIG.rounds_per_year),
+        male_sprite_color=world_data.get("male_sprite_color", DEFAULT_WORLD_CONFIG.male_sprite_color),
+        female_sprite_color=world_data.get("female_sprite_color", DEFAULT_WORLD_CONFIG.female_sprite_color),
+        male_female_ratio=world_data.get("male_female_ratio", DEFAULT_WORLD_CONFIG.male_female_ratio),
+        width=world_data.get("width", DEFAULT_WORLD_CONFIG.width),
+        height=world_data.get("height", DEFAULT_WORLD_CONFIG.height),
+        population_density=world_data.get("population_density", DEFAULT_WORLD_CONFIG.population_density),
+        placement_strategy=world_data.get("placement_strategy", DEFAULT_WORLD_CONFIG.placement_strategy),
+        population_estimator=world_data.get("population_estimator", DEFAULT_WORLD_CONFIG.population_estimator),
+        background_color=world_data.get("background_color", DEFAULT_WORLD_CONFIG.background_color),
+        max_age_years=world_data.get("max_age_years", DEFAULT_WORLD_CONFIG.max_age_years),
+        rounds_per_year=world_data.get("rounds_per_year", DEFAULT_WORLD_CONFIG.rounds_per_year),
     )
 
     # Compute max_age_rounds from world config
     max_age_rounds = world_config.max_age_years * world_config.rounds_per_year
 
     beans_config = BeansConfig(
-        speed_min=beans_data.get('speed_min', DEFAULT_BEANS_CONFIG.speed_min),
-        speed_max=beans_data.get('speed_max', DEFAULT_BEANS_CONFIG.speed_max),
+        speed_min=beans_data.get("speed_min", DEFAULT_BEANS_CONFIG.speed_min),
+        speed_max=beans_data.get("speed_max", DEFAULT_BEANS_CONFIG.speed_max),
         max_age_rounds=max_age_rounds,
-        initial_energy=beans_data.get('initial_energy', DEFAULT_BEANS_CONFIG.initial_energy),
-        energy_gain_per_step=beans_data.get('energy_gain_per_step', DEFAULT_BEANS_CONFIG.energy_gain_per_step),
-        energy_cost_per_speed=beans_data.get('energy_cost_per_speed', DEFAULT_BEANS_CONFIG.energy_cost_per_speed),
-        min_energy_efficiency=beans_data.get('min_energy_efficiency', DEFAULT_BEANS_CONFIG.min_energy_efficiency),
-        min_speed_factor=beans_data.get('min_speed_factor', DEFAULT_BEANS_CONFIG.min_speed_factor),
-        initial_bean_size=beans_data.get('initial_bean_size', DEFAULT_BEANS_CONFIG.initial_bean_size),
-        min_bean_size=beans_data.get('min_bean_size', DEFAULT_BEANS_CONFIG.min_bean_size),
-        base_bean_size=beans_data.get('base_bean_size', DEFAULT_BEANS_CONFIG.base_bean_size),
-        max_bean_size=beans_data.get('max_bean_size', DEFAULT_BEANS_CONFIG.max_bean_size),
-        energy_baseline=beans_data.get('energy_baseline', DEFAULT_BEANS_CONFIG.energy_baseline),
-        male_bean_color=beans_data.get('male_bean_color', DEFAULT_BEANS_CONFIG.male_bean_color),
-        female_bean_color=beans_data.get('female_bean_color', DEFAULT_BEANS_CONFIG.female_bean_color),
-        fat_gain_rate=beans_data.get('fat_gain_rate', DEFAULT_BEANS_CONFIG.fat_gain_rate),
-        fat_burn_rate=beans_data.get('fat_burn_rate', DEFAULT_BEANS_CONFIG.fat_burn_rate),
-        metabolism_base_burn=beans_data.get('metabolism_base_burn', DEFAULT_BEANS_CONFIG.metabolism_base_burn),
-        energy_to_fat_ratio=beans_data.get('energy_to_fat_ratio', DEFAULT_BEANS_CONFIG.energy_to_fat_ratio),
-        fat_to_energy_ratio=beans_data.get('fat_to_energy_ratio', DEFAULT_BEANS_CONFIG.fat_to_energy_ratio),
-        energy_max_storage=beans_data.get('energy_max_storage', DEFAULT_BEANS_CONFIG.energy_max_storage),
-        size_sigma_frac=beans_data.get('size_sigma_frac', DEFAULT_BEANS_CONFIG.size_sigma_frac),
-        size_penalty_above_k=beans_data.get('size_penalty_above_k', DEFAULT_BEANS_CONFIG.size_penalty_above_k),
-        size_penalty_below_k=beans_data.get('size_penalty_below_k', DEFAULT_BEANS_CONFIG.size_penalty_below_k),
-        size_penalty_min_above=beans_data.get('size_penalty_min_above', DEFAULT_BEANS_CONFIG.size_penalty_min_above),
-        size_penalty_min_below=beans_data.get('size_penalty_min_below', DEFAULT_BEANS_CONFIG.size_penalty_min_below),
-        pixels_per_unit_speed=beans_data.get('pixels_per_unit_speed', DEFAULT_BEANS_CONFIG.pixels_per_unit_speed),
-        energy_loss_on_bounce=beans_data.get('energy_loss_on_bounce', DEFAULT_BEANS_CONFIG.energy_loss_on_bounce),
+        initial_energy=beans_data.get("initial_energy", DEFAULT_BEANS_CONFIG.initial_energy),
+        energy_gain_per_step=beans_data.get("energy_gain_per_step", DEFAULT_BEANS_CONFIG.energy_gain_per_step),
+        energy_cost_per_speed=beans_data.get("energy_cost_per_speed", DEFAULT_BEANS_CONFIG.energy_cost_per_speed),
+        min_energy_efficiency=beans_data.get("min_energy_efficiency", DEFAULT_BEANS_CONFIG.min_energy_efficiency),
+        min_speed_factor=beans_data.get("min_speed_factor", DEFAULT_BEANS_CONFIG.min_speed_factor),
+        initial_bean_size=beans_data.get("initial_bean_size", DEFAULT_BEANS_CONFIG.initial_bean_size),
+        min_bean_size=beans_data.get("min_bean_size", DEFAULT_BEANS_CONFIG.min_bean_size),
+        base_bean_size=beans_data.get("base_bean_size", DEFAULT_BEANS_CONFIG.base_bean_size),
+        max_bean_size=beans_data.get("max_bean_size", DEFAULT_BEANS_CONFIG.max_bean_size),
+        energy_baseline=beans_data.get("energy_baseline", DEFAULT_BEANS_CONFIG.energy_baseline),
+        male_bean_color=beans_data.get("male_bean_color", DEFAULT_BEANS_CONFIG.male_bean_color),
+        female_bean_color=beans_data.get("female_bean_color", DEFAULT_BEANS_CONFIG.female_bean_color),
+        fat_gain_rate=beans_data.get("fat_gain_rate", DEFAULT_BEANS_CONFIG.fat_gain_rate),
+        fat_burn_rate=beans_data.get("fat_burn_rate", DEFAULT_BEANS_CONFIG.fat_burn_rate),
+        metabolism_base_burn=beans_data.get("metabolism_base_burn", DEFAULT_BEANS_CONFIG.metabolism_base_burn),
+        energy_to_fat_ratio=beans_data.get("energy_to_fat_ratio", DEFAULT_BEANS_CONFIG.energy_to_fat_ratio),
+        fat_to_energy_ratio=beans_data.get("fat_to_energy_ratio", DEFAULT_BEANS_CONFIG.fat_to_energy_ratio),
+        energy_max_storage=beans_data.get("energy_max_storage", DEFAULT_BEANS_CONFIG.energy_max_storage),
+        size_sigma_frac=beans_data.get("size_sigma_frac", DEFAULT_BEANS_CONFIG.size_sigma_frac),
+        size_penalty_above_k=beans_data.get("size_penalty_above_k", DEFAULT_BEANS_CONFIG.size_penalty_above_k),
+        size_penalty_below_k=beans_data.get("size_penalty_below_k", DEFAULT_BEANS_CONFIG.size_penalty_below_k),
+        size_penalty_min_above=beans_data.get("size_penalty_min_above", DEFAULT_BEANS_CONFIG.size_penalty_min_above),
+        size_penalty_min_below=beans_data.get("size_penalty_min_below", DEFAULT_BEANS_CONFIG.size_penalty_min_below),
+        pixels_per_unit_speed=beans_data.get("pixels_per_unit_speed", DEFAULT_BEANS_CONFIG.pixels_per_unit_speed),
+        energy_loss_on_bounce=beans_data.get("energy_loss_on_bounce", DEFAULT_BEANS_CONFIG.energy_loss_on_bounce),
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
@@ -202,7 +201,7 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
     logger.debug(">>>>> Validating world config")
     validate_world(world_config)
     logger.debug(f">>>>> World config validation passed, WorldConfig: {world_config}")
-    
+
     logger.debug(">>>>> Validating beans config")
     validate_beans(beans_config)
     logger.debug(f">>>>> Beans config validation passed, BeansConfig: {beans_config}")

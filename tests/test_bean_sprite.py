@@ -1,6 +1,8 @@
-import pytest
-import arcade
 import logging
+
+import arcade
+import pytest
+
 from beans.bean import Bean, Sex
 from beans.genetics import Gene, Genotype, Phenotype
 from config.loader import BeansConfig
@@ -69,17 +71,17 @@ class TestBeanSprite:
         position = (0.0, 0.0)
         color = arcade.color.BLUE
         sprite = BeanSprite(male_bean, position, color)
-        
+
         # Initial scale should be 1.0 (bean size equals initial size)
         initial_size = male_bean.size
         sprite.update_from_bean()
         assert sprite.scale == (1.0, 1.0)  # scale is a tuple (x, y)
-        
+
         # Change bean size and verify scale updates
         male_bean._phenotype.size = initial_size * 1.5  # Make bean 50% larger
         sprite.update_from_bean()
         assert sprite.scale == (1.5, 1.5)
-        
+
         # Change bean size again
         male_bean._phenotype.size = initial_size * 0.8  # Make bean 20% smaller
         sprite.update_from_bean()

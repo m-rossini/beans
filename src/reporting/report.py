@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 from beans.world import World
@@ -33,4 +33,4 @@ class ConsoleSimulationReport(SimulationReport):
         ]
         for line in report_lines:
             print(line)
-            self._logger.info(f">>>>> {line}")
+            self._logger.info(f">>>> {line}")

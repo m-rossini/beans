@@ -1,6 +1,5 @@
-import math
 import logging
-from typing import Tuple
+import math
 
 from .bean_sprite import BeanSprite
 
@@ -71,5 +70,5 @@ class SpriteMovementSystem:
                 state = sprite.bean.to_state()
                 state.energy -= loss
                 sprite.bean.update_from_state(state)
-                
+
         return new_x, new_y, collisions

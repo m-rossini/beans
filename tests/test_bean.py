@@ -1,13 +1,12 @@
-import random
 import logging
-import pytest
 
+import pytest
 from pydantic import ValidationError
 
 from beans.bean import Bean, Sex
 from beans.genetics import Gene, Genotype, Phenotype, create_random_genotype
-from config.loader import BeansConfig
 from beans.placement import RandomPlacementStrategy
+from config.loader import BeansConfig
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +115,6 @@ def test_genotype_negative_value_raises_error():
 
 def test_gene_enum_has_min_max_properties():
     for gene in Gene:
-        assert hasattr(gene, 'min')
-        assert hasattr(gene, 'max')
+        assert hasattr(gene, "min")
+        assert hasattr(gene, "max")
 

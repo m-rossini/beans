@@ -1,7 +1,8 @@
-import arcade
 import logging
 import random
 from typing import Optional
+
+import arcade
 
 from beans.bean import Bean
 

@@ -9,12 +9,12 @@ This module contains:
 - Helper functions for genetic calculations
 """
 
-import random
 import logging
 import math
-from dataclasses import dataclass, asdict
-from typing import NamedTuple
+import random
+from dataclasses import asdict, dataclass
 from enum import Enum
+from typing import NamedTuple
 
 from pydantic import BaseModel, field_validator
 
@@ -49,7 +49,7 @@ def apply_age_gene_curve(raw_value: float) -> float:
     """
     min_fraction = 0.1  # Minimum 10% lifespan even with gene=0
     k = 5.0  # Steepness of logarithmic curve
-    
+
     log_factor = math.log(1 + k * raw_value) / math.log(1 + k)
     return min_fraction + (1 - min_fraction) * log_factor
 
@@ -91,25 +91,25 @@ def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> 
     """
     if max_age <= 0:
         return min_efficiency
-    
+
     x = min(max(age / max_age, 0.0), 1.0)
-    
+
     # shape parameters (similar to age_speed_factor)
     p = 2.0   # childhood growth rate
     q = 2.0   # maturity steepness
     r = 4.0   # aging decay strength
-    
+
     growth = (x ** p) * math.exp(-q * x)
     aging = (1 - x ** r)
-    
+
     raw_efficiency = max(0.0, growth * aging)
-    
+
     # Scale to range [min_efficiency, 1.0]
     # Normalize raw_efficiency (which peaks around 0.09) to [0, 1]
     # age_speed_factor peaks around x=0.25 with value ~0.09
     peak_value = 0.09  # approximate peak of the curve
     normalized = min(raw_efficiency / peak_value, 1.0)
-    
+
     return min_efficiency + (1.0 - min_efficiency) * normalized
 
 
@@ -251,7 +251,7 @@ def create_random_genotype() -> Genotype:
             genes[gene] = apply_age_gene_curve(raw_value)
         else:
             genes[gene] = raw_value
-    
+
     genotype = Genotype(genes=genes)
     logger.debug(f">>>>> genetics::create_random_genotype: created genotype with genes={genes}")
     return genotype
@@ -287,4 +287,4 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
 
 def can_survive_size(size: float) -> bool:
     """Check if size allows survival."""
-    raise NotImplementedError('Need to implement and use')
+    raise NotImplementedError("Need to implement and use")

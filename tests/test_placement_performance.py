@@ -1,4 +1,5 @@
 import time
+
 from beans.placement import RandomPlacementStrategy
 from beans.population import DensityPopulationEstimator
 
@@ -14,7 +15,7 @@ def test_random_placement_performance_small_config():
     height = 300
     population_density = 0.005
     sprite_size = 10  # Default bean sprite size
-    
+
     # Estimate population
     estimator = DensityPopulationEstimator()
     male_count, female_count = estimator.estimate(
@@ -25,21 +26,21 @@ def test_random_placement_performance_small_config():
         male_female_ratio=1.0
     )
     total_count = male_count + female_count
-    
+
     # Create placement strategy and time it
     strategy = RandomPlacementStrategy()
-    
+
     start_time = time.perf_counter()
     positions = strategy.place(total_count, width, height, sprite_size)
     end_time = time.perf_counter()
-    
+
     elapsed_ms = (end_time - start_time) * 1000
-    
+
     # Verify results
     assert len(positions) >= int(total_count * 0.9), f"Failed to place 90% of beans. Expected {total_count}, got {len(positions)}"
-    
+
     # Log performance metrics
-    print(f"\nPlacement Performance (small.json config):")
+    print("\nPlacement Performance (small.json config):")
     print(f"  Dimensions: {width}x{height}")
     print(f"  Population density: {population_density}")
     print(f"  Beans placed: {len(positions)} / {total_count}")
@@ -53,7 +54,7 @@ def test_random_placement_performance_medium_scale():
     height = 600
     population_density = 0.02  # Denser population
     sprite_size = 8
-    
+
     estimator = DensityPopulationEstimator()
     male_count, female_count = estimator.estimate(
         width=width,
@@ -63,18 +64,18 @@ def test_random_placement_performance_medium_scale():
         male_female_ratio=1.0
     )
     total_count = male_count + female_count
-    
+
     strategy = RandomPlacementStrategy()
-    
+
     start_time = time.perf_counter()
     positions = strategy.place(total_count, width, height, sprite_size)
     end_time = time.perf_counter()
-    
+
     elapsed_ms = (end_time - start_time) * 1000
-    
+
     assert len(positions) >= int(total_count * 0.9)
-    
-    print(f"\nPlacement Performance (medium scale):")
+
+    print("\nPlacement Performance (medium scale):")
     print(f"  Dimensions: {width}x{height}")
     print(f"  Population density: {population_density}")
     print(f"  Beans placed: {len(positions)} / {total_count}")
@@ -88,7 +89,7 @@ def test_random_placement_performance_large_scale():
     height = 1500
     population_density = 0.01
     sprite_size = 5
-    
+
     estimator = DensityPopulationEstimator()
     male_count, female_count = estimator.estimate(
         width=width,
@@ -98,18 +99,18 @@ def test_random_placement_performance_large_scale():
         male_female_ratio=1.0
     )
     total_count = male_count + female_count
-    
+
     strategy = RandomPlacementStrategy()
-    
+
     start_time = time.perf_counter()
     positions = strategy.place(total_count, width, height, sprite_size)
     end_time = time.perf_counter()
-    
+
     elapsed_ms = (end_time - start_time) * 1000
-    
+
     assert len(positions) >= int(total_count * 0.9)
-    
-    print(f"\nPlacement Performance (large scale):")
+
+    print("\nPlacement Performance (large scale):")
     print(f"  Dimensions: {width}x{height}")
     print(f"  Population density: {population_density}")
     print(f"  Beans placed: {len(positions)} / {total_count}")

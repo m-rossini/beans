@@ -1,9 +1,9 @@
-import pytest
 import json
 import logging
-import tempfile
 import os
-from config.loader import load_config, WorldConfig, BeansConfig, DEFAULT_BEANS_CONFIG
+import tempfile
+
+from config.loader import DEFAULT_BEANS_CONFIG, load_config
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def test_load_config_with_valid_file():
             "female_bean_color": "magenta"
         }
     }
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
 
@@ -52,7 +52,7 @@ def test_load_config_with_valid_file():
 def test_load_config_invalid_values_raise():
     # Negative width should raise
     config_data = {"world": {"width": -10, "height": 100, "sprite_bean_size": 5, "male_female_ratio": 1.0, "population_density": 0.1, "placement_strategy": "random"}, "beans": {}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -66,7 +66,7 @@ def test_load_config_invalid_values_raise():
 def test_load_config_beans_invalid_speed_zero_raises():
     # speed_min or speed_max zero should raise
     config_data = {"world": {}, "beans": {"speed_min": 0, "speed_max": 5}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -80,7 +80,7 @@ def test_load_config_beans_invalid_speed_zero_raises():
 def test_load_config_world_invalid_height_raises():
     # height <=0 should raise
     config_data = {"world": {"height": 0}, "beans": {}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -94,7 +94,7 @@ def test_load_config_world_invalid_height_raises():
 def test_load_config_beans_invalid_initial_bean_size_raises():
     # initial_bean_size <=0 should raise
     config_data = {"world": {}, "beans": {"initial_bean_size": -1}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -108,7 +108,7 @@ def test_load_config_beans_invalid_initial_bean_size_raises():
 def test_load_config_world_invalid_population_density_raises():
     # population_density <=0 should raise
     config_data = {"world": {"population_density": 0}, "beans": {}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -122,7 +122,7 @@ def test_load_config_world_invalid_population_density_raises():
 def test_load_config_world_invalid_male_female_ratio_raises():
     # male_female_ratio <=0 should raise
     config_data = {"world": {"male_female_ratio": -1}, "beans": {}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -136,7 +136,7 @@ def test_load_config_world_invalid_male_female_ratio_raises():
 def test_load_config_beans_invalid_initial_energy_raises():
     # initial_energy <0 should raise
     config_data = {"world": {}, "beans": {"initial_energy": -10}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -150,7 +150,7 @@ def test_load_config_beans_invalid_initial_energy_raises():
 def test_load_config_beans_invalid_energy_gain_raises():
     # energy_gain_per_step <0 should raise
     config_data = {"world": {}, "beans": {"energy_gain_per_step": -1}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -164,7 +164,7 @@ def test_load_config_beans_invalid_energy_gain_raises():
 def test_load_config_beans_invalid_energy_cost_raises():
     # energy_cost_per_speed <0 should raise
     config_data = {"world": {}, "beans": {"energy_cost_per_speed": -0.1}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -178,7 +178,7 @@ def test_load_config_beans_invalid_energy_cost_raises():
 def test_load_config_beans_invalid_speed_zero_raises():
     # speed_min equal to zero should raise
     config_data = {"world": {}, "beans": {"speed_min": 0, "speed_max": 5}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
@@ -190,7 +190,7 @@ def test_load_config_beans_invalid_speed_zero_raises():
 
     # speed_max equal to zero should raise
     config_data = {"world": {}, "beans": {"speed_min": -5, "speed_max": 0}}
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:

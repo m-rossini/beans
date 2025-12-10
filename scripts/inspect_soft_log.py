@@ -7,9 +7,9 @@ params_list = [
 ]
 
 def raw_capacity(params: dict) -> tuple[float, int]:
-    area = params['width'] * params['height']
-    per_bean_area = max(1, params['sprite_size'] ** 2)
-    raw_total = area * params['population_density'] / per_bean_area
+    area = params["width"] * params["height"]
+    per_bean_area = max(1, params["sprite_size"] ** 2)
+    raw_total = area * params["population_density"] / per_bean_area
     return raw_total, int(raw_total)
 
 estimator = SoftLogPopulationEstimator()

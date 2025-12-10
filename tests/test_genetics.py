@@ -1,8 +1,16 @@
-import math
-import pytest
-import logging
 import json
-from beans.genetics import Gene, Genotype, genetic_max_age, apply_age_gene_curve, create_random_genotype, age_speed_factor
+import logging
+
+import pytest
+
+from beans.genetics import (
+    Gene,
+    Genotype,
+    age_speed_factor,
+    apply_age_gene_curve,
+    create_random_genotype,
+    genetic_max_age,
+)
 from config.loader import BeansConfig, load_config
 
 logger = logging.getLogger(__name__)

@@ -34,6 +34,9 @@ test-specific:  ## Run a specific test file only. Use TEST_SPECIFIC=path to over
 test-sequence: test-specific test  ## Run a specific test first, then the full test suite
 	@echo Completed test sequence (specific then full suite)
 
+ruff:  ## Run Ruff linter for log chevron enforcement
+	ruff check .
+
 lint:  ## Run flake8 linter
 	flake8 src/ tests/
 

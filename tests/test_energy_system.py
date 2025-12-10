@@ -1,10 +1,8 @@
-import pytest
-import pytest
-import logging
-from config.loader import BeansConfig
 from beans.bean import Bean, Sex
-from beans.genetics import create_random_genotype, create_phenotype, Genotype, Gene
-from beans.energy_system import EnergySystem, create_energy_system_from_name
+from beans.energy_system import create_energy_system_from_name
+from beans.genetics import Gene, Genotype, create_phenotype, create_random_genotype
+from config.loader import BeansConfig
+
 
 # Helper to set bean state via public API
 def set_bean_state(bean: Bean, *, energy: float | None = None, size: float | None = None):
@@ -45,7 +43,7 @@ class TestEnergySystemWholeCycle:
             size_penalty_below_k=0.15,
             size_penalty_min_below=0.4,
         )
-        energy_system = create_energy_system_from_name('standard', config)
+        energy_system = create_energy_system_from_name("standard", config)
         genes = {
             Gene.METABOLISM_SPEED: 0.5,
             Gene.MAX_GENETIC_SPEED: 0.5,
@@ -102,7 +100,7 @@ class TestEnergySystemWholeCycle:
             min_bean_size=3.0,
             max_bean_size=20.0,
         )
-        energy_system = create_energy_system_from_name('standard', config)
+        energy_system = create_energy_system_from_name("standard", config)
         genotype = create_random_genotype()
         phenotype = create_phenotype(config, genotype)
         phenotype.size = 30.0  # Obese
