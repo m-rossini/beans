@@ -1,12 +1,14 @@
 import logging
+
+import pytest
+
 from beans.population import (
     DensityPopulationEstimator,
     SoftLogPopulationEstimator,
     create_population_estimator_from_name,
 )
 from beans.world import World
-from config.loader import WorldConfig, BeansConfig
-import pytest
+from config.loader import BeansConfig, WorldConfig
 
 logger = logging.getLogger(__name__)
 
@@ -58,19 +60,19 @@ def test_density_population_handles_unbalanced_ratios(ratio, expected_fraction):
 
 
 def test_population_estimator_factory_defaults_to_density():
-    estimator = create_population_estimator_from_name('')
+    estimator = create_population_estimator_from_name("")
     assert isinstance(estimator, DensityPopulationEstimator)
 
 
 def test_world_initialization_respects_density_and_ratio():
     cfg = WorldConfig(
-        male_sprite_color='blue',
-        female_sprite_color='red',
+        male_sprite_color="blue",
+        female_sprite_color="red",
         male_female_ratio=3.0,
         width=20,
         height=20,
         population_density=1.0,
-        placement_strategy='random',
+        placement_strategy="random",
     )
     bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
     world = World(config=cfg, beans_config=bcfg)
@@ -104,7 +106,7 @@ def test_soft_log_estimator_reaches_density_maximum():
 
 
 def test_population_estimator_factory_soft_log():
-    estimator = create_population_estimator_from_name('soft_log')
+    estimator = create_population_estimator_from_name("soft_log")
     assert isinstance(estimator, SoftLogPopulationEstimator)
 
 

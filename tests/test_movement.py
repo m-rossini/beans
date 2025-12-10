@@ -1,7 +1,7 @@
-import math
 import pytest
+
 from beans.bean import Bean, Sex
-from beans.genetics import Genotype, Phenotype, create_random_genotype
+from beans.genetics import Phenotype, create_random_genotype
 from config.loader import BeansConfig
 from rendering.bean_sprite import BeanSprite
 from rendering.movement import SpriteMovementSystem

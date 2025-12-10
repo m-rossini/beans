@@ -1,17 +1,14 @@
 import logging
-from pydantic import BaseModel
 from enum import Enum
+
+from pydantic import BaseModel
+
 from config.loader import BeansConfig
+
 from .genetics import (
-    Gene,
     Genotype,
     Phenotype,
-    size_z_score,
-    size_target,
     genetic_max_age,
-    genetic_max_speed,
-    age_speed_factor,
-    age_energy_efficiency,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,13 +84,7 @@ class Bean:
         self.alive = True
         self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size, target_size=self._phenotype.target_size, alive=self.alive)
 
-        logger.debug(
-            f">>>>> Bean {self.id} created: sex={self.sex.value}, "
-            f"genotype={self.genotype.to_compact_str()}, "
-            f"phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, "
-            f"alive:{self.alive}, "
-            f"energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}"
-        )
+        logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, genotype={self.genotype.to_compact_str()}, phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, alive:{self.alive}, energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}")
 
     @property
     def age(self) -> float:
@@ -110,7 +101,7 @@ class Bean:
     @property
     def size(self) -> float:
         return self._phenotype.size
-    
+
     @property
     def is_male(self) -> bool:
         return self.sex == Sex.MALE
@@ -118,7 +109,7 @@ class Bean:
     @property
     def is_female(self) -> bool:
         return self.sex == Sex.FEMALE
-        
+
     def die(self) -> None:
         """Mark the bean as dead."""
         self.alive = False
@@ -126,7 +117,7 @@ class Bean:
     def _is_dead(self) -> bool:
         """Check if the bean is dead."""
         return not self.alive
-    
+
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics.
         
@@ -134,9 +125,9 @@ class Bean:
         are called by World, not by Bean itself.
         """
         if self._is_dead():
-            logger.warning(f">>>>> Bean {self.id} update called on dead bean. No update performed.")
+            logger.warning(f">>> Bean {self.id} update called on dead bean. No update performed.")
             return {"phenotype": self._phenotype.to_dict()}
-        
+
         self._phenotype.age += 1.0
         logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
         return {"phenotype": self._phenotype.to_dict()}
@@ -162,11 +153,11 @@ class Bean:
         """
         if state.id != self.id:
             raise ValueError(f"BeanState id {state.id} does not match Bean id {self.id}")
-        
+
         if self._is_dead():
-            logger.warning(f">>>>> Bean {self.id} update_from_state called on dead bean. No update performed.")
+            logger.warning(f">>> Bean {self.id} update_from_state called on dead bean. No update performed.")
             return
-        
+
         self._phenotype.age = state.age
         self._phenotype.speed = state.speed
         self._phenotype.energy = state.energy

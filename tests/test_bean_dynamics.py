@@ -1,8 +1,7 @@
 from beans.genetics import Gene, Genotype, age_speed_factor
-from src.beans.dynamics.bean_dynamics import BeanDynamics
-from src.beans.bean import BeanState
 from config.loader import BeansConfig
-
+from src.beans.bean import BeanState
+from src.beans.dynamics.bean_dynamics import BeanDynamics
 
 
 def test_bean_dynamics_speed_calculation():

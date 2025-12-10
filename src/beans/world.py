@@ -1,16 +1,18 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Tuple
-from .bean import Bean, Sex, BeanState
+from typing import List
+
+from beans.dynamics.bean_dynamics import BeanDynamics
+from config.loader import BeansConfig, WorldConfig
+
+from .bean import Bean, BeanState, Sex
 from .energy_system import EnergySystem, create_energy_system_from_name
-from .genetics import create_random_genotype, create_phenotype
-from .placement import PlacementStrategy, create_strategy_from_name
+from .genetics import create_phenotype, create_random_genotype
+from .placement import create_strategy_from_name
 from .population import (
     PopulationEstimator,
     create_population_estimator_from_name,
 )
-from config.loader import WorldConfig, BeansConfig
-from beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,7 @@ class World:
         self.bean_dynamics = BeanDynamics(beans_config)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
-        logger.info(f"World initialized with {len(self.beans)} beans")
+        logger.info(f">>>> World initialized with {len(self.beans)} beans")
 
     def _initialize(self) -> List[Bean]:
         male_count, female_count = self.population_estimator.estimate(
@@ -52,7 +54,7 @@ class World:
             male_female_ratio=self.male_female_ratio,
         )
         bean_count = male_count + female_count
-        logger.info(f">>>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
+        logger.info(f">>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
         beans = self._create_beans(self.beans_config, bean_count, male_count)
 
         return beans
@@ -71,7 +73,7 @@ class World:
             )
             beans.append(bean)
         return beans
-        
+
     def step(self, dt: float) -> None:
         logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
         survivors: List[Bean] = []
@@ -82,7 +84,7 @@ class World:
             state.store(speed=speed)
             bean.update_from_state(state)
             bean.update(dt)
-            
+
             alive, reason = bean.survive()
             if not alive:
                 self._mark_dead(bean, reason=reason)
@@ -96,7 +98,7 @@ class World:
             logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
 
         self.round += 1
-    
+
     def _update_bean(self, bean: Bean) -> BeanState:
         return self.energy_system.apply_energy_system(bean, self.get_energy_intake())
 

@@ -6,7 +6,8 @@ from config.loader import BeansConfig
 logger = logging.getLogger(__name__)
 
 
-from beans.genetics import genetic_max_speed, age_speed_factor, size_z_score
+from beans.genetics import age_speed_factor, genetic_max_speed, size_z_score
+
 
 class BeanDynamics:
     def __init__(self, config: BeansConfig, genotype=None, max_age=None):

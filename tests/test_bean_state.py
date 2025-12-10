@@ -1,5 +1,5 @@
 import pytest
-from config.loader import BeansConfig
+
 from beans.bean import BeanState
 
 

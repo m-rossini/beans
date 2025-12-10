@@ -1,6 +1,6 @@
-import random
-import math
 import logging
+import math
+import random
 
 from beans.placement import RandomPlacementStrategy
 
@@ -46,7 +46,7 @@ def test_random_placement_no_collisions():
     random.seed(1)  # Use a seed that would cause collisions without collision detection
     strategy = RandomPlacementStrategy()
     positions = strategy.place(20, width=200, height=200, size=20)
-    logger.info(f"test_placement::test_random_placement_no_collisions: positions=\n" + "\n".join(str(p) for p in positions))
+    logger.info("test_placement::test_random_placement_no_collisions: positions=\n" + "\n".join(str(p) for p in positions))
 
     # Check all pairs of positions
     for i in range(len(positions)):

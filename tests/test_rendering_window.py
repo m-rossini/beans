@@ -1,11 +1,10 @@
-import arcade
-import types
-import pytest
 import logging
+
+import arcade
 
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
-from config.loader import WorldConfig, BeansConfig
+from config.loader import BeansConfig, WorldConfig
 from reporting.report import SimulationReport
 
 logger = logging.getLogger(__name__)
@@ -19,32 +18,32 @@ def _fake_arcade_init(self, width, height, title):
     self._event_queue = []
     self._enable_event_queue = False
     self._allow_dispatch_event = True
-    self.set_size = lambda w, h: (setattr(self, '_width', w), setattr(self, '_height', h))
+    self.set_size = lambda w, h: (setattr(self, "_width", w), setattr(self, "_height", h))
     self.get_size = lambda: (self._width, self._height)
 
 def test_world_window_esc_closes(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
     world = World(cfg, bcfg)
 
-    closed = {'called': False}
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
-    monkeypatch.setattr(arcade, 'close_window', lambda: closed.update({'called': True}), raising=False)
+    closed = {"called": False}
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
+    monkeypatch.setattr(arcade, "close_window", lambda: closed.update({"called": True}), raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
     win.on_key_press(arcade.key.ESCAPE, 0)
-    assert closed['called'] is True
+    assert closed["called"] is True
 
 
 def test_world_window_calls_placement(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
     world = World(cfg, bcfg)
 
-    called = {'count': 0}
+    called = {"count": 0}
     class SpyPlacement(RandomPlacementStrategy):
         def place(self, count, width, height, size):
-            called['count'] += 1
+            called["count"] += 1
             # Return non-overlapping positions within bounds
             positions = []
             cols = max(1, width // (size * 2))
@@ -58,19 +57,19 @@ def test_world_window_calls_placement(monkeypatch):
             return positions
 
     world.placement_strategy = SpyPlacement()
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
-    assert called['count'] == 1
+    assert called["count"] == 1
     assert len(win.bean_sprites) == len(world.beans)
 
 
 def test_world_window_sprite_colors(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='green', female_bean_color='yellow')
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="green", female_bean_color="yellow")
     world = World(cfg, bcfg)
 
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
     for sprite in win.bean_sprites:
@@ -84,8 +83,8 @@ def test_world_window_sprite_colors(monkeypatch):
 
 
 def test_world_window_reports_when_empty(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy='random')
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
     world = World(cfg, bcfg)
 
     class SpyReporter(SimulationReport):
@@ -96,9 +95,9 @@ def test_world_window_reports_when_empty(monkeypatch):
 
     reporter = SpyReporter()
 
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
-    closed = {'called': False}
-    monkeypatch.setattr(arcade, 'close_window', lambda: closed.update({'called': True}), raising=False)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
+    closed = {"called": False}
+    monkeypatch.setattr(arcade, "close_window", lambda: closed.update({"called": True}), raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world, reporters=[reporter])
     win.on_update(0)
@@ -108,32 +107,32 @@ def test_world_window_reports_when_empty(monkeypatch):
 
 
 def test_world_window_pauses_when_empty(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy='random')
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
     world = World(cfg, bcfg)
     world.beans = []
 
-    step_calls = {'count': 0}
+    step_calls = {"count": 0}
     def spy_step(dt: float):
-        step_calls['count'] += 1
+        step_calls["count"] += 1
     world.step = spy_step
 
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
     win.on_update(0)
 
-    assert step_calls['count'] == 0
+    assert step_calls["count"] == 0
     assert win._prompt_active
     assert win._paused
 
 
 def test_window_bounce_deducts_energy(monkeypatch):
-    cfg = WorldConfig(male_sprite_color='blue', female_sprite_color='red', male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy='random')
-    bcfg = BeansConfig(speed_min=1.0, speed_max=200.0, max_age_rounds=100, initial_bean_size=10, male_bean_color='blue', female_bean_color='red')
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=1.0, speed_max=200.0, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
     world = World(cfg, bcfg)
 
-    monkeypatch.setattr(arcade.Window, '__init__', _fake_arcade_init, raising=False)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
     # pick the first sprite

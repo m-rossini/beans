@@ -1,12 +1,14 @@
-import arcade
-import arcade.key
 import logging
 from typing import List, Sequence
 
+import arcade
+import arcade.key
+
 from beans.world import World
+from reporting.report import ConsoleSimulationReport, SimulationReport
+
 from .bean_sprite import BeanSprite
 from .movement import SpriteMovementSystem
-from reporting.report import ConsoleSimulationReport, SimulationReport
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +37,9 @@ class WorldWindow(arcade.Window):
         positions = self.placement_strategy.place(
             len(self.world.beans), self.world.width, self.world.height, self.world.sprite_size
         )
-        logger.info(
-            f"WorldWindow::__init__: Generated positions for beans with width={self.world.width}, height={self.world.height}, sprite_size={self.world.sprite_size}"
-        )
+        logger.info(f">>>> WorldWindow::__init__: Generated positions for beans with width={self.world.width}, height={self.world.height}, sprite_size={self.world.sprite_size}")
         for pos in positions:
-            logger.debug(f"WorldWindow::__init__: Position: {pos}")
+            logger.debug(f">>>>> WorldWindow::__init__: Position: {pos}")
         self.bean_sprites: List[BeanSprite] = []
         self.sprite_list = arcade.SpriteList()
         for i, bean in enumerate(self.world.beans):
@@ -51,7 +51,7 @@ class WorldWindow(arcade.Window):
             self.sprite_list.append(sprite)
         # Movement system for sprite animation and bouncing
         self._movement_system = SpriteMovementSystem()
-        logger.info(f"WorldWindow initialized with {len(self.bean_sprites)} bean sprites. title={title}, beans_count={len(world.beans)}")
+        logger.info(f">>>> WorldWindow initialized with {len(self.bean_sprites)} bean sprites. title={title}, beans_count={len(world.beans)}")
         self._prompt_active = False
         self._paused = False
         self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
@@ -85,7 +85,7 @@ class WorldWindow(arcade.Window):
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
-            logger.debug(f"WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
+            logger.debug(f">>>>> WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
             sprite.update_from_bean(delta_time, movement_system=self._movement_system, bounds=(self.width, self.height))  # Update sprite appearance based on current bean state
@@ -108,7 +108,7 @@ class WorldWindow(arcade.Window):
             if self._help_active:
                 self._help_active = False
                 return
-            logger.info(">>>>> ESC key pressed, closing window")
+            logger.info(">>>> ESC key pressed, closing window")
             arcade.close_window()
 
     def _draw_zero_bean_prompt(self) -> None:
