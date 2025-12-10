@@ -266,8 +266,7 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
     max_age = config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
     max_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
 
-    initial_speed = max_speed * age_speed_factor(0, max_age)
-
+    initial_speed = max_speed * age_speed_factor(0, max_age,0.0)
     random_low_bound = 0.95
     random_high_bound = 1.05
 
@@ -278,7 +277,7 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
         size=float(config.initial_bean_size) * random.uniform(random_low_bound, random_high_bound),
         target_size=size_target(0.0, genotype, config),
     )
-    logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, spped_base={initial_speed:.2f}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}")
+    logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, speed_base={initial_speed:.2f}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}, max_age={max_age:.2f}, max_speed={max_speed:.2f}")
     return phenotype
 
 

@@ -30,11 +30,6 @@ class EnergySystem(ABC):
     helper methods that concrete implementations can use.
     """
 
-    def calculate_target_size(self, bean: Bean) -> float:
-        """Calculate the target size for a bean using genotype and config."""
-        from beans.genetics import size_target
-        return size_target(bean.age, bean.genotype, self.config)
-
     def __init__(self, config: BeansConfig) -> None:
         """Initialize the EnergySystem with configuration.
         
@@ -61,7 +56,7 @@ class EnergySystem(ABC):
         """
         bean_state: BeanState = bean.to_state()
         # Set target_size every step
-        bean_state.target_size = self.calculate_target_size(bean)
+        bean_state.target_size = self._calculate_target_size(bean)
 
         bean_state.energy = self._apply_intake(bean_state, energy_intake_eu)
         bean_state.energy = self._apply_basal_metabolism(bean_state, self._get_metabolism_factor(bean))
@@ -72,6 +67,11 @@ class EnergySystem(ABC):
         bean_state.size = self._clamp_size(bean_state)
 
         return bean.update_from_state(bean_state)
+
+    def _calculate_target_size(self, bean: Bean) -> float:
+        """Calculate the target size for a bean using genotype and config."""
+        from beans.genetics import size_target
+        return size_target(bean.age, bean.genotype, self.config)
 
     @abstractmethod
     def _apply_intake(self, bean_state: BeanState, energy_eu: float) -> float:
