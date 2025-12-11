@@ -25,6 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 class EnergySystem(ABC):
+        def apply_collision_loss(self, bean: 'Bean', collisions: int) -> None:
+            """Deduct energy for edge collisions using config or bean properties."""
+            if collisions <= 0:
+                return
+            # Use config or bean property for energy loss per bounce
+            loss = self.config.energy_loss_on_bounce
+            state = bean.to_state()
+            state.energy -= loss * collisions
+            bean.update_from_state(state)
     """Abstract base class for energy system implementations.
     
     Defines the interface for energy management and provides common
@@ -313,7 +322,6 @@ class StandardEnergySystem(EnergySystem):
         Args:
             bean: The bean to clamp size for.
         """
-        # TODO: Extract size changes and clamping to separate sizing subsystem
         size = bean_state.size
         if bean_state.size < self.config.min_bean_size:
             size = self.config.min_bean_size
@@ -335,7 +343,6 @@ class StandardEnergySystem(EnergySystem):
         Returns:
             Penalty multiplier between min_penalty and 1.0.
         """
-        # TODO: Extract size speed penalty to sizing subsystem
         target_size = self.config.initial_bean_size
         sigma = target_size * self.config.size_sigma_frac
         z_score = (bean.size - target_size) / sigma
@@ -411,6 +418,7 @@ def create_energy_system_from_name(name: str, config: BeansConfig) -> EnergySyst
         
     Raises:
         ValueError: If the name is not recognized.
+
     """
     logger.info(f">>>> create_energy_system_from_name: name={name}")
     if not name or name.lower() == "standard":

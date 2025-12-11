@@ -95,6 +95,8 @@ class WorldWindow(arcade.Window):
             new_x, new_y, collisions = self._movement_system.move_sprite(sprite, self.width, self.height)
             sprite.center_x = new_x
             sprite.center_y = new_y
+            # Delegate energy loss to EnergySystem
+            self.world.energy_system.apply_collision_loss(sprite.bean, collisions)
             sprite.update_from_bean(delta_time, movement_system=self._movement_system, bounds=(self.width, self.height))
             self.sprite_list.append(sprite)
         logger.debug(f">>>>> WorldWindow.on_update: {len(self.bean_sprites)} sprites active")
