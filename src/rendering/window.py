@@ -40,15 +40,10 @@ class WorldWindow(arcade.Window):
         logger.info(f">>>> WorldWindow::__init__: Generated positions for beans with width={self.world.width}, height={self.world.height}, sprite_size={self.world.sprite_size}")
         for pos in positions:
             logger.debug(f">>>>> WorldWindow::__init__: Position: {pos}")
-        self.bean_sprites: List[BeanSprite] = []
+
+        self.bean_sprites: List[BeanSprite] = self._create_bean_sprites(positions)
         self.sprite_list = arcade.SpriteList()
-        for i, bean in enumerate(self.world.beans):
-            pos = positions[i]
-            color_str = self.world.beans_config.male_bean_color if bean.is_male else self.world.beans_config.female_bean_color
-            color = _color_from_name(color_str)
-            sprite = BeanSprite(bean, pos, color)
-            self.bean_sprites.append(sprite)
-            self.sprite_list.append(sprite)
+        self.sprite_list.extend(self.bean_sprites)
         # Movement system for sprite animation and bouncing
         self._movement_system = SpriteMovementSystem()
         logger.info(f">>>> WorldWindow initialized with {len(self.bean_sprites)} bean sprites. title={title}, beans_count={len(world.beans)}")
@@ -56,6 +51,14 @@ class WorldWindow(arcade.Window):
         self._paused = False
         self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
         self._help_active = False
+
+    def _create_bean_sprites(self, positions) -> BeanSprite:
+        return [ self._create_sprite(bean, positions[i]) for i, bean in enumerate(self.world.beans)]
+
+    def _create_sprite(self, bean, position) -> BeanSprite:
+        color_str = self.world.beans_config.male_bean_color if bean.is_male else self.world.beans_config.female_bean_color
+        color = _color_from_name(color_str)
+        return BeanSprite(bean, position, color)
 
     def _pause_for_empty_world(self) -> bool:
         """Set pause/prompt state when no beans remain."""
