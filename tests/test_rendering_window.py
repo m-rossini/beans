@@ -1,4 +1,9 @@
 import logging
+import arcade
+from beans.placement import RandomPlacementStrategy
+from beans.world import World
+from config.loader import BeansConfig, WorldConfig
+from reporting.report import SimulationReport
 
 import arcade
 
@@ -8,6 +13,27 @@ from config.loader import BeansConfig, WorldConfig
 from reporting.report import SimulationReport
 
 logger = logging.getLogger(__name__)
+
+def test_sprite_creation_initialization(monkeypatch):
+    """
+    TDD: Ensure WorldWindow creates sprites for all beans with correct attributes.
+    """
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=0.5, width=100, height=100, population_density=0.2, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=1, speed_max=2, max_age_rounds=10, initial_bean_size=5, male_bean_color="blue", female_bean_color="red")
+    world = World(cfg, bcfg)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
+    from rendering.window import WorldWindow
+    win = WorldWindow(world)
+    # Assert sprite count matches bean count
+    assert len(win.bean_sprites) == len(world.beans)
+    # Assert each sprite is initialized with correct bean reference and position
+    for sprite, bean in zip(win.bean_sprites, world.beans):
+        assert sprite.bean is bean
+        assert isinstance(sprite.center_x, (int, float))
+        assert isinstance(sprite.center_y, (int, float))
+        # Allow for small floating-point differences in bean size
+        assert abs(sprite.bean.size - bcfg.initial_bean_size) < 0.5
+        assert sprite.color in [arcade.color.BLUE, arcade.color.RED]
 
 
 def _fake_arcade_init(self, width, height, title):

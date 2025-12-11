@@ -2,8 +2,8 @@ import logging
 import random
 from typing import Optional
 
-import arcade
 
+import arcade
 from beans.bean import Bean
 
 logger = logging.getLogger(__name__)
@@ -22,12 +22,12 @@ class BeanSprite(arcade.Sprite):
         self.bean = bean
         self.color = color
 
-    def update_from_bean(self, delta_time: float = 1.0, movement_system=None, bounds: tuple[int, int] | None = None):
+    def update_from_bean(self,
+                         delta_time: float = 1.0,
+                         target_position: Optional[tuple[float, float]] = None):
         """Update sprite based on bean state (size changes and optional movement).
-
-        delta_time is used for visual interpolation only. Movement is performed by
-        the optional movement_system which returns a target position; the sprite
-        then interpolates towards it for smoother animation.
+        delta_time is used for visual interpolation only. If target_position is provided,
+        the sprite interpolates towards it for smoother animation.
         """
         # Save previous visual center for interpolation
         prev_x = self.center_x
@@ -37,14 +37,11 @@ class BeanSprite(arcade.Sprite):
         scale_factor = self.bean.size / self.diameter
         self.scale = scale_factor
 
+
         target_x = self.center_x
         target_y = self.center_y
-        collisions = 0
-        if movement_system is not None and bounds is not None:
-            # Movement system returns target coords and collision count
-            tx, ty, collisions = movement_system.move_sprite(self, bounds[0], bounds[1])
-            target_x = tx
-            target_y = ty
+        if target_position is not None:
+            target_x, target_y = target_position
 
         # Interpolate for visual smoothing; dt controls fraction (constant multiplier)
         lerp = min(1.0, delta_time * 6.0)
