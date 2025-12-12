@@ -1,9 +1,4 @@
 import logging
-import arcade
-from beans.placement import RandomPlacementStrategy
-from beans.world import World
-from config.loader import BeansConfig, WorldConfig
-from reporting.report import SimulationReport
 
 import arcade
 
@@ -14,6 +9,26 @@ from reporting.report import SimulationReport
 
 logger = logging.getLogger(__name__)
 
+def test_sprite_position_updates_on_movement(monkeypatch):
+    """
+    TDD: Ensure WorldWindow.on_update updates sprite positions after movement.
+    """
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=10, speed_max=10, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
+    world = World(cfg, bcfg)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
+    from rendering.window import WorldWindow
+    win = WorldWindow(world)
+    sprite = win.bean_sprites[0]
+    # Set initial position and direction
+    initial_x = sprite.center_x
+    initial_y = sprite.center_y
+    sprite.direction = 0.0  # Move right
+    sprite.bean._phenotype.speed = 10.0
+    win.on_update(0.1)
+    # Assert position has changed after movement
+    assert sprite.center_x != initial_x or sprite.center_y != initial_y
+    
 def test_sprite_creation_initialization(monkeypatch):
     """
     TDD: Ensure WorldWindow creates sprites for all beans with correct attributes.

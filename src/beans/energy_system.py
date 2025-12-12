@@ -25,15 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 class EnergySystem(ABC):
-        def apply_collision_loss(self, bean: 'Bean', collisions: int) -> None:
-            """Deduct energy for edge collisions using config or bean properties."""
-            if collisions <= 0:
-                return
-            # Use config or bean property for energy loss per bounce
-            loss = self.config.energy_loss_on_bounce
-            state = bean.to_state()
-            state.energy -= loss * collisions
-            bean.update_from_state(state)
     """Abstract base class for energy system implementations.
     
     Defines the interface for energy management and provides common
