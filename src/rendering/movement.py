@@ -62,7 +62,7 @@ class SpriteMovementSystem:
 
         # Do not update sprite positions directly here; return target coords so the
         # caller (sprite) can interpolate visually.
-        logger.debug(f">>>>> MovementSystem.move_sprite: bean={getattr(bean, 'id', None)}, speed={bean.speed:.2f}, dx={dx:.2f}, dy={dy:.2f}, target=({new_x:.2f},{new_y:.2f}), collisions={collisions}")
+        logger.debug(f">>>>> MovementSystem.move_sprite: bean={bean.id}, speed={bean.speed:.2f}, dx={dx:.2f}, dy={dy:.2f}, target=({new_x:.2f},{new_y:.2f}), collisions={collisions}")
         # For each collision, deduct energy via DTO update
         if collisions > 0:
             loss = sprite.bean.beans_config.energy_loss_on_bounce
