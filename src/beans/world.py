@@ -40,14 +40,9 @@ class World:
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
-        # Use the first bean's genotype and max_age as a default for bean_dynamics
-        if self.beans:
-            default_genotype = self.beans[0].genotype
-            default_max_age = self.beans[0]._max_age
-        else:
-            default_genotype = None
-            default_max_age = None
-        self.bean_dynamics = BeanDynamics(beans_config, default_genotype, default_max_age)
+        # Single BeanDynamics instance per world; per-bean genotype and max_age
+        # are supplied at calculation time to avoid constructing one per bean.
+        self.bean_dynamics = BeanDynamics(beans_config)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
         logger.info(f">>>> World initialized with {len(self.beans)} beans")
@@ -105,7 +100,9 @@ class World:
 
     def _update_bean(self, bean: Bean) -> BeanState:
         bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
-        speed = self.bean_dynamics.calculate_speed(bean_state)
+        # Calculate speed using the world's BeanDynamics but pass per-bean
+        # genotype and max_age into the calculation.
+        speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
         bean_state.store(speed=speed)
         return bean.update_from_state(bean_state)
 

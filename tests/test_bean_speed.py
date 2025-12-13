@@ -1,6 +1,6 @@
-import pytest
-from config.loader import BeansConfig, WorldConfig
 from beans.world import World
+from config.loader import BeansConfig, WorldConfig
+
 
 def test_bean_speed_nonzero_after_5_rounds():
     beans_config = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=1000)

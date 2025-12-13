@@ -8,3 +8,4 @@ black>=23.0
 flake8>=6.0
 mypy>=1.0
 isort>=5.0
+matplotlib>=3.0
