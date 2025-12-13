@@ -1,4 +1,5 @@
 import logging
+import random
 from dataclasses import dataclass
 from typing import List
 
@@ -6,6 +7,7 @@ from beans.dynamics.bean_dynamics import BeanDynamics
 from config.loader import BeansConfig, WorldConfig
 
 from .bean import Bean, BeanState, Sex
+from .context import BeanContext
 from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_phenotype, create_random_genotype
 from .placement import create_strategy_from_name
@@ -38,6 +40,8 @@ class World:
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
+        # Create a private RNG seeded from world config if seed provided
+        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         # Single BeanDynamics instance per world; per-bean genotype and max_age
@@ -57,19 +61,21 @@ class World:
         )
         bean_count = male_count + female_count
         logger.info(f">>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
-        beans = self._create_beans(self.beans_config, bean_count, male_count)
+        # Build the bean creation context (contains counts and RNG)
+        ctx = BeanContext(bean_count=bean_count, male_count=male_count, rng=self._rng)
+        beans = self._create_beans(self.beans_config, ctx)
 
         return beans
 
-    def _create_beans(self, beans_config: BeansConfig, bean_count: int, male_count: int) -> List[Bean]:
+    def _create_beans(self, beans_config: BeansConfig, bean_context: BeanContext) -> List[Bean]:
         beans = []
-        for i in range(bean_count):
-            genotype = create_random_genotype()
-            phenotype = create_phenotype(beans_config, genotype)
+        for i in range(bean_context.bean_count):
+            genotype = create_random_genotype(rng=bean_context.rng)
+            phenotype = create_phenotype(beans_config, genotype, rng=bean_context.rng)
             bean = Bean(
                 config=beans_config,
                 id=i,
-                sex=Sex.MALE if i < male_count else Sex.FEMALE,
+                sex=Sex.MALE if i < bean_context.male_count else Sex.FEMALE,
                 genotype=genotype,
                 phenotype=phenotype,
             )

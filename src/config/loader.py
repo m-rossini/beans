@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ class WorldConfig:
     background_color: str = "white"        # Background color of the world.
     max_age_years: int = 100               # Maximum bean age in years.
     rounds_per_year: int = 12              # Simulation rounds per year.
+    seed: Optional[int] = None             # Optional seed for deterministic world RNG
 
 
 @dataclass
@@ -75,6 +76,7 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
     background_color="white",
     max_age_years=100,
     rounds_per_year=12,
+    seed=None,
 )
 
 DEFAULT_BEANS_CONFIG = BeansConfig(
@@ -139,6 +141,7 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         background_color=world_data.get("background_color", DEFAULT_WORLD_CONFIG.background_color),
         max_age_years=world_data.get("max_age_years", DEFAULT_WORLD_CONFIG.max_age_years),
         rounds_per_year=world_data.get("rounds_per_year", DEFAULT_WORLD_CONFIG.rounds_per_year),
+        seed=world_data.get("seed", DEFAULT_WORLD_CONFIG.seed),
     )
 
     # Compute max_age_rounds from world config

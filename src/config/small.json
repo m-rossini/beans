@@ -11,7 +11,8 @@
     "female_sprite_color": "red",
     "background_color": "WHITE",
     "max_age_years": 10,
-    "rounds_per_year": 5
+    "rounds_per_year": 5,
+    "seed": null
   },
   "beans": {
     "speed_min": -80.0,
