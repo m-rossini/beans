@@ -1,8 +1,9 @@
 import logging
 import math
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from beans.placement import SpatialHash
+from config.loader import BeansConfig
 
 from .bean_sprite import BeanSprite
 
@@ -81,6 +82,142 @@ class SpriteMovementSystem:
 
         return new_x, new_y, collisions
 
+    def _circle_intersection_area(self, r0: float, r1: float, d: float) -> float:
+        if d >= r0 + r1:
+            return 0.0
+        if d <= abs(r0 - r1):
+            # One circle is completely inside the other
+            return math.pi * min(r0, r1) ** 2
+
+        denom_a = 2 * d * r0
+        denom_b = 2 * d * r1
+        if denom_a == 0 or denom_b == 0:
+            return 0.0
+
+        arg_a = (d * d + r0 * r0 - r1 * r1) / denom_a
+        arg_b = (d * d + r1 * r1 - r0 * r0) / denom_b
+        arg_a = max(-1.0, min(1.0, arg_a))
+        arg_b = max(-1.0, min(1.0, arg_b))
+
+        a = r0 * r0 * math.acos(arg_a)
+        b = r1 * r1 * math.acos(arg_b)
+        sqrt_arg = max(0.0, (-d + r0 + r1) * (d + r0 - r1) * (d - r0 + r1) * (d + r0 + r1))
+        c = 0.5 * math.sqrt(sqrt_arg)
+        return a + b - c
+
+    def _vec_from_speed_dir(self, speed_units: float, direction_deg: float, pixels_per_unit: float) -> Tuple[float, float]:
+        speed_px = speed_units * pixels_per_unit
+        r = math.radians(direction_deg)
+        return math.cos(r) * speed_px, math.sin(r) * speed_px
+
+    def _initialize_collision_data(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[Tuple[float, float], BeanSprite], Dict[BeanSprite, float], Optional[SpatialHash]]:
+        """Prepare data structures for collision detection: positions map, sizes, and spatial hash."""
+        positions_map = {(tx, ty): sprite for sprite, tx, ty in sprite_targets}
+        sizes = {sprite: sprite.bean.size for sprite, tx, ty in sprite_targets}
+        avg_size = max(1, int(sum(sizes.values()) / len(sizes)))
+        spatial = None
+        if SpatialHash is not None:
+            spatial = SpatialHash(cell_size=avg_size, width=bounds_width, height=bounds_height)
+            for (tx, ty), sprite in positions_map.items():
+                spatial.insert(tx, ty)
+        return positions_map, sizes, spatial
+
+    def _detect_collision(self, sprite_a: BeanSprite, sprite_b: BeanSprite, pos_a: Tuple[float, float], pos_b: Tuple[float, float]) -> bool:
+        """Check if two sprites are colliding based on intersection area."""
+        r0 = sprite_a.bean.size / 2.0
+        r1 = sprite_b.bean.size / 2.0
+        d = math.hypot(pos_a[0] - pos_b[0], pos_a[1] - pos_b[1])
+        area = self._circle_intersection_area(r0, r1, d)
+        return area >= 2.0
+
+    def _compute_collision_damage(self, sprite_a: BeanSprite, sprite_b: BeanSprite, pos_a: Tuple[float, float], pos_b: Tuple[float, float], cfg: BeansConfig) -> Tuple[float, float]:
+        """Compute damage for colliding sprites, including base, speed, size split, and sex multipliers."""
+        base = cfg.collision_base_damage
+        speed_factor = cfg.collision_damage_speed_factor
+        min_damage = cfg.collision_min_damage
+        female_factor, male_factor = cfg.collision_damage_sex_factors
+
+        # Relative speed
+        u1x, u1y = self._vec_from_speed_dir(sprite_a.bean.speed, sprite_a.direction, cfg.pixels_per_unit_speed)
+        u2x, u2y = self._vec_from_speed_dir(sprite_b.bean.speed, sprite_b.direction, cfg.pixels_per_unit_speed)
+        relative_speed = math.hypot(u1x - u2x, u1y - u2y)
+
+        T = max(base * (relative_speed * speed_factor), min_damage)
+
+        # Size split
+        s0, s1 = sprite_a.bean.size, sprite_b.bean.size
+        if s0 <= s1:
+            dmg_a = T * (s1 / (s0 + s1))
+            dmg_b = T - dmg_a
+        else:
+            dmg_a = T * (s0 / (s0 + s1))
+            dmg_b = T - dmg_a
+
+        # Sex multipliers
+        factor_a = female_factor if sprite_a.bean.sex.name == "FEMALE" else male_factor if sprite_a.bean.sex.name == "MALE" else 1.0
+        factor_b = female_factor if sprite_b.bean.sex.name == "FEMALE" else male_factor if sprite_b.bean.sex.name == "MALE" else 1.0
+        return dmg_a * factor_a, dmg_b * factor_b
+
+    def _apply_damage(self, sprite_a: BeanSprite, sprite_b: BeanSprite, damage_a: float, damage_b: float, damage_report: Dict[int, float]) -> None:
+        """Apply damage to beans via DTO and update damage report."""
+        state_a = sprite_a.bean.to_state()
+        state_a.energy -= damage_a
+        sprite_a.bean.update_from_state(state_a)
+        damage_report[sprite_a.bean.id] = damage_report.get(sprite_a.bean.id, 0.0) + damage_a
+
+        state_b = sprite_b.bean.to_state()
+        state_b.energy -= damage_b
+        sprite_b.bean.update_from_state(state_b)
+        damage_report[sprite_b.bean.id] = damage_report.get(sprite_b.bean.id, 0.0) + damage_b
+
+        logger.debug(f">>>>> Collision damage: beans=({sprite_a.bean.id},{sprite_b.bean.id}), damage=({damage_a:.3f},{damage_b:.3f})")
+
+    def _resolve_elastic_collision(self, sprite_a: BeanSprite, sprite_b: BeanSprite, pos_a: Tuple[float, float], pos_b: Tuple[float, float], cfg: BeansConfig) -> Tuple[float, float, float, float]:
+        """Compute new speeds and directions for elastic collision resolution."""
+        r0 = sprite_a.bean.size / 2.0
+        r1 = sprite_b.bean.size / 2.0
+        m1 = r0 ** 2
+        m2 = r1 ** 2
+
+        u1x, u1y = self._vec_from_speed_dir(sprite_a.bean.speed, sprite_a.direction, cfg.pixels_per_unit_speed)
+        u2x, u2y = self._vec_from_speed_dir(sprite_b.bean.speed, sprite_b.direction, cfg.pixels_per_unit_speed)
+
+        nx, ny = pos_a[0] - pos_b[0], pos_a[1] - pos_b[1]
+        nd = math.hypot(nx, ny)
+        unx, uny = (nx / nd, ny / nd) if nd > 0 else (1.0, 0.0)
+
+        relvx, relvy = u1x - u2x, u1y - u2y
+        p = 2 * (relvx * unx + relvy * uny) / (m1 + m2) if (m1 + m2) != 0 else 0.0
+
+        v1x = u1x - p * m2 * unx
+        v1y = u1y - p * m2 * uny
+        v2x = u2x + p * m1 * unx
+        v2y = u2y + p * m1 * uny
+
+        new_speed_a = math.hypot(v1x, v1y) / cfg.pixels_per_unit_speed
+        new_dir_a = math.degrees(math.atan2(v1y, v1x)) if (v1x or v1y) else sprite_a.direction
+        new_speed_b = math.hypot(v2x, v2y) / cfg.pixels_per_unit_speed
+        new_dir_b = math.degrees(math.atan2(v2y, v2x)) if (v2x or v2y) else sprite_b.direction
+
+        return new_speed_a, new_dir_a, new_speed_b, new_dir_b
+
+    def _nudge_positions(self, sprite_a: BeanSprite, sprite_b: BeanSprite, pos_a: Tuple[float, float], pos_b: Tuple[float, float], adjusted: Dict[BeanSprite, Tuple[float, float]]) -> None:
+        """Adjust positions to remove overlap after collision."""
+        r0 = sprite_a.bean.size / 2.0
+        r1 = sprite_b.bean.size / 2.0
+        d = math.hypot(pos_a[0] - pos_b[0], pos_a[1] - pos_b[1])
+        overlap = (r0 + r1) - d
+        if overlap > 0:
+            nx, ny = pos_a[0] - pos_b[0], pos_a[1] - pos_b[1]
+            nd = math.hypot(nx, ny)
+            unx, uny = (nx / nd, ny / nd) if nd > 0 else (1.0, 0.0)
+            shift_x = unx * (overlap / 2.0)
+            shift_y = uny * (overlap / 2.0)
+            ax, ay = adjusted[sprite_a]
+            bx, by = adjusted[sprite_b]
+            adjusted[sprite_a] = (ax + shift_x, ay + shift_y)
+            adjusted[sprite_b] = (bx - shift_x, by - shift_y)
+
     def resolve_collisions(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
         """Detect and resolve inter-bean collisions for a frame.
 
@@ -94,210 +231,37 @@ class SpriteMovementSystem:
             damage_report: mapping bean.id -> total damage applied this frame
 
         """
-        adjusted: Dict[BeanSprite, Tuple[float, float]] = {}
+        adjusted: Dict[BeanSprite, Tuple[float, float]] = {sprite: (tx, ty) for sprite, tx, ty in sprite_targets}
         damage_report: Dict[int, float] = {}
-
         if not sprite_targets:
             return adjusted, damage_report
-
-        # Initialize adjusted targets with proposed positions
-        for sprite, tx, ty in sprite_targets:
-            adjusted[sprite] = (tx, ty)
-
-        # Prepare spatial hash for neighbor queries if available
-        positions_map: Dict[Tuple[float, float], BeanSprite] = {}
-        sizes: Dict[BeanSprite, float] = {}
-        pixels_per_unit = None
-        for sprite, tx, ty in sprite_targets:
-            positions_map[(tx, ty)] = sprite
-            sizes[sprite] = sprite.bean.size
-            if pixels_per_unit is None:
-                pixels_per_unit = getattr(sprite.bean.beans_config, "pixels_per_unit_speed", 1.0)
-
-        avg_size = max(1, int(sum(sizes.values()) / len(sizes)))
-
-        if SpatialHash is not None:
-            spatial = SpatialHash(cell_size=avg_size, width=bounds_width, height=bounds_height)
-            for (tx, ty), sprite in positions_map.items():
-                spatial.insert(tx, ty)
-
+        
+        positions_map, sizes, spatial = self._initialize_collision_data(sprite_targets, bounds_width, bounds_height)
         handled_pairs = set()
-
-        def circle_intersection_area(r0: float, r1: float, d: float) -> float:
-            if d >= r0 + r1:
-                return 0.0
-            if d <= abs(r0 - r1):
-                # One circle is completely inside the other
-                return math.pi * min(r0, r1) ** 2
-            # standard formula guarded against tiny numeric round-off
-            denom_a = 2 * d * r0
-            denom_b = 2 * d * r1
-            if denom_a == 0 or denom_b == 0:
-                return 0.0
-
-            arg_a = (d * d + r0 * r0 - r1 * r1) / denom_a
-            arg_b = (d * d + r1 * r1 - r0 * r0) / denom_b
-            arg_a = max(-1.0, min(1.0, arg_a))
-            arg_b = max(-1.0, min(1.0, arg_b))
-
-            a = r0 * r0 * math.acos(arg_a)
-            b = r1 * r1 * math.acos(arg_b)
-            sqrt_arg = max(0.0, (-d + r0 + r1) * (d + r0 - r1) * (d - r0 + r1) * (d + r0 + r1))
-            c = 0.5 * math.sqrt(sqrt_arg)
-            return a + b - c
-
-        def vec_from_speed_dir(speed_units: float, direction_deg: float, pixels_per_unit: float) -> Tuple[float, float]:
-            speed_px = speed_units * pixels_per_unit
-            r = math.radians(direction_deg)
-            return math.cos(r) * speed_px, math.sin(r) * speed_px
-
-        # Iterate sprites and their neighbors
+        
         for sprite, tx, ty in sprite_targets:
-            # Query neighbors
-            neighbor_positions = []
-            if SpatialHash is not None:
-                neighbor_positions = spatial.get_neighbors(tx, ty, radius=sprite.bean.size)
-            else:
-                neighbor_positions = [pos for pos in positions_map.keys()]
-
-            for npos in neighbor_positions:
+            neighbors = spatial.get_neighbors(tx, ty, radius=sprite.bean.size) if spatial else list(positions_map.keys())
+            for npos in neighbors:
                 if npos == (tx, ty):
                     continue
                 other = positions_map.get(npos)
-                if other is None:
+                if not other or tuple(sorted((sprite.bean.id, other.bean.id))) in handled_pairs:
                     continue
-
-                pair_key = tuple(sorted((sprite.bean.id, other.bean.id)))
-                if pair_key in handled_pairs:
-                    continue
-
-                # Compute radii and distance
-                r0 = sprite.bean.size / 2.0
-                r1 = other.bean.size / 2.0
-                d = math.hypot(tx - npos[0], ty - npos[1])
-
-                area = circle_intersection_area(r0, r1, d)
-                if area < 2.0:
-                    continue
-
-                # Mark handled
-                handled_pairs.add(pair_key)
-
-                # Prepare config knobs with safe defaults
-                cfg = sprite.bean.beans_config
-                base = getattr(cfg, "collision_base_damage", 5.0)
-                speed_factor = getattr(cfg, "collision_damage_speed_factor", 0.05)
-                min_damage = getattr(cfg, "collision_min_damage", 0.5)
-                sex_tuple = getattr(cfg, "collision_damage_sex_factors", None)
-                sex_map = getattr(cfg, "collision_damage_sex_map", None)
-                if sex_map is None:
-                    if sex_tuple and len(sex_tuple) >= 2:
-                        sex_map = { "FEMALE": sex_tuple[0], "MALE": sex_tuple[1] }
-                    else:
-                        sex_map = { "FEMALE": 1.0, "MALE": 1.0 }
-
-                # Velocities in pixels/tick
-                pixels_per_unit = getattr(cfg, "pixels_per_unit_speed", pixels_per_unit or 1.0)
-                u1x, u1y = vec_from_speed_dir(sprite.bean.speed, sprite.direction, pixels_per_unit)
-                u2x, u2y = vec_from_speed_dir(other.bean.speed, other.direction, pixels_per_unit)
-                rel_vx = u1x - u2x
-                rel_vy = u1y - u2y
-                relative_speed = math.hypot(rel_vx, rel_vy)
-
-                # Damage computation
-                T_raw = base * (relative_speed * speed_factor)
-                T = max(T_raw, min_damage)
-
-                # Size split: smaller takes larger share
-                s0 = sprite.bean.size
-                s1 = other.bean.size
-                if s0 <= s1:
-                    damage_small = T * (s1 / (s0 + s1))
-                    damage_large = T - damage_small
-                    dmg_a = damage_small
-                    dmg_b = damage_large
-                else:
-                    damage_small = T * (s0 / (s0 + s1))
-                    damage_large = T - damage_small
-                    dmg_a = damage_large
-                    dmg_b = damage_small
-
-                # Apply sex multipliers
-                factor_a = sex_map.get(sprite.bean.sex.name, 1.0)
-                factor_b = sex_map.get(other.bean.sex.name, 1.0)
-                final_a = dmg_a * factor_a
-                final_b = dmg_b * factor_b
-
-                # Apply damage via DTO
-                sstate = sprite.bean.to_state()
-                sstate.energy -= final_a
-                sprite.bean.update_from_state(sstate)
-                damage_report[sprite.bean.id] = damage_report.get(sprite.bean.id, 0.0) + final_a
-
-                ostate = other.bean.to_state()
-                ostate.energy -= final_b
-                other.bean.update_from_state(ostate)
-                damage_report[other.bean.id] = damage_report.get(other.bean.id, 0.0) + final_b
-
-                logger.debug(
-                    f">>>>> Collision: beans=({sprite.bean.id},{other.bean.id}), "
-                    f"damage=({final_a:.3f},{final_b:.3f}), area={area:.3f}"
-                )
-
-                # Elastic collision resolution (2D) with mass proportional to area (radius^2)
-                m1 = r0 ** 2
-                m2 = r1 ** 2
-                # Positions at impact
-                x1, y1 = tx, ty
-                x2, y2 = npos
-                nx = x1 - x2
-                ny = y1 - y2
-                nd = math.hypot(nx, ny)
-                if nd == 0:
-                    # choose arbitrary normal
-                    unx, uny = 1.0, 0.0
-                else:
-                    unx, uny = nx / nd, ny / nd
-
-                # relative velocity along normal
-                relvx = u1x - u2x
-                relvy = u1y - u2y
-                p = 0.0
-                denom = (m1 + m2)
-                if denom != 0:
-                    p = 2 * (relvx * unx + relvy * uny) / denom
-
-                v1x = u1x - p * m2 * unx
-                v1y = u1y - p * m2 * uny
-                v2x = u2x + p * m1 * unx
-                v2y = u2y + p * m1 * uny
-
-                # Convert back to model speed units
-                new_speed_a = math.hypot(v1x, v1y) / pixels_per_unit
-                new_speed_b = math.hypot(v2x, v2y) / pixels_per_unit
-                new_dir_a = math.degrees(math.atan2(v1y, v1x)) if (v1x != 0 or v1y != 0) else sprite.direction
-                new_dir_b = math.degrees(math.atan2(v2y, v2x)) if (v2x != 0 or v2y != 0) else other.direction
-
-                # Update bean speeds via DTO and sprite directions
-                sstate2 = sprite.bean.to_state()
-                sstate2.speed = new_speed_a
-                sprite.bean.update_from_state(sstate2)
-                sprite.direction = new_dir_a
-
-                ostate2 = other.bean.to_state()
-                ostate2.speed = new_speed_b
-                other.bean.update_from_state(ostate2)
-                other.direction = new_dir_b
-
-                # Nudge targets to remove overlap
-                overlap = (r0 + r1) - d
-                if overlap > 0:
-                    # shift each by half overlap along normal
-                    shift_x = (unx * (overlap / 2.0))
-                    shift_y = (uny * (overlap / 2.0))
-                    ax, ay = adjusted[sprite]
-                    bx, by = adjusted[other]
-                    adjusted[sprite] = (ax + shift_x, ay + shift_y)
-                    adjusted[other] = (bx - shift_x, by - shift_y)
-
+                if self._detect_collision(sprite, other, (tx, ty), npos):
+                    handled_pairs.add(tuple(sorted((sprite.bean.id, other.bean.id))))
+                    cfg = sprite.bean.beans_config
+                    damage_a, damage_b = self._compute_collision_damage(sprite, other, (tx, ty), npos, cfg)
+                    self._apply_damage(sprite, other, damage_a, damage_b, damage_report)
+                    new_speed_a, new_dir_a, new_speed_b, new_dir_b = self._resolve_elastic_collision(sprite, other, (tx, ty), npos, cfg)
+                    # Update via DTO
+                    state_a = sprite.bean.to_state()
+                    state_a.speed = new_speed_a
+                    sprite.bean.update_from_state(state_a)
+                    sprite.direction = new_dir_a
+                    state_b = other.bean.to_state()
+                    state_b.speed = new_speed_b
+                    other.bean.update_from_state(state_b)
+                    other.direction = new_dir_b
+                    self._nudge_positions(sprite, other, (tx, ty), npos, adjusted)
+        
         return adjusted, damage_report
