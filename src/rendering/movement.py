@@ -1,14 +1,11 @@
 import logging
 import math
-from typing import List, Tuple, Dict
-
-from .bean_sprite import BeanSprite
-
-logger = logging.getLogger(__name__)
+from typing import Dict, List, Tuple
 
 from beans.placement import SpatialHash
+from beans.rendering.bean_sprite import BeanSprite
 
-
+logger = logging.getLogger(__name__)
 def _normalize_angle(angle: float) -> float:
     angle = angle % 360.0
     if angle < 0:
