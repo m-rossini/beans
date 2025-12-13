@@ -89,12 +89,17 @@ class WorldWindow(arcade.Window):
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
             logger.debug(f">>>>> WorldWindow.on_update: {old_count - len(self.bean_sprites)} sprites removed")
+        # Collect target positions from movement system
+        targets = []
+        for sprite in self.bean_sprites:
+            tx, ty, _ = self._movement_system.move_sprite(sprite, self.width, self.height)
+            targets.append((sprite, tx, ty))
+        # Resolve collisions and get adjusted positions
+        adjusted_targets, damage_report = self._movement_system.resolve_collisions(targets, self.width, self.height)
+        # Update sprites with adjusted positions
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
-            # Compute target position using movement system (fail fast if missing)
-            tx, ty, _ = self._movement_system.move_sprite(sprite, self.width, self.height)
-            target_position = (tx, ty)
-            sprite.update_from_bean(delta_time, target_position=target_position)
+            sprite.update_from_bean(delta_time, adjusted_targets[sprite])
             self.sprite_list.append(sprite)
         logger.debug(f">>>>> WorldWindow.on_update: {len(self.bean_sprites)} sprites active")
         self._pause_for_empty_world()
