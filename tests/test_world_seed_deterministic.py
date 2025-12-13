@@ -1,8 +1,9 @@
+
 import pytest
-import random
-from config.loader import WorldConfig, BeansConfig
+
+from beans.genetics import age_speed_factor, genetic_max_age, genetic_max_speed, size_target
 from beans.world import World
-from beans.genetics import genetic_max_age, genetic_max_speed, age_speed_factor, size_target
+from config.loader import BeansConfig, WorldConfig
 
 
 def make_seeded_world(seed: int, width: int = 20, height: int = 20, density: float = 1.0, speed_min=0.1, speed_max=1.0, min_speed_factor=0.2):
