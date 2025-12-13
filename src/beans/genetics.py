@@ -12,6 +12,7 @@ This module contains:
 import logging
 import math
 import random
+from typing import Optional
 from dataclasses import asdict, dataclass
 from enum import Enum
 from typing import NamedTuple
@@ -243,14 +244,15 @@ def genetic_max_speed(config: BeansConfig, genotype: Genotype) -> float:
 # Factory Functions
 # =============================================================================
 
-def create_random_genotype() -> Genotype:
+def create_random_genotype(rng: Optional[random.Random] = None) -> Genotype:
     """Create a genotype with random values within each gene's valid range.
     
     MAX_GENETIC_AGE uses a logarithmic curve to favor longevity.
     """
     genes = {}
+    r = rng if rng is not None else random
     for gene in Gene:
-        raw_value = random.uniform(gene.min, gene.max)
+        raw_value = r.uniform(gene.min, gene.max)
         if gene == Gene.MAX_GENETIC_AGE:
             genes[gene] = apply_age_gene_curve(raw_value)
         else:
@@ -261,7 +263,7 @@ def create_random_genotype() -> Genotype:
     return genotype
 
 
-def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
+def create_phenotype(config: BeansConfig, genotype: Genotype, rng: Optional[random.Random] = None) -> Phenotype:
     """Create initial phenotype from config and genotype.
     
     Newborn beans start with age=0 and speed=0 (since age_speed_factor(0) = 0).
@@ -270,19 +272,34 @@ def create_phenotype(config: BeansConfig, genotype: Genotype) -> Phenotype:
     max_age = config.max_age_rounds * genotype.genes[Gene.MAX_GENETIC_AGE]
     max_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
 
+    r = rng if rng is not None else random
     initial_speed = max_speed * age_speed_factor(0, max_age,0.0)
     random_low_bound = 0.95
     random_high_bound = 1.05
 
     phenotype = Phenotype(
         age=0.0,
-        speed=random.choice([-1, 1]) * initial_speed * random.uniform(random_low_bound, random_high_bound),
-        energy=config.initial_energy * random.uniform(random_low_bound, random_high_bound),
-        size=float(config.initial_bean_size) * random.uniform(random_low_bound, random_high_bound),
+        speed=r.choice([-1, 1]) * initial_speed * r.uniform(random_low_bound, random_high_bound),
+        energy=config.initial_energy * r.uniform(random_low_bound, random_high_bound),
+        size=float(config.initial_bean_size) * r.uniform(random_low_bound, random_high_bound),
         target_size=size_target(0.0, genotype, config),
     )
     logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, speed_base={initial_speed:.2f}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}, max_age={max_age:.2f}, max_speed={max_speed:.2f}")
     return phenotype
+
+
+def create_genotype_from_values(genes: dict[Gene, float]) -> Genotype:
+    """Create a genotype from explicit gene values.
+
+    This helper is useful for deterministic tests where the exact gene
+    values must be specified.
+    """
+    return Genotype(genes=genes)
+
+
+def create_phenotype_from_values(config: BeansConfig, genotype: Genotype, age: float, speed: float, energy: float, size: float, target_size: float) -> Phenotype:
+    """Create a phenotype instance with explicit values."""
+    return Phenotype(age=age, speed=speed, energy=energy, size=size, target_size=target_size)
 
 
 # =============================================================================
