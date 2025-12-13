@@ -26,6 +26,7 @@ class BeanSprite(arcade.Sprite):
                          delta_time: float = 1.0,
                          target_position: Optional[tuple[float, float]] = None):
         """Update sprite based on bean state (size changes and optional movement).
+
         delta_time is used for visual interpolation only. If target_position is provided,
         the sprite interpolates towards it for smoother animation.
         """
