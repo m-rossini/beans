@@ -1,5 +1,5 @@
-from config.loader import DEFAULT_WORLD_CONFIG, DEFAULT_BEANS_CONFIG
 from beans.world import World
+from config.loader import DEFAULT_BEANS_CONFIG, DEFAULT_WORLD_CONFIG
 
 # Create a small world and run a few steps, printing bean speeds
 world = World(DEFAULT_WORLD_CONFIG, DEFAULT_BEANS_CONFIG)

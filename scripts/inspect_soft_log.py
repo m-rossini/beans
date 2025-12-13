@@ -18,7 +18,7 @@ for params in params_list:
     try:
         male, female = estimator.estimate(**params)
         print(
-            "params", params, 
+            "params", params,
             "raw", raw, "capped", capped,
             "output", male + female
         )

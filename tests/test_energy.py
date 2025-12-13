@@ -3,12 +3,9 @@ import logging
 import pytest
 
 from beans.bean import Bean, Sex
-from beans.genetics import Gene, Genotype, Phenotype, create_random_genotype
+from beans.genetics import Gene, Genotype, Phenotype, age_energy_efficiency
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
-
-from beans.dynamics.bean_dynamics import BeanDynamics
-from beans.genetics import age_energy_efficiency
 
 logger = logging.getLogger(__name__)
 
