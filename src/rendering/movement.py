@@ -245,6 +245,11 @@ class SpriteMovementSystem:
         if not sprite_targets:
             return adjusted, damage_report
 
+        # Check if collisions are enabled
+        cfg = sprite_targets[0][0].bean.beans_config
+        if not cfg.collision_enable:
+            return adjusted, damage_report
+
         positions_map, sizes, spatial = self._initialize_collision_data(sprite_targets, bounds_width, bounds_height)
         handled_pairs = set()
 
