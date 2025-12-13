@@ -7,10 +7,11 @@ agent: agent
 1. ✅ Package world update method in high abstractions level such as calculate_energy and then call lower level methods inside.
 1. ✅ Energy System should be a world configuraiton
 1. ✅ Ensure speed calculations can be implemented as interface and concrete classes - Speed System.
+1. Done - Fix Movement System
 
-Fix Movement System
-Move energy Loss in Movement System to Energy System
-Implement a clash detection in Movement System, between beans
+1. Move energy Loss in Movement System to Energy System
+1. Implement a clash detection in Movement System, between beans
+1. Create a plotting system based on logs
 
 ## Beans should be pluggable and have different types:
 - Human

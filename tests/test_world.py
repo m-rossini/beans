@@ -1,10 +1,12 @@
 import logging
+
 from beans.bean import Bean, Sex
+from beans.dynamics.bean_dynamics import BeanDynamics
 from beans.genetics import create_phenotype, create_random_genotype
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
 from rendering.window import WorldWindow
-from beans.dynamics.bean_dynamics import BeanDynamics
+
 logger = logging.getLogger(__name__)
 
 

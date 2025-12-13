@@ -1,12 +1,10 @@
 import logging
 
 from beans.bean import BeanState
+from beans.genetics import age_speed_factor, genetic_max_speed, size_z_score
 from config.loader import BeansConfig
 
 logger = logging.getLogger(__name__)
-
-
-from beans.genetics import age_speed_factor, genetic_max_speed, size_z_score
 
 
 class BeanDynamics:
