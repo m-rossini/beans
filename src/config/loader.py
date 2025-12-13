@@ -54,10 +54,12 @@ class BeansConfig:
     pixels_per_unit_speed: float = 1.0    # Rendering scale: pixels per unit speed.
     energy_loss_on_bounce: float = 2.0    # Energy lost when bean bounces off a wall or obstacle.
     # Collision/damage configuration
+    collision_enable: bool = True
     collision_base_damage: float = 5.0
     collision_damage_speed_factor: float = 0.05
     collision_min_damage: float = 0.5
-    collision_damage_sex_factors: Tuple[float, float] = (1.0, 1.0)
+    collision_damage_size_exponent: float = 1.0
+    collision_damage_sex_factors: Tuple[float, float] = (1.05, 1.0)  # (FEMALE, MALE)
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -170,9 +172,11 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         size_penalty_min_above=beans_data.get("size_penalty_min_above", DEFAULT_BEANS_CONFIG.size_penalty_min_above),
         size_penalty_min_below=beans_data.get("size_penalty_min_below", DEFAULT_BEANS_CONFIG.size_penalty_min_below),
         pixels_per_unit_speed=beans_data.get("pixels_per_unit_speed", DEFAULT_BEANS_CONFIG.pixels_per_unit_speed),
+        collision_enable=beans_data.get("collision_enable", DEFAULT_BEANS_CONFIG.collision_enable),
         collision_base_damage=beans_data.get("collision_base_damage", DEFAULT_BEANS_CONFIG.collision_base_damage),
         collision_damage_speed_factor=beans_data.get("collision_damage_speed_factor", DEFAULT_BEANS_CONFIG.collision_damage_speed_factor),
         collision_min_damage=beans_data.get("collision_min_damage", DEFAULT_BEANS_CONFIG.collision_min_damage),
+        collision_damage_size_exponent=beans_data.get("collision_damage_size_exponent", DEFAULT_BEANS_CONFIG.collision_damage_size_exponent),
         collision_damage_sex_factors=tuple(beans_data.get("collision_damage_sex_factors", DEFAULT_BEANS_CONFIG.collision_damage_sex_factors)),
         energy_loss_on_bounce=beans_data.get("energy_loss_on_bounce", DEFAULT_BEANS_CONFIG.energy_loss_on_bounce),
     )
