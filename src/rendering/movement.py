@@ -2,10 +2,18 @@ import logging
 import math
 from typing import Dict, List, Tuple
 
-from beans.placement import SpatialHash
 from beans.rendering.bean_sprite import BeanSprite
 
+from beans.placement import SpatialHash
+
+# type aliases to keep long annotations under the line-length limit
+AdjTargets = Dict["BeanSprite", Tuple[float, float]]
+DamageReport = Dict[int, float]
+
 logger = logging.getLogger(__name__)
+
+
+
 def _normalize_angle(angle: float) -> float:
     angle = angle % 360.0
     if angle < 0:
@@ -62,7 +70,11 @@ class SpriteMovementSystem:
 
         # Do not update sprite positions directly here; return target coords so the
         # caller (sprite) can interpolate visually.
-        logger.debug(f">>>>> MovementSystem.move_sprite: bean={bean.id}, speed={bean.speed:.2f}, dx={dx:.2f}, dy={dy:.2f}, target=({new_x:.2f},{new_y:.2f}), collisions={collisions}")
+        msg = (
+            f">>>>> MovementSystem.move_sprite: bean={bean.id}, speed={bean.speed:.2f}, "
+            f"dx={dx:.2f}, dy={dy:.2f}, target=({new_x:.2f},{new_y:.2f}), collisions={collisions}"
+        )
+        logger.debug(msg)
         # For each collision, deduct energy via DTO update
         if collisions > 0:
             loss = sprite.bean.beans_config.energy_loss_on_bounce
@@ -73,7 +85,12 @@ class SpriteMovementSystem:
 
         return new_x, new_y, collisions
 
-    def resolve_collisions(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
+    def resolve_collisions(
+        self,
+        sprite_targets: List[Tuple[BeanSprite, float, float]],
+        bounds_width: int,
+        bounds_height: int,
+    ) -> Tuple[AdjTargets, DamageReport]:
         """Detect and resolve inter-bean collisions for a frame.
 
         Args:
@@ -104,7 +121,7 @@ class SpriteMovementSystem:
             positions_map[(tx, ty)] = sprite
             sizes[sprite] = sprite.bean.size
             if pixels_per_unit is None:
-                pixels_per_unit = getattr(sprite.bean.beans_config, 'pixels_per_unit_speed', 1.0)
+                pixels_per_unit = getattr(sprite.bean.beans_config, "pixels_per_unit_speed", 1.0)
 
         avg_size = max(1, int(sum(sizes.values()) / len(sizes)))
 
@@ -170,19 +187,19 @@ class SpriteMovementSystem:
 
                 # Prepare config knobs with safe defaults
                 cfg = sprite.bean.beans_config
-                base = getattr(cfg, 'collision_base_damage', 5.0)
-                speed_factor = getattr(cfg, 'collision_damage_speed_factor', 0.05)
-                min_damage = getattr(cfg, 'collision_min_damage', 0.5)
-                sex_tuple = getattr(cfg, 'collision_damage_sex_factors', None)
-                sex_map = getattr(cfg, 'collision_damage_sex_map', None)
+                base = getattr(cfg, "collision_base_damage", 5.0)
+                speed_factor = getattr(cfg, "collision_damage_speed_factor", 0.05)
+                min_damage = getattr(cfg, "collision_min_damage", 0.5)
+                sex_tuple = getattr(cfg, "collision_damage_sex_factors", None)
+                sex_map = getattr(cfg, "collision_damage_sex_map", None)
                 if sex_map is None:
                     if sex_tuple and len(sex_tuple) >= 2:
-                        sex_map = { 'FEMALE': sex_tuple[0], 'MALE': sex_tuple[1] }
+                        sex_map = { "FEMALE": sex_tuple[0], "MALE": sex_tuple[1] }
                     else:
-                        sex_map = { 'FEMALE': 1.0, 'MALE': 1.0 }
+                        sex_map = { "FEMALE": 1.0, "MALE": 1.0 }
 
                 # Velocities in pixels/tick
-                pixels_per_unit = getattr(cfg, 'pixels_per_unit_speed', pixels_per_unit or 1.0)
+                pixels_per_unit = getattr(cfg, "pixels_per_unit_speed", pixels_per_unit or 1.0)
                 u1x, u1y = vec_from_speed_dir(sprite.bean.speed, sprite.direction, pixels_per_unit)
                 u2x, u2y = vec_from_speed_dir(other.bean.speed, other.direction, pixels_per_unit)
                 rel_vx = u1x - u2x
@@ -201,13 +218,11 @@ class SpriteMovementSystem:
                     damage_large = T - damage_small
                     dmg_a = damage_small
                     dmg_b = damage_large
-                    a_is_small = True
                 else:
                     damage_small = T * (s0 / (s0 + s1))
                     damage_large = T - damage_small
                     dmg_a = damage_large
                     dmg_b = damage_small
-                    a_is_small = False
 
                 # Apply sex multipliers
                 factor_a = sex_map.get(sprite.bean.sex.name, 1.0)
@@ -226,7 +241,10 @@ class SpriteMovementSystem:
                 other.bean.update_from_state(ostate)
                 damage_report[other.bean.id] = damage_report.get(other.bean.id, 0.0) + final_b
 
-                logger.debug(f">>>>> Collision: beans=({sprite.bean.id},{other.bean.id}), damage=({final_a:.3f},{final_b:.3f}), area={area:.3f}")
+                logger.debug(
+                    f">>>>> Collision: beans=({sprite.bean.id},{other.bean.id}), "
+                    f"damage=({final_a:.3f},{final_b:.3f}), area={area:.3f}"
+                )
 
                 # Elastic collision resolution (2D) with mass proportional to area (radius^2)
                 m1 = r0 ** 2
