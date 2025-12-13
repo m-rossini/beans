@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 from beans.bean import Bean, BeanState
-from beans.genetics import Gene
+from beans.genetics import Gene, size_target
 from config.loader import BeansConfig
 
 logger = logging.getLogger(__name__)
@@ -67,11 +67,10 @@ class EnergySystem(ABC):
         bean_state.energy, bean_state.size = self._handle_negative_energy(bean_state)
         bean_state.size = self._clamp_size(bean_state)
 
-        return bean.update_from_state(bean_state)
+        return bean_state
 
     def _calculate_target_size(self, bean: Bean) -> float:
         """Calculate the target size for a bean using genotype and config."""
-        from beans.genetics import size_target
         return size_target(bean.age, bean.genotype, self.config)
 
     @abstractmethod
@@ -209,7 +208,10 @@ class StandardEnergySystem(EnergySystem):
             energy_eu: Amount of energy units to add.
         """
         ret_val = bean_state.energy + energy_eu
-        logger.debug(f">>>>> Bean {id} apply_intake: energy_eu={energy_eu}, new_energy={ret_val:.2f}")
+        logger.debug(f">>>>> Bean {bean_state.id}"
+                     f" apply_intake: energy_eu={energy_eu},"
+                     f" old_energy={bean_state.energy:.2f},"
+                     f" new_energy={ret_val:.2f}")
         return ret_val
 
     def _apply_basal_metabolism(self, bean_state: BeanState, metabolism_factor: float) -> float:
@@ -226,7 +228,12 @@ class StandardEnergySystem(EnergySystem):
         size = bean_state.size
         burn = self.config.metabolism_base_burn * metabolism_factor * size
         ret_val = bean_state.energy - burn
-        logger.debug(f">>>>> Bean {bean_state.id} apply_basal_metabolism: size={size:.2f}, metabolism_factor={metabolism_factor:.2f}, burn={burn:.2f}")
+        logger.debug(f">>>>> Bean {bean_state.id}"
+                     f" apply_basal_metabolism: size={size:.2f},"
+                     f" metabolism_factor={metabolism_factor:.2f},"
+                     f" burn={burn:.2f}"
+                     f" new_energy={ret_val:.2f}"
+                     )
         return ret_val
 
     def _apply_movement_cost(self, bean_state: BeanState) -> float:
@@ -240,7 +247,12 @@ class StandardEnergySystem(EnergySystem):
         """
         cost = abs(bean_state.speed) * self.config.energy_cost_per_speed
         ret_val = bean_state.energy - cost
-        logger.debug(f">>>>> Bean {bean_state.id} apply_movement_cost: speed={bean_state.speed:.2f}, cost={cost:.2f}, energy_cost_per_speed={self.config.energy_cost_per_speed:.2f}")
+        logger.debug(f">>>>> Bean {bean_state.id}"
+                     f" apply_movement_cost: speed={bean_state.speed:.2f},"
+                     f" cost={cost:.2f},"
+                     f" energy_cost_per_speed={self.config.energy_cost_per_speed:.2f},"
+                     f" new_energy={ret_val:.2f}"
+                     )
         return ret_val
 
     def _apply_fat_storage(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
@@ -262,7 +274,13 @@ class StandardEnergySystem(EnergySystem):
 
         phenotype_size = bean_state.size + fat_gain
         phenotype_energy = bean_state.energy - energy_cost
-        logger.debug(f">>>>> Bean {bean_state.id} apply_fat_storage: surplus={surplus:.2f}, fat_gain={fat_gain:.2f}, energy_cost={energy_cost:.2f}")
+        logger.debug(f">>>>> Bean {bean_state.id}"
+                     f" apply_fat_storage: surplus={surplus:.2f},"
+                     f" fat_gain={fat_gain:.2f},"
+                     f" energy_cost={energy_cost:.2f}"
+                     f" new_energy={phenotype_energy:.2f},"
+                     f" new_size={phenotype_size:.2f}"
+                     )
         return (phenotype_energy, phenotype_size)
 
     def _apply_fat_burning(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
@@ -284,7 +302,14 @@ class StandardEnergySystem(EnergySystem):
 
         phenotype_size = bean_state.size - fat_burned
         phenotype_energy = bean_state.energy + energy_gain
-        logger.debug(f">>>>> Bean {bean_state.id} apply_fat_burning: deficit={deficit:.2f}, fat_burned={fat_burned:.2f}, energy_gain={energy_gain:.2f}")
+        logger.debug(f">>>>> Bean {bean_state.id}"
+                     f" apply_fat_burning: deficit={deficit:.2f},"
+                     f" fat_burned={fat_burned:.2f},"
+                     f" energy_gain={energy_gain:.2f}"
+                     f" new_energy={phenotype_energy:.2f},"
+                     f" old_size={bean_state.size:.2f},"
+                     f" new_size={phenotype_size:.2f}"
+                     )
         return (phenotype_energy, phenotype_size)
 
     def _handle_negative_energy(self, bean_state: BeanState) -> Tuple[float, float]:
@@ -313,14 +338,16 @@ class StandardEnergySystem(EnergySystem):
         Args:
             bean: The bean to clamp size for.
         """
-        # TODO: Extract size changes and clamping to separate sizing subsystem
         size = bean_state.size
         if bean_state.size < self.config.min_bean_size:
             size = self.config.min_bean_size
         elif bean_state.size > self.config.max_bean_size:
             size = self.config.max_bean_size
 
-        logger.debug(f">>>>> Bean {bean_state.id} clamp_size: clamped_size={size:.2f}, clamp_range=({self.config.min_bean_size}, {self.config.max_bean_size})")
+        logger.debug(f">>>>> Bean {bean_state.id}"
+                     f" old_size={bean_state.size:.2f},"
+                     f" clamp_size: clamped_size={size:.2f},"
+                     f" clamp_range=({self.config.min_bean_size}, {self.config.max_bean_size})")
         return size
 
     def _size_speed_penalty(self, bean : Bean) -> float:
@@ -335,7 +362,6 @@ class StandardEnergySystem(EnergySystem):
         Returns:
             Penalty multiplier between min_penalty and 1.0.
         """
-        # TODO: Extract size speed penalty to sizing subsystem
         target_size = self.config.initial_bean_size
         sigma = target_size * self.config.size_sigma_frac
         z_score = (bean.size - target_size) / sigma
@@ -354,7 +380,11 @@ class StandardEnergySystem(EnergySystem):
             penalty = math.exp(-self.config.size_penalty_below_k * deficit_z)
             result = max(penalty, self.config.size_penalty_min_below)
 
-        logger.debug(f">>>>> Bean {bean.id} size_speed_penalty: size={bean.size:.2f}, z_score={z_score:.2f}, penalty={result:.3f}")
+        logger.debug(f">>>>> Bean {bean.id}"
+                     f" size_speed_penalty: size={bean.size:.2f},"
+                     f" z_score={z_score:.2f},"
+                     f" penalty={result:.3f}")
+        
         return result
 
     def _can_survive_starvation(self, bean: Bean) -> bool:
@@ -411,6 +441,7 @@ def create_energy_system_from_name(name: str, config: BeansConfig) -> EnergySyst
         
     Raises:
         ValueError: If the name is not recognized.
+
     """
     logger.info(f">>>> create_energy_system_from_name: name={name}")
     if not name or name.lower() == "standard":

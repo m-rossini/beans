@@ -1,13 +1,59 @@
+"""Tests for the rendering window and its interaction with the World and beans.
+
+This module contains tests for sprite creation, movement, color assignment, 
+window events, and reporting in the simulation rendering layer.
+"""
+
 import logging
 
 import arcade
 
+from beans.dynamics.bean_dynamics import BeanDynamics
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
 from reporting.report import SimulationReport
 
 logger = logging.getLogger(__name__)
+
+def test_sprite_position_updates_on_movement(monkeypatch):
+    """TDD: Ensure WorldWindow.on_update updates sprite positions after movement."""
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=10, speed_max=10, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
+    world = World(cfg, bcfg)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
+    from rendering.window import WorldWindow
+    win = WorldWindow(world)
+    sprite = win.bean_sprites[0]
+    # Patch bean_dynamics to use the test bean's genotype and max_age
+    world.bean_dynamics = BeanDynamics(bcfg)
+    # Set initial position and direction
+    initial_x = sprite.center_x
+    initial_y = sprite.center_y
+    sprite.direction = 0.0  # Move right
+    sprite.bean._phenotype.speed = 10.0
+    win.on_update(0.1)
+    # Assert position has changed after movement
+    assert sprite.center_x != initial_x or sprite.center_y != initial_y
+    
+def test_sprite_creation_initialization(monkeypatch):
+    """TDD: Ensure WorldWindow creates sprites for all beans with correct attributes."""
+    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=0.5, width=100, height=100, population_density=0.2, placement_strategy="random")
+    bcfg = BeansConfig(speed_min=1, speed_max=2, max_age_rounds=10, initial_bean_size=5, male_bean_color="blue", female_bean_color="red")
+    world = World(cfg, bcfg)
+    monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
+    from rendering.window import WorldWindow
+    win = WorldWindow(world)
+    # Assert sprite count matches bean count
+    assert len(win.bean_sprites) == len(world.beans)
+    # Assert each sprite is initialized with correct bean reference and position
+    for sprite, bean in zip(win.bean_sprites, world.beans):
+        assert sprite.bean is bean
+        assert isinstance(sprite.center_x, (int, float))
+        assert isinstance(sprite.center_y, (int, float))
+        # Allow for small floating-point differences in bean size
+        assert abs(sprite.bean.size - bcfg.initial_bean_size) < 0.5
+        assert sprite.color in [arcade.color.BLUE, arcade.color.RED]
 
 
 def _fake_arcade_init(self, width, height, title):
@@ -135,8 +181,9 @@ def test_window_bounce_deducts_energy(monkeypatch):
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
-    # pick the first sprite
     sprite = win.bean_sprites[0]
+    # Patch bean_dynamics to use the test bean's genotype and max_age
+    world.bean_dynamics = BeanDynamics(bcfg)
     # set sprite near the right edge with direction toward the edge
     sprite.center_x = win.width - (sprite.bean.size / 2.0) - 1
     sprite.center_y = win.height / 2

@@ -11,10 +11,11 @@ from rendering.window import WorldWindow
 
 def _configure_logging(level: str, log_file: str | None = None) -> None:
     """Configure logging based on provided level.
-    
+
     Args:
         level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_file: Optional file path to write logs to
+
     """
     numeric_level = getattr(logging, level.upper(), logging.INFO)
 

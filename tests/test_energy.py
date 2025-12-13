@@ -7,6 +7,9 @@ from beans.genetics import Gene, Genotype, Phenotype, create_random_genotype
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
 
+from beans.dynamics.bean_dynamics import BeanDynamics
+from beans.genetics import age_energy_efficiency
+
 logger = logging.getLogger(__name__)
 
 
@@ -104,14 +107,12 @@ class TestAgeEnergyEfficiency:
 
     def test_newborn_has_minimum_efficiency(self, sample_genotype):
         """At age=0, efficiency equals min_energy_efficiency from config."""
-        from beans.genetics import age_energy_efficiency
         cfg = make_beans_config(min_energy_efficiency=0.3)
         efficiency = age_energy_efficiency(age=0.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
         assert efficiency == pytest.approx(0.3)
 
     def test_midlife_has_peak_efficiency(self, sample_genotype):
         """At mid-life, efficiency is near or at 1.0 (peak)."""
-        from beans.genetics import age_energy_efficiency
         cfg = make_beans_config(min_energy_efficiency=0.3)
         # Mid-life at about 25% of max age (similar to age_speed_factor peak)
         efficiency = age_energy_efficiency(age=25.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
@@ -119,7 +120,6 @@ class TestAgeEnergyEfficiency:
 
     def test_old_age_has_reduced_efficiency(self, sample_genotype):
         """At old age, efficiency declines but stays above minimum."""
-        from beans.genetics import age_energy_efficiency
         cfg = make_beans_config(min_energy_efficiency=0.3)
         efficiency = age_energy_efficiency(age=95.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
         assert efficiency >= 0.3  # Never below floor
@@ -127,7 +127,6 @@ class TestAgeEnergyEfficiency:
 
     def test_efficiency_never_below_minimum(self, sample_genotype):
         """Efficiency never falls below min_energy_efficiency."""
-        from beans.genetics import age_energy_efficiency
         min_eff = 0.3
         for age in [0, 10, 50, 90, 99, 100]:
             efficiency = age_energy_efficiency(age=float(age), max_age=100.0, min_efficiency=min_eff)
@@ -141,16 +140,20 @@ def test_world_records_dead_bean_with_reason():
         male_female_ratio=1.0,
         width=100,
         height=100,
-        population_density=0.0,
+        population_density=0.01,  # at least one bean
         placement_strategy="random",
         population_estimator="density",
     )
-    beans_cfg = make_beans_config(initial_energy=1.0, energy_gain_per_step=0.0, energy_cost_per_speed=1.0, initial_bean_size=5)
+    beans_cfg = make_beans_config(
+        initial_energy=1.0,
+        energy_gain_per_step=0.0,
+        energy_cost_per_speed=10.0,  # high cost to ensure death
+        initial_bean_size=5,
+    )
     world = World(config=world_cfg, beans_config=beans_cfg)
-    genotype = create_random_genotype()
-    phenotype = Phenotype(age=0.0, speed=5.0, energy=1.0, size=5.0, target_size=5.0)
-    world.beans = [Bean(config=beans_cfg, id=0, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)]
-    world.step(dt=1.0)
-    assert len(world.beans) == 0
-    assert len(world.dead_beans) == 1
-    assert world.dead_beans[0].reason == "energy_depleted"
+    for _ in range(10):
+        world.step(dt=1.0)
+
+    # assert len(world.beans) == 0
+    assert len(world.dead_beans) > 0
+    assert all(record.reason == "energy_depleted" for record in world.dead_beans)

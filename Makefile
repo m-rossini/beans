@@ -7,6 +7,7 @@ SHELL := cmd.exe
 
 LOGGING_LEVEL ?= $(LOG_LEVEL)
 LOGGING_LEVEL ?= INFO
+PYTEST_FLAGS ?=
 
 help:  ## Show this help message
 	@echo "Available commands:"
@@ -19,7 +20,7 @@ install-dev:  ## Install the package with development dependencies
 	pip install -e ".[dev]"
 
 test:  ## Run tests with pytest (full suite)
-	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s
+	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s $(PYTEST_FLAGS)
 
 test-cov:  ## Run tests with coverage report
 	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m coverage run --source=src/beans,src/config,src/rendering -m pytest -v -s
@@ -29,7 +30,7 @@ test-cov:  ## Run tests with coverage report
 TEST_SPECIFIC ?= tests/test_config.py
 
 test-specific:  ## Run a specific test file only. Use TEST_SPECIFIC=path to override.
-	set PYTHONPATH=src && set LOGGING_LEVEL=$(LOGGING_LEVEL) && python -m pytest -v -s $(TEST_SPECIFIC)
+	set LOGGING_LEVEL=$(LOGGING_LEVEL) && set PYTHONPATH=src && python -m pytest -v -s $(PYTEST_FLAGS) $(TEST_SPECIFIC)
 
 test-sequence: test-specific test  ## Run a specific test first, then the full test suite
 	@echo Completed test sequence (specific then full suite)

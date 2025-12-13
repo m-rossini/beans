@@ -40,6 +40,8 @@ class World:
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
+        # Single BeanDynamics instance per world; per-bean genotype and max_age
+        # are supplied at calculation time to avoid constructing one per bean.
         self.bean_dynamics = BeanDynamics(beans_config)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
@@ -79,17 +81,14 @@ class World:
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
-            state: BeanState = self._update_bean(bean)
-            speed = self.bean_dynamics.calculate_speed(state)
-            state.store(speed=speed)
-            bean.update_from_state(state)
+            _: BeanState = self._update_bean(bean)
             bean.update(dt)
 
             alive, reason = bean.survive()
             if not alive:
                 self._mark_dead(bean, reason=reason)
                 deaths_this_step += 1
-                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}")
+                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
             else:
                 survivors.append(bean)
 
@@ -100,7 +99,12 @@ class World:
         self.round += 1
 
     def _update_bean(self, bean: Bean) -> BeanState:
-        return self.energy_system.apply_energy_system(bean, self.get_energy_intake())
+        bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
+        # Calculate speed using the world's BeanDynamics but pass per-bean
+        # genotype and max_age into the calculation.
+        speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
+        bean_state.store(speed=speed)
+        return bean.update_from_state(bean_state)
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:
         logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")

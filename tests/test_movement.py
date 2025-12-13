@@ -118,13 +118,16 @@ def test_visual_interpolation(bean):
     bean._phenotype.speed = 50.0
     mover = SpriteMovementSystem()
 
+    # Compute target position using movement system
+    tx, ty, _ = mover.move_sprite(sprite, 800, 600)
+    target_position = (tx, ty)
     # small dt -> partial interpolation
-    sprite.update_from_bean(0.1, movement_system=mover, bounds=(800, 600))
+    sprite.update_from_bean(0.1, target_position=target_position)
     # computed lerp factor should be dt*6 = 0.6, expect center_x to move towards 150 but not fully
     assert 100.0 < sprite.center_x < 150.0
 
     # large dt -> full catch up (reset to initial center first)
     sprite.center_x = 100.0
     sprite.center_y = 200.0
-    sprite.update_from_bean(1.0, movement_system=mover, bounds=(800, 600))
+    sprite.update_from_bean(1.0, target_position=target_position)
     assert pytest.approx(150.0, rel=1e-3) == sprite.center_x
