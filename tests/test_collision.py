@@ -1,11 +1,11 @@
 import math
+from typing import Dict, List, Tuple
 
 import pytest
-from typing import List, Tuple, Dict
 
 from src.beans.bean import Bean, Sex
+from src.beans.genetics import create_phenotype, create_random_genotype
 from src.config.loader import DEFAULT_BEANS_CONFIG
-from src.beans.genetics import create_random_genotype, create_phenotype
 from src.rendering.bean_sprite import BeanSprite
 from src.rendering.movement import SpriteMovementSystem
 
