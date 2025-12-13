@@ -128,7 +128,12 @@ class SpriteMovementSystem:
         area = self._circle_intersection_area(r0, r1, d)
         return area >= 2.0
 
-    def _compute_collision_damage(self, sprite_a: BeanSprite, sprite_b: BeanSprite, pos_a: Tuple[float, float], pos_b: Tuple[float, float], cfg: BeansConfig) -> Tuple[float, float]:
+    def _compute_collision_damage(self,
+                                  sprite_a: BeanSprite,
+                                  sprite_b: BeanSprite,
+                                  pos_a: Tuple[float, float],
+                                  pos_b: Tuple[float, float],
+                                  cfg: BeansConfig) -> Tuple[float, float]:
         """Compute damage for colliding sprites, including base, speed, size split, and sex multipliers."""
         base = cfg.collision_base_damage
         speed_factor = cfg.collision_damage_speed_factor
@@ -152,8 +157,8 @@ class SpriteMovementSystem:
             dmg_b = T - dmg_a
 
         # Sex multipliers
-        factor_a = female_factor if sprite_a.bean.sex.name == "FEMALE" else male_factor if sprite_a.bean.sex.name == "MALE" else 1.0
-        factor_b = female_factor if sprite_b.bean.sex.name == "FEMALE" else male_factor if sprite_b.bean.sex.name == "MALE" else 1.0
+        factor_a = female_factor if sprite_a.bean.sex.name == "FEMALE" else male_factor
+        factor_b = female_factor if sprite_b.bean.sex.name == "FEMALE" else male_factor
         return dmg_a * factor_a, dmg_b * factor_b
 
     def _apply_damage(self, sprite_a: BeanSprite, sprite_b: BeanSprite, damage_a: float, damage_b: float, damage_report: Dict[int, float]) -> None:
