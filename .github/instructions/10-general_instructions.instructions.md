@@ -18,12 +18,15 @@ Follow the instrucitons on this sections and the the instrucitons on each file.
 ## Procedures
 - Always plan first
 - Divide the problem in phases
+- If current branch is main, create a new branch to implement the plan
 - For each phase create a TODO list
 - For each TODO item create a plan of attack
 - Implement each TODO item one at a time
-- Each phase should be a different branch
-- After each phase commit and ask if it is to push or not 
-- After push ask for a PR and for a nudge when PR was merged
+- Each cycle of TDD and Implementation that is successful ALL tests must run and pass
+- After all tests pass, commit the changes with a concise message of what was done
+- After each phase commit and ask to proceed with the next phase
+- After all phases are done, create a PULL REQUEST and ask for a code review
+
 
 ## Architecture & Design
 [See design.instructions.md](./20-design.instructions.md)

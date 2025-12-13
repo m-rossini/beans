@@ -116,7 +116,9 @@ class World:
         Currently returns a hardcoded default value.
         TODO: Implement dynamic energy intake based on world state.
         """
-        return 1.0
+        # Return configured per-step intake from BeansConfig. Fail fast if
+        # the config object lacks the attribute to surface misconfiguration.
+        return self.beans_config.energy_gain_per_step
 
     def get_temperature(self) -> float:
         """Return the current world temperature.
