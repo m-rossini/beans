@@ -5,7 +5,7 @@ The `resolve_collisions` method in `SpriteMovementSystem` was refactored to impr
 
 ## Key Design Decisions
 - **Separation of Concerns**: Each new function handles one aspect (e.g., data prep, detection, damage calc, physics, nudging).
-- **Fail-Fast Principle**: Relied on existing config validation; no additional runtime checks.
+- **Fail-Fast Principle**: Relied on existing config validation; removed defensive check for SpatialHash to let code fail fast if unavailable, per coding standards.
 - **Naming**: Used descriptive snake_case names with clear docstrings.
 - **Type Hints**: Added proper typing for all parameters and returns.
 - **Modularity**: Functions are private methods of the class, promoting encapsulation.
@@ -16,7 +16,7 @@ The `resolve_collisions` method in `SpriteMovementSystem` was refactored to impr
 - Maintaining performance: no changes to algorithms, only structure.
 
 ## Implementation Details
-- **_initialize_collision_data**: Prepares positions map, sizes dict, and spatial hash.
+- **_initialize_collision_data**: Prepares positions map, sizes dict, and spatial hash (assumes SpatialHash is available, fails fast if not).
 - **_detect_collision**: Checks intersection area >= 2.0.
 - **_compute_collision_damage**: Calculates base damage, applies speed/size/sex factors.
 - **_apply_damage**: Deducts energy via DTO, updates damage report.
