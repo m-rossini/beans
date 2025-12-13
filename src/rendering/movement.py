@@ -2,13 +2,9 @@ import logging
 import math
 from typing import Dict, List, Tuple
 
-from beans.rendering.bean_sprite import BeanSprite
-
 from beans.placement import SpatialHash
 
-# type aliases to keep long annotations under the line-length limit
-AdjTargets = Dict["BeanSprite", Tuple[float, float]]
-DamageReport = Dict[int, float]
+from .bean_sprite import BeanSprite
 
 logger = logging.getLogger(__name__)
 
@@ -85,12 +81,7 @@ class SpriteMovementSystem:
 
         return new_x, new_y, collisions
 
-    def resolve_collisions(
-        self,
-        sprite_targets: List[Tuple[BeanSprite, float, float]],
-        bounds_width: int,
-        bounds_height: int,
-    ) -> Tuple[AdjTargets, DamageReport]:
+    def resolve_collisions(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
         """Detect and resolve inter-bean collisions for a frame.
 
         Args:
@@ -138,15 +129,22 @@ class SpriteMovementSystem:
             if d <= abs(r0 - r1):
                 # One circle is completely inside the other
                 return math.pi * min(r0, r1) ** 2
-            # standard formula
-            try:
-                a = r0 * r0 * math.acos((d * d + r0 * r0 - r1 * r1) / (2 * d * r0))
-                b = r1 * r1 * math.acos((d * d + r1 * r1 - r0 * r0) / (2 * d * r1))
-                c = 0.5 * math.sqrt(max(0.0, (-d + r0 + r1) * (d + r0 - r1) * (d - r0 + r1) * (d + r0 + r1)))
-                return a + b - c
-            except Exception:
-                # Fallback in degenerate numeric cases
+            # standard formula guarded against tiny numeric round-off
+            denom_a = 2 * d * r0
+            denom_b = 2 * d * r1
+            if denom_a == 0 or denom_b == 0:
                 return 0.0
+
+            arg_a = (d * d + r0 * r0 - r1 * r1) / denom_a
+            arg_b = (d * d + r1 * r1 - r0 * r0) / denom_b
+            arg_a = max(-1.0, min(1.0, arg_a))
+            arg_b = max(-1.0, min(1.0, arg_b))
+
+            a = r0 * r0 * math.acos(arg_a)
+            b = r1 * r1 * math.acos(arg_b)
+            sqrt_arg = max(0.0, (-d + r0 + r1) * (d + r0 - r1) * (d - r0 + r1) * (d + r0 + r1))
+            c = 0.5 * math.sqrt(sqrt_arg)
+            return a + b - c
 
         def vec_from_speed_dir(speed_units: float, direction_deg: float, pixels_per_unit: float) -> Tuple[float, float]:
             speed_px = speed_units * pixels_per_unit
