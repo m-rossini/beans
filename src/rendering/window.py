@@ -18,7 +18,7 @@ def _color_from_name(name: str):
         color = getattr(arcade.color, name.upper())
         logger.debug(f">>>>> _color_from_name: name={name} -> {color}")
         return color
-    except Exception as e:
+    except Exception:
         logger.debug(f">>>>> _color_from_name: name={name} not found, defaulting to WHITE")
         return arcade.color.WHITE
 

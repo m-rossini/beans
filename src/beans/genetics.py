@@ -119,14 +119,14 @@ def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> 
 
 class GeneInfo(NamedTuple):
     """Gene metadata: name and valid range."""
+
     name: str
     min: float
     max: float
 
 
 class Gene(Enum):
-    """
-    Gene types for beans with validation ranges.
+    """Gene types for beans with validation ranges.
     
     Each gene influences a bean's characteristics. Values are between 0.0 and 1.0.
     
@@ -135,6 +135,7 @@ class Gene(Enum):
     - FAT_ACCUMULATION: How efficiently a bean stores excess energy as fat
     - MAX_GENETIC_AGE: Maximum age a bean can reach genetically
     """
+
     METABOLISM_SPEED = GeneInfo("metabolism_speed", 0.0, 1.0)
     MAX_GENETIC_SPEED = GeneInfo("max_genetic_speed", 0.0, 1.0)
     FAT_ACCUMULATION = GeneInfo("fat_accumulation", 0.0, 1.0)
@@ -151,6 +152,7 @@ class Gene(Enum):
 
 class Genotype(BaseModel):
     """Immutable genetic blueprint for a bean."""
+
     genes: dict[Gene, float]
 
     model_config = {"frozen": True}
@@ -188,7 +190,9 @@ class Phenotype:
         energy: Current energy level
         size: Current size (represents fatness)
         target_size: Computed fittest size at that age
+
     """
+
     age: float
     speed: float
     energy: float

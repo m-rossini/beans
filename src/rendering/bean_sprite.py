@@ -2,8 +2,8 @@ import logging
 import random
 from typing import Optional
 
-
 import arcade
+
 from beans.bean import Bean
 
 logger = logging.getLogger(__name__)

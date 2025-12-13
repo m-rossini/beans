@@ -40,6 +40,10 @@
     "size_penalty_min_below": 0.4,
     "pixels_per_unit_speed": 1.0,
     "energy_loss_on_bounce": 2.0,
+    "collision_base_damage": 5.0,
+    "collision_damage_speed_factor": 0.05,
+    "collision_min_damage": 0.5,
+    "collision_damage_sex_factors": [1.0, 1.0],
     "min_speed_factor": 0.07
   }
 }

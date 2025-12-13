@@ -221,6 +221,12 @@ class SpriteMovementSystem:
             adjusted[sprite_a] = (ax + shift_x, ay + shift_y)
             adjusted[sprite_b] = (bx - shift_x, by - shift_y)
 
+    def _update_sprite_state(self : BeanSprite, other : BeanSprite, new_speed, new_dir):
+        state = other.bean.to_state()
+        state.speed = new_speed
+        other.bean.update_from_state(state)
+        other.direction = new_dir
+
     def resolve_collisions(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
         """Detect and resolve inter-bean collisions for a frame.
 
@@ -257,14 +263,9 @@ class SpriteMovementSystem:
                     self._apply_damage(sprite, other, damage_a, damage_b, damage_report)
                     new_speed_a, new_dir_a, new_speed_b, new_dir_b = self._resolve_elastic_collision(sprite, other, (tx, ty), npos, cfg)
                     # Update via DTO
-                    state_a = sprite.bean.to_state()
-                    state_a.speed = new_speed_a
-                    sprite.bean.update_from_state(state_a)
-                    sprite.direction = new_dir_a
-                    state_b = other.bean.to_state()
-                    state_b.speed = new_speed_b
-                    other.bean.update_from_state(state_b)
-                    other.direction = new_dir_b
+                    self._update_sprite_state(sprite, new_speed_a, new_dir_a)
+                    self._update_sprite_state(other, new_speed_b, new_dir_b)
+
                     self._nudge_positions(sprite, other, (tx, ty), npos, adjusted)
 
         return adjusted, damage_report

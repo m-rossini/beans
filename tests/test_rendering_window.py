@@ -35,7 +35,7 @@ def test_sprite_position_updates_on_movement(monkeypatch):
     win.on_update(0.1)
     # Assert position has changed after movement
     assert sprite.center_x != initial_x or sprite.center_y != initial_y
-    
+
 def test_sprite_creation_initialization(monkeypatch):
     """TDD: Ensure WorldWindow creates sprites for all beans with correct attributes."""
     cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=0.5, width=100, height=100, population_density=0.2, placement_strategy="random")

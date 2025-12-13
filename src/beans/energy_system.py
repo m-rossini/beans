@@ -36,6 +36,7 @@ class EnergySystem(ABC):
         
         Args:
             config: BeansConfig containing energy system parameters.
+
         """
         self.config = config
 
@@ -54,6 +55,7 @@ class EnergySystem(ABC):
         Args:
             bean: The bean to apply the energy system to.
             energy_intake_eu: Amount of energy units the bean has ingested.
+
         """
         bean_state: BeanState = bean.to_state()
         # Set target_size every step
@@ -80,6 +82,7 @@ class EnergySystem(ABC):
         Args:
             bean: The bean to apply intake to.
             energy_eu: Amount of energy units to add.
+
         """
         ...
 
@@ -89,6 +92,7 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to apply basal metabolism to.
+
         """
         ...
 
@@ -98,6 +102,7 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to apply movement cost to.
+
         """
         ...
 
@@ -107,6 +112,7 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to apply fat storage to.
+
         """
         ...
 
@@ -116,6 +122,7 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to apply fat burning to.
+
         """
         ...
 
@@ -125,6 +132,7 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to handle negative energy for.
+
         """
         ...
 
@@ -134,6 +142,7 @@ class EnergySystem(ABC):
         
         Args:
             bean: The bean to clamp size for.
+
         """
         ...
 
@@ -148,6 +157,7 @@ class EnergySystem(ABC):
             
         Returns:
             Penalty multiplier between min_penalty and 1.0.
+
         """
         ...
 
@@ -160,6 +170,7 @@ class EnergySystem(ABC):
             
         Returns:
             True if size > min_bean_size, False otherwise.
+
         """
         ...
 
@@ -172,6 +183,7 @@ class EnergySystem(ABC):
             
         Returns:
             True if survives, False if dies from obesity.
+
         """
         ...
 
@@ -185,6 +197,7 @@ class EnergySystem(ABC):
             
         Returns:
             Metabolism factor (1.0 to 1.5 based on gene value).
+
         """
         metabolism_speed = bean.genotype.genes[Gene.METABOLISM_SPEED]
         return 1 + 0.5 * metabolism_speed
@@ -206,6 +219,7 @@ class StandardEnergySystem(EnergySystem):
         Args:
             bean: The bean to apply intake to.
             energy_eu: Amount of energy units to add.
+
         """
         ret_val = bean_state.energy + energy_eu
         logger.debug(f">>>>> Bean {bean_state.id}"
@@ -224,6 +238,7 @@ class StandardEnergySystem(EnergySystem):
         
         Args:
             bean: The bean to apply basal metabolism to.
+
         """
         size = bean_state.size
         burn = self.config.metabolism_base_burn * metabolism_factor * size
@@ -244,6 +259,7 @@ class StandardEnergySystem(EnergySystem):
         
         Args:
             bean: The bean to apply movement cost to.
+
         """
         cost = abs(bean_state.speed) * self.config.energy_cost_per_speed
         ret_val = bean_state.energy - cost
@@ -264,6 +280,7 @@ class StandardEnergySystem(EnergySystem):
         
         Args:
             bean: The bean to apply fat storage to.
+
         """
         surplus = bean_state.energy - self.config.energy_baseline
         if surplus <= 0:
@@ -292,6 +309,7 @@ class StandardEnergySystem(EnergySystem):
         
         Args:
             bean: The bean to apply fat burning to.
+
         """
         deficit = self.config.energy_baseline - bean_state.energy
         if deficit <= 0:
@@ -320,6 +338,7 @@ class StandardEnergySystem(EnergySystem):
         
         Args:
             bean: The bean to handle negative energy for.
+
         """
         if bean_state.energy >= 0:
             return (bean_state.energy, bean_state.size)
@@ -337,6 +356,7 @@ class StandardEnergySystem(EnergySystem):
         
         Args:
             bean: The bean to clamp size for.
+
         """
         size = bean_state.size
         if bean_state.size < self.config.min_bean_size:
@@ -361,6 +381,7 @@ class StandardEnergySystem(EnergySystem):
             
         Returns:
             Penalty multiplier between min_penalty and 1.0.
+
         """
         target_size = self.config.initial_bean_size
         sigma = target_size * self.config.size_sigma_frac
@@ -384,7 +405,7 @@ class StandardEnergySystem(EnergySystem):
                      f" size_speed_penalty: size={bean.size:.2f},"
                      f" z_score={z_score:.2f},"
                      f" penalty={result:.3f}")
-        
+
         return result
 
     def _can_survive_starvation(self, bean: Bean) -> bool:
@@ -397,6 +418,7 @@ class StandardEnergySystem(EnergySystem):
             
         Returns:
             True if size > min_bean_size, False otherwise.
+
         """
         survives = bean.size > self.config.min_bean_size
         logger.debug(f">>>>> Bean {bean.id} can_survive_starvation: size={bean.size:.2f}, min_size={self.config.min_bean_size:.2f}, survives={survives}")
@@ -413,6 +435,7 @@ class StandardEnergySystem(EnergySystem):
             
         Returns:
             True if survives, False if dies from obesity.
+
         """
         import random
 

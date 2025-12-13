@@ -5,15 +5,16 @@ applyTo: '**'
 This file outlines STRICT abnd HARD rules that must be followed to the letter when using agents to code.
 Below is a list of different files covering different topics that MUST be followed
 
-## General Isntructions
-
-Follow the instrucitons on this sections and the the instrucitons on each file.
+## General Instructions
+Follow the instructions on this section and the instructions on each file.
 
 - When python, ensure you are on the correct environment
 - When Asked a question, never change or add code, always ANSWER and give an educated answer with pros and cons of your choice
 - When in doubt, ask clarification questions. Do not assume, ask.
 - Stick to the request, do not go beyond what is asked.
 - Always use the commands in the make file. If they are not there please suggest adding them
+- I am usinf ruff for linting and format checking, ensur eyou follow the rules in project.toml
+- For pythong ALWAYS activate the proper enviuronment in each new shell, if you use powersheel use the correct scripts
 
 ## Procedures
 - Always plan first

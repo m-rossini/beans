@@ -75,7 +75,7 @@ class Bean:
         phenotype: Phenotype,
     ) -> None:
         # import already at top
-        self.beans_config = config
+        self.beans_config: BeansConfig = config
         self.id = id
         self.sex = sex
         self.genotype = genotype
@@ -120,7 +120,7 @@ class Bean:
 
     def update(self, dt: float = 1.0) -> dict[str, float]:
         """Update bean in-place and return outcome metrics.
-        
+
         Note: Energy system methods (basal metabolism, movement cost, etc.)
         are called by World, not by Bean itself.
         """
@@ -150,6 +150,7 @@ class Bean:
 
         Raises:
             ValueError: if the DTO `id` doesn't match this bean's id.
+
         """
         if state.id != self.id:
             raise ValueError(f"BeanState id {state.id} does not match Bean id {self.id}")
@@ -175,10 +176,11 @@ class Bean:
 
     def survive(self) -> tuple[bool, str | None]:
         """Check if bean survives this step.
-        
+
         Returns:
             (alive, reason): alive is True if bean survives, False otherwise.
                             reason is None if alive, otherwise the death reason.
+
         """
         if not self.can_survive_age():
             return False, "max_age_reached"

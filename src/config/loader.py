@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,11 @@ class BeansConfig:
     size_penalty_min_below: float = 0.4   # Minimum speed multiplier when underweight.
     pixels_per_unit_speed: float = 1.0    # Rendering scale: pixels per unit speed.
     energy_loss_on_bounce: float = 2.0    # Energy lost when bean bounces off a wall or obstacle.
+    # Collision/damage configuration
+    collision_base_damage: float = 5.0
+    collision_damage_speed_factor: float = 0.05
+    collision_min_damage: float = 0.5
+    collision_damage_sex_factors: Tuple[float, float] = (1.0, 1.0)
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -100,6 +106,11 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     # Movement defaults
     pixels_per_unit_speed=1.0,
     energy_loss_on_bounce=2.0,
+    # Collision defaults
+    collision_base_damage=5.0,
+    collision_damage_speed_factor=0.05,
+    collision_min_damage=0.5,
+    collision_damage_sex_factors=(1.0, 1.0),
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
@@ -159,6 +170,10 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         size_penalty_min_above=beans_data.get("size_penalty_min_above", DEFAULT_BEANS_CONFIG.size_penalty_min_above),
         size_penalty_min_below=beans_data.get("size_penalty_min_below", DEFAULT_BEANS_CONFIG.size_penalty_min_below),
         pixels_per_unit_speed=beans_data.get("pixels_per_unit_speed", DEFAULT_BEANS_CONFIG.pixels_per_unit_speed),
+        collision_base_damage=beans_data.get("collision_base_damage", DEFAULT_BEANS_CONFIG.collision_base_damage),
+        collision_damage_speed_factor=beans_data.get("collision_damage_speed_factor", DEFAULT_BEANS_CONFIG.collision_damage_speed_factor),
+        collision_min_damage=beans_data.get("collision_min_damage", DEFAULT_BEANS_CONFIG.collision_min_damage),
+        collision_damage_sex_factors=tuple(beans_data.get("collision_damage_sex_factors", DEFAULT_BEANS_CONFIG.collision_damage_sex_factors)),
         energy_loss_on_bounce=beans_data.get("energy_loss_on_bounce", DEFAULT_BEANS_CONFIG.energy_loss_on_bounce),
     )
 
@@ -197,6 +212,18 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"energy_loss_on_bounce must be >= 0, got {cfg.energy_loss_on_bounce}")
         if not (0.0 <= cfg.min_speed_factor <= 1.0):
             raise ValueError(f"min_speed_factor must be between 0.0 and 1.0, got {cfg.min_speed_factor}")
+        # Validate collision sex factors: must be a sequence of two numeric values (female, male)
+        try:
+            factors = tuple(cfg.collision_damage_sex_factors)
+        except Exception:
+            raise ValueError(f"collision_damage_sex_factors must be a sequence of two numbers, got {cfg.collision_damage_sex_factors}")
+        if len(factors) != 2:
+            raise ValueError(f"collision_damage_sex_factors must contain exactly two values (female, male), got {factors}")
+        for v in factors:
+            if not isinstance(v, (int, float)):
+                raise ValueError(f"collision_damage_sex_factors values must be numeric, got {factors}")
+            if v < 0.0:
+                raise ValueError(f"collision_damage_sex_factors values must be >= 0.0, got {factors}")
 
     logger.debug(">>>>> Validating world config")
     validate_world(world_config)

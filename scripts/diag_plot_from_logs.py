@@ -1,6 +1,6 @@
-from pathlib import Path
 import math
 import runpy
+from pathlib import Path
 
 # Load functions directly from the script file (no package import required)
 mod = runpy.run_path(str(Path(__file__).with_name("plot_from_logs.py")))
@@ -18,11 +18,11 @@ for b in selected:
     print(f"\nBean {b}: samples={len(rows)}")
     if not rows:
         continue
-    ages = [r.get('age', math.nan) for r in rows]
-    energies = [r.get('energy', math.nan) for r in rows]
-    sizes = [r.get('size', math.nan) for r in rows]
-    speeds = [r.get('speed', math.nan) for r in rows]
-    ts_vals = [r.get('target_size', math.nan) for r in rows]
+    ages = [r.get("age", math.nan) for r in rows]
+    energies = [r.get("energy", math.nan) for r in rows]
+    sizes = [r.get("size", math.nan) for r in rows]
+    speeds = [r.get("speed", math.nan) for r in rows]
+    ts_vals = [r.get("target_size", math.nan) for r in rows]
     print(f"  age first/last: {ages[0]} / {ages[-1]}")
     # monotonicity check
     monotonic = all((ages[i] <= ages[i+1] for i in range(len(ages)-1)))
@@ -35,7 +35,7 @@ for b in selected:
     n_nans = sum(1 for v in ages if v!=v)
     print(f"  NaN ages: {n_nans}")
 
-print('\nDeath reasons sample (first 10):')
+print("\nDeath reasons sample (first 10):")
 for i,(k,v) in enumerate(dr.items()):
     print(f"  Bean {k}: {v}")
     if i>9:

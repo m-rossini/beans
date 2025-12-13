@@ -12,6 +12,7 @@ def pytest_configure(config):
     
     Example:
         LOGGING_LEVEL=DEBUG LOG_FILE=test_debug.log pytest -v -s
+
     """
     logging_level = os.getenv("LOGGING_LEVEL", "INFO").upper()
     log_file = os.getenv("LOG_FILE", "").strip() or None
