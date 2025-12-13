@@ -158,6 +158,9 @@ class Bean:
             logger.warning(f">>> Bean {self.id} update_from_state called on dead bean. No update performed.")
             return
 
+        logger.debug(f">>>>> Bean {self.id} update_from_state: before update"
+                     f" phenotype={self._phenotype.to_dict()},"
+                     f" state={{age:{state.age}, speed:{state.speed}, energy:{state.energy}, size:{state.size}}}")
         self._phenotype.age = state.age
         self._phenotype.speed = state.speed
         self._phenotype.energy = state.energy

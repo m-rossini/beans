@@ -1,11 +1,10 @@
 import logging
-
 import arcade
-
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
 from reporting.report import SimulationReport
+from beans.dynamics.bean_dynamics import BeanDynamics
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +19,8 @@ def test_sprite_position_updates_on_movement(monkeypatch):
     from rendering.window import WorldWindow
     win = WorldWindow(world)
     sprite = win.bean_sprites[0]
+    # Patch bean_dynamics to use the test bean's genotype and max_age
+    world.bean_dynamics = BeanDynamics(bcfg, sprite.bean.genotype, sprite.bean._max_age)
     # Set initial position and direction
     initial_x = sprite.center_x
     initial_y = sprite.center_y
@@ -176,8 +177,9 @@ def test_window_bounce_deducts_energy(monkeypatch):
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     from rendering.window import WorldWindow
     win = WorldWindow(world)
-    # pick the first sprite
     sprite = win.bean_sprites[0]
+    # Patch bean_dynamics to use the test bean's genotype and max_age
+    world.bean_dynamics = BeanDynamics(bcfg, sprite.bean.genotype, sprite.bean._max_age)
     # set sprite near the right edge with direction toward the edge
     sprite.center_x = win.width - (sprite.bean.size / 2.0) - 1
     sprite.center_y = win.height / 2

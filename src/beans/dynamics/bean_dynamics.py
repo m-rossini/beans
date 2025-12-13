@@ -10,19 +10,14 @@ from beans.genetics import age_speed_factor, genetic_max_speed, size_z_score
 
 
 class BeanDynamics:
-    def __init__(self, config: BeansConfig, genotype=None, max_age=None):
+    def __init__(self, config: BeansConfig, genotype, max_age):
         self.config: BeansConfig = config
         self.genotype = genotype
         self.max_age = max_age
 
-    def calculate_speed(self, bean_state: BeanState, genotype=None, max_age=None) -> float:
-        # Use provided genotype/max_age or fallback to instance
-        genotype = genotype or self.genotype
-        max_age = max_age or self.max_age
-        # If genotype or max_age is not available, use default speed logic (legacy behavior)
-        if genotype is None or max_age is None:
-            # Fallback: just return bean_state.speed (legacy behavior)
-            return bean_state.speed
+    def calculate_speed(self, bean_state: BeanState) -> float:
+        genotype = self.genotype
+        max_age = self.max_age
 
         vmax = genetic_max_speed(self.config, genotype)
         min_speed = self.config.min_speed_factor
