@@ -110,16 +110,14 @@ class SpriteMovementSystem:
         r = math.radians(direction_deg)
         return math.cos(r) * speed_px, math.sin(r) * speed_px
 
-    def _initialize_collision_data(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[Tuple[float, float], BeanSprite], Dict[BeanSprite, float], Optional[SpatialHash]]:
+    def _initialize_collision_data(self, sprite_targets: List[Tuple[BeanSprite, float, float]], bounds_width: int, bounds_height: int) -> Tuple[Dict[Tuple[float, float], BeanSprite], Dict[BeanSprite, float], SpatialHash]:
         """Prepare data structures for collision detection: positions map, sizes, and spatial hash."""
         positions_map = {(tx, ty): sprite for sprite, tx, ty in sprite_targets}
         sizes = {sprite: sprite.bean.size for sprite, tx, ty in sprite_targets}
         avg_size = max(1, int(sum(sizes.values()) / len(sizes)))
-        spatial = None
-        if SpatialHash is not None:
-            spatial = SpatialHash(cell_size=avg_size, width=bounds_width, height=bounds_height)
-            for (tx, ty), sprite in positions_map.items():
-                spatial.insert(tx, ty)
+        spatial = SpatialHash(cell_size=avg_size, width=bounds_width, height=bounds_height)
+        for (tx, ty), sprite in positions_map.items():
+            spatial.insert(tx, ty)
         return positions_map, sizes, spatial
 
     def _detect_collision(self, sprite_a: BeanSprite, sprite_b: BeanSprite, pos_a: Tuple[float, float], pos_b: Tuple[float, float]) -> bool:
@@ -235,12 +233,12 @@ class SpriteMovementSystem:
         damage_report: Dict[int, float] = {}
         if not sprite_targets:
             return adjusted, damage_report
-        
+
         positions_map, sizes, spatial = self._initialize_collision_data(sprite_targets, bounds_width, bounds_height)
         handled_pairs = set()
-        
+
         for sprite, tx, ty in sprite_targets:
-            neighbors = spatial.get_neighbors(tx, ty, radius=sprite.bean.size) if spatial else list(positions_map.keys())
+            neighbors = spatial.get_neighbors(tx, ty, radius=sprite.bean.size)
             for npos in neighbors:
                 if npos == (tx, ty):
                     continue
@@ -263,5 +261,5 @@ class SpriteMovementSystem:
                     other.bean.update_from_state(state_b)
                     other.direction = new_dir_b
                     self._nudge_positions(sprite, other, (tx, ty), npos, adjusted)
-        
+
         return adjusted, damage_report
