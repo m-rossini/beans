@@ -7,9 +7,9 @@ from beans.dynamics.bean_dynamics import BeanDynamics
 from config.loader import BeansConfig, WorldConfig
 
 from .bean import Bean, BeanState, Sex
+from .context import BeanContext
 from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_phenotype, create_random_genotype
-from .context import BeanContext
 from .placement import create_strategy_from_name
 from .population import (
     PopulationEstimator,
@@ -70,8 +70,8 @@ class World:
     def _create_beans(self, beans_config: BeansConfig, bean_context: BeanContext) -> List[Bean]:
         beans = []
         for i in range(bean_context.bean_count):
-            genotype = create_random_genotype()
-            phenotype = create_phenotype(beans_config, genotype)
+            genotype = create_random_genotype(rng=bean_context.rng)
+            phenotype = create_phenotype(beans_config, genotype, rng=bean_context.rng)
             bean = Bean(
                 config=beans_config,
                 id=i,
