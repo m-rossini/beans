@@ -16,8 +16,8 @@ def test_bean_dynamics_speed_calculation():
     }
     genotype = Genotype(genes=genes)
     dummy_max_age = 100
-    dynamics = BeanDynamics(config, genotype, dummy_max_age)
-    speed = dynamics.calculate_speed(bean_state)
+    dynamics = BeanDynamics(config)
+    speed = dynamics.calculate_speed(bean_state,genotype, dummy_max_age)
     # Expected: vmax * age_factor * size_penalty, all factors = 1.0 except min_speed_factor
     # For age=5, max_age=100, min_speed_factor=0.2, vmax=1.0, size_penalty=1.0
     expected_age_factor = age_speed_factor(5, dummy_max_age, config.min_speed_factor)

@@ -31,7 +31,7 @@ def test_world_window_title_displays_round_number():
     # Patch bean_dynamics to use the first bean's genotype and max_age
     if world.beans:
         bean = world.beans[0]
-        world.bean_dynamics = BeanDynamics(bcfg, bean.genotype, bean._max_age)
+        world.bean_dynamics = BeanDynamics(bcfg)
 
     # After first on_update, round should be 2
     window.on_update(0.1)
@@ -60,7 +60,7 @@ def test_world_kills_beans_when_age_limit_reached():
     phenotype = create_phenotype(bcfg, genotype)
     bean = Bean(config=bcfg, id=0, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     world.beans = [bean]
-    world.bean_dynamics = BeanDynamics(bcfg, genotype, bean._max_age)
+    world.bean_dynamics = BeanDynamics(bcfg)
     for _ in range(bcfg.max_age_rounds):
         world.step(dt=1.0)
 
