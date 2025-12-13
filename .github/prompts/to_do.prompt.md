@@ -7,10 +7,12 @@ agent: agent
 1. ✅ Package world update method in high abstractions level such as calculate_energy and then call lower level methods inside.
 1. ✅ Energy System should be a world configuraiton
 1. ✅ Ensure speed calculations can be implemented as interface and concrete classes - Speed System.
+1. Done - Make logging statements have the right amount of chevrons
 1. Done - Fix Movement System
+1. Done - Implement a clash detection in Movement System, between beans
+1. Done - Make LOG DEBUG level suitable for tracing and experimenting, so it can be parsed and used to draw behaviour graphics and diagrams
 
 1. Move energy Loss in Movement System to Energy System
-1. Implement a clash detection in Movement System, between beans
 1. Create a plotting system based on logs
 
 ## Beans should be pluggable and have different types:
@@ -22,10 +24,6 @@ agent: agent
 
 ## Tests Should be Menaingful
 - Review existing tests and check if they are testing behavior or just implementation
-
-## Logging Improvements
-- Make logging statements have the right amount of chevrons
-- Make LOG DEBUG level suitable for tracing and experimenting, so it can be parsed and used to draw behaviour graphics and diagrams
 
 ## Modularization
 - Ensure agent implementations can be plugged in and swapped out easily

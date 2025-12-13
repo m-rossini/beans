@@ -15,13 +15,7 @@ def make_bean_and_sprite(size: float = 10.0, speed: float = 0.0, sex: Sex = Sex.
     if beans_config is None:
         # Use default beans config for tests when no config provided
         beans_config = DEFAULT_BEANS_CONFIG
-    # Create a minimal Bean. The Bean constructor signature in this repo
-    # requires many parameters; tests in this project often construct
-    # a Bean via Bean(beans_config, id, sex, genotype, phenotype). We will
-    # create a Bean with minimal dummy genotype/phenotype objects where needed.
-    # To avoid over-coupling in the test, we rely on Bean's public attributes
-    # being writable for test setup.
-    # Provide a minimal genotype when tests don't supply one
+
     genotype = create_random_genotype()
     phenotype = create_phenotype(beans_config, genotype)
     bean = Bean(beans_config, id, sex, genotype=genotype, phenotype=phenotype)

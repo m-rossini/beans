@@ -1,5 +1,5 @@
-from config.loader import WorldConfig, BeansConfig
 from beans.world import World
+from config.loader import BeansConfig, WorldConfig
 
 world_cfg = WorldConfig(
     male_sprite_color="blue",

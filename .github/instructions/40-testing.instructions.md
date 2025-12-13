@@ -45,7 +45,8 @@ def test_add_false_calls_service_b(mocker):
 - Use pytest fixtures for setup and teardown of tests
 - Try to use parameterized tests to reduce code duplication
 - Use descriptive names for test functions to indicate what they are testing
-- Run tests created for the specific feature first, then run all tests to ensure nothing else is broken
+- Run tests created for the specific feature first using MAKE specific test
+- After that, when successful run all tests to ensure nothing else is broken
 - Use coverage.py to measure code coverage
 - Ensure make file contains entry for test
 - Ensure make file containt entry for coverage and coverage report and another for logging to be seen in console
