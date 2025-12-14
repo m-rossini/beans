@@ -23,6 +23,7 @@ Follow the instructions on this section and the instructions on each file.
 ## Procedures
 - Always plan first
 - Divide the problem in phases and steps inside phases
+- Ensure you are in the proper envirnment when using python
 - If current branch is main, create a new branch to implement the plan
 - Implement each phase following TDD
 - Ask if you can commit and once commited, you move to the next phase.
