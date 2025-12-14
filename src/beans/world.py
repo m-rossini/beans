@@ -4,7 +4,7 @@ from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
 from config.loader import BeansConfig, WorldConfig, EnvironmentConfig
-from beans.environment import Environment
+from beans.environment.interface import Environment
 
 from .bean import Bean, BeanState, Sex
 from .context import BeanContext

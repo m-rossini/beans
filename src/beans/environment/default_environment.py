@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from config.loader import EnvironmentConfig, BeansConfig
-from . import Environment
+from .interface import Environment
 
 
 class DefaultEnvironment(Environment):

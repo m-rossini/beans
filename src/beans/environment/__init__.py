@@ -1,28 +1,9 @@
-from __future__ import annotations
+"""beans.environment package.
 
-from abc import ABC, abstractmethod
-from typing import Protocol
+This package contains environment implementations for the simulation. Per
+project coding standards, avoid defining executable code in ``__init__``;
+types and implementations live in separate modules such as
+``interface.py`` and ``default_environment.py``.
+"""
 
-
-class Environment(ABC):
-    """Abstract Environment interface.
-
-    Minimal interface required by `World`. Implementations should provide
-    `step()` which advances environment state, and query methods for energy
-    intake and temperature.
-    """
-
-    @abstractmethod
-    def step(self) -> None:
-        ...
-
-    @abstractmethod
-    def get_energy_intake(self) -> float:
-        ...
-
-    @abstractmethod
-    def get_temperature(self) -> float:
-        ...
-
-
-__all__ = ["Environment"]
+__all__ = []
