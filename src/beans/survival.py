@@ -6,6 +6,7 @@ simulation's `World.step()` to decide whether a bean survives a tick.
 This is a minimal implementation to satisfy current integration tests
 and will be extended in later phases per the plan.
 """
+import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -42,6 +43,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
     def __init__(self, config, rng=None) -> None:
         self.config = config
         self.rng = rng
+        self.logger = logging.getLogger(__name__)
 
     def check(self, bean: Bean, world) -> SurvivalResult:
         # Age check (priority)
@@ -50,6 +52,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
 
         # Starvation behavior
         if bean.energy <= 0:
+            self.logger.debug(f">>>>> Survival.check: bean={bean.id}, energy={bean.energy}, size={bean.size}, min_size={self.config.min_bean_size}")
             # If at or below minimum healthy size, die of starvation
             if bean.size <= self.config.min_bean_size:
                 return SurvivalResult(alive=False, reason="STARVATION", message="No fat left to sustain")

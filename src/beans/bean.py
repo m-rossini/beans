@@ -167,11 +167,12 @@ class Bean:
 
         return self.to_state()
 
-
+    #TODO Remove this method once SurvivalChecker is fully integrated
     def can_survive_age(self) -> bool:
         """Check if bean can survive based on age vs genetic max age."""
         return self.age < self._max_age
 
+    #TODO Remove this method once SurvivalChecker is fully integrated
     def survive(self) -> tuple[bool, str | None]:
         """Check if bean survives this step.
 

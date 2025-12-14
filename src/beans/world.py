@@ -10,6 +10,7 @@ from .bean import Bean, BeanState, Sex
 from .context import BeanContext
 from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_phenotype, create_random_genotype
+from .survival import DefaultSurvivalChecker
 from .placement import create_strategy_from_name
 from .population import (
     PopulationEstimator,
@@ -47,9 +48,7 @@ class World:
         # Single BeanDynamics instance per world; per-bean genotype and max_age
         # are supplied at calculation time to avoid constructing one per bean.
         self.bean_dynamics = BeanDynamics(beans_config)
-        # Survival checker (will be implemented and expanded in Phase 2)
-        from .survival import DefaultSurvivalChecker
-
+        # Survival checker (configured at world init)
         self.survival_checker = DefaultSurvivalChecker(beans_config, rng=self._rng)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
@@ -93,12 +92,17 @@ class World:
         for bean in self.beans:
             _: BeanState = self._update_bean(bean)
 
+            # Log phenotype before survival check for easier debugging
+            logger.info(f">>>>> World.step.pre_survival: Bean {bean.id} phenotype={bean._phenotype.to_dict()}")
             # Use the survival checker (integration point) to decide if the bean lives
             result = self.survival_checker.check(bean, self)
             if not result.alive:
+                #TODO move _mark_dead to SurvivalChecker
+                #TODO Keep th elis tof dead beans in the SurvivalChecker
                 self._mark_dead(bean, reason=result.reason)
                 deaths_this_step += 1
-                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
+                # Use result.reason in the debug message
+                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={result.reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
             else:
                 survivors.append(bean)
 

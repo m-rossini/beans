@@ -6,8 +6,17 @@ from config.loader import BeansConfig, WorldConfig
 
 
 def make_world(seed: int = 42) -> tuple[World, BeansConfig]:
-    wcfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=20, height=20, population_density=1.0, placement_strategy="random", seed=seed)
-    bcfg = BeansConfig(speed_min=-1.0, speed_max=1.0)
+    wcfg = WorldConfig( male_sprite_color="blue",
+                        female_sprite_color="red",
+                        male_female_ratio=1.0,
+                        width=20,
+                        height=20,
+                        population_density=1.0,
+                        placement_strategy="random",
+                        seed=seed
+    )
+    # Ensure no automatic energy intake to exercise starvation behavior deterministically
+    bcfg = BeansConfig(speed_min=-1.0, speed_max=1.0, energy_gain_per_step=0.0)
     return World(config=wcfg, beans_config=bcfg), bcfg
 
 
