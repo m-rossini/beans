@@ -1,8 +1,9 @@
 import json
 import tempfile
+
 import pytest
 
-from config.loader import load_config
+from config.loader import load_config, EnvironmentConfig
 
 
 def test_load_config_returns_environment_config():
@@ -13,8 +14,9 @@ def test_load_config_returns_environment_config():
 
     try:
         world_config, beans_config, env_config = load_config(p)
-        assert hasattr(env_config, "random_mode")
-        assert env_config.random_mode in ("random", "seeded", "explicit")
+        # Use typed checks and explicit value assertions (no introspection)
+        assert isinstance(env_config, EnvironmentConfig)
+        assert env_config.random_mode == "random"
     finally:
         import os
 
