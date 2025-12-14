@@ -31,7 +31,7 @@ def test_load_config_with_valid_file():
         temp_file = f.name
 
     try:
-        world_config, beans_config = load_config(temp_file)
+        world_config, beans_config, env_config = load_config(temp_file)
         assert world_config.male_sprite_color == "blue"
         assert world_config.female_sprite_color == "pink"
         assert world_config.male_female_ratio == 1.0

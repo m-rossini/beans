@@ -24,9 +24,10 @@ def test_load_config_validates_pixels_and_bounce(tmp_path):
     }
     p = tmp_path / "cfg.json"
     p.write_text(str(cfg_data).replace("'", '"'))
-    world_cfg, beans_cfg = load_config(str(p))
+    world_cfg, beans_cfg, env_cfg = load_config(str(p))
     assert beans_cfg.pixels_per_unit_speed == 0.5
     assert beans_cfg.energy_loss_on_bounce == 1.5
+    assert env_cfg.random_mode in ("random", "seeded", "explicit")
 
 
 def test_load_config_rejects_negative_energy_loss(tmp_path):
