@@ -77,13 +77,17 @@ class TestBeanSprite:
         sprite.update_from_bean()
         assert sprite.scale == (1.0, 1.0)  # scale is a tuple (x, y)
 
-        # Change bean size and verify scale updates
-        male_bean._phenotype.size = initial_size * 1.5  # Make bean 50% larger
+        # Change bean size and verify scale updates by replacing the sprite's bean
+        bigger_ph = Phenotype(age=male_bean.age, speed=male_bean.speed, energy=male_bean.energy, size=initial_size * 1.5, target_size=male_bean.to_state().target_size)
+        bigger_bean = Bean(config=male_bean.beans_config, id=male_bean.id, sex=male_bean.sex, genotype=male_bean.genotype, phenotype=bigger_ph)
+        sprite.bean = bigger_bean
         sprite.update_from_bean()
         assert sprite.scale == (1.5, 1.5)
 
-        # Change bean size again
-        male_bean._phenotype.size = initial_size * 0.8  # Make bean 20% smaller
+        # Change bean size again (smaller)
+        smaller_ph = Phenotype(age=male_bean.age, speed=male_bean.speed, energy=male_bean.energy, size=initial_size * 0.8, target_size=male_bean.to_state().target_size)
+        smaller_bean = Bean(config=male_bean.beans_config, id=male_bean.id, sex=male_bean.sex, genotype=male_bean.genotype, phenotype=smaller_ph)
+        sprite.bean = smaller_bean
         sprite.update_from_bean()
         assert sprite.scale == (0.8, 0.8)
 

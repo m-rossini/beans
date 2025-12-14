@@ -40,7 +40,10 @@ def test_move_right_by_speed(bean):
     sprite.direction = 0.0
     sprite.center_x = 100.0
     sprite.center_y = 100.0
-    bean._phenotype.speed = 10.0
+    # Create a local bean with the desired speed (avoid touching private phenotype)
+    local_ph = Phenotype(age=bean.age, speed=10.0, energy=bean.energy, size=bean.size, target_size=bean.size)
+    local_bean = Bean(config=bean.beans_config, id=bean.id, sex=bean.sex, genotype=bean.genotype, phenotype=local_ph)
+    sprite.bean = local_bean
     mover = SpriteMovementSystem()
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     assert collisions == 0
@@ -52,7 +55,9 @@ def test_negative_speed_reverses_motion(bean):
     sprite.direction = 0.0
     sprite.center_x = 200.0
     sprite.center_y = 200.0
-    bean._phenotype.speed = -10.0
+    local_ph = Phenotype(age=bean.age, speed=-10.0, energy=bean.energy, size=bean.size, target_size=bean.size)
+    local_bean = Bean(config=bean.beans_config, id=bean.id, sex=bean.sex, genotype=bean.genotype, phenotype=local_ph)
+    sprite.bean = local_bean
     mover = SpriteMovementSystem()
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     assert collisions == 0
@@ -66,9 +71,10 @@ def test_horizontal_bounce_reflects_and_energy_loss(bean):
     sprite.center_x = 790.0
     sprite.center_y = 300.0
     # set radius so it's near boundary; bean.size is 10 -> radius 5
-    bean._phenotype.size = 10.0
-    bean._phenotype.speed = 20.0
-    initial_energy = bean.energy
+    local_ph = Phenotype(age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size)
+    local_bean = Bean(config=bean.beans_config, id=bean.id, sex=bean.sex, genotype=bean.genotype, phenotype=local_ph)
+    sprite.bean = local_bean
+    initial_energy = sprite.bean.energy
     mover = SpriteMovementSystem()
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     # We expect a horizontal collision
@@ -76,7 +82,8 @@ def test_horizontal_bounce_reflects_and_energy_loss(bean):
     # Direction should be reflected
     assert sprite.direction == 180.0
     # Energy deduction must happen via DTO; ensure energy was reduced accordingly
-    assert bean.energy == initial_energy - collisions * bean.beans_config.energy_loss_on_bounce
+    # Ensure the bean attached to the sprite loses energy after bounce
+    assert sprite.bean.energy == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
 
 
 def test_vertical_bounce_reflects_and_energy_loss(bean):
@@ -84,14 +91,15 @@ def test_vertical_bounce_reflects_and_energy_loss(bean):
     sprite.direction = 90.0
     sprite.center_x = 400.0
     sprite.center_y = 595.0
-    bean._phenotype.size = 10.0
-    bean._phenotype.speed = 20.0
-    initial_energy = bean.energy
+    local_ph = Phenotype(age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size)
+    local_bean = Bean(config=bean.beans_config, id=bean.id, sex=bean.sex, genotype=bean.genotype, phenotype=local_ph)
+    sprite.bean = local_bean
+    initial_energy = sprite.bean.energy
     mover = SpriteMovementSystem()
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     assert collisions >= 1
     assert sprite.direction == 270.0
-    assert bean.energy == initial_energy - collisions * bean.beans_config.energy_loss_on_bounce
+    assert sprite.bean.energy == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
 
 
 def test_corner_bounce_reflects_and_energy_loss(bean):
@@ -99,14 +107,15 @@ def test_corner_bounce_reflects_and_energy_loss(bean):
     sprite.direction = 45.0
     sprite.center_x = 795.0
     sprite.center_y = 595.0
-    bean._phenotype.size = 10.0
-    bean._phenotype.speed = 20.0
-    initial_energy = bean.energy
+    local_ph = Phenotype(age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size)
+    local_bean = Bean(config=bean.beans_config, id=bean.id, sex=bean.sex, genotype=bean.genotype, phenotype=local_ph)
+    sprite.bean = local_bean
+    initial_energy = sprite.bean.energy
     mover = SpriteMovementSystem()
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     assert collisions >= 2
     assert sprite.direction == 225.0
-    assert bean.energy == initial_energy - collisions * bean.beans_config.energy_loss_on_bounce
+    assert sprite.bean.energy == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
 
 
 def test_visual_interpolation(bean):
@@ -114,8 +123,9 @@ def test_visual_interpolation(bean):
     sprite.direction = 0.0
     sprite.center_x = 100.0
     sprite.center_y = 200.0
-    bean._phenotype.size = 10.0
-    bean._phenotype.speed = 50.0
+    local_ph = Phenotype(age=bean.age, speed=50.0, energy=bean.energy, size=10.0, target_size=bean.size)
+    local_bean = Bean(config=bean.beans_config, id=bean.id, sex=bean.sex, genotype=bean.genotype, phenotype=local_ph)
+    sprite.bean = local_bean
     mover = SpriteMovementSystem()
 
     # Compute target position using movement system
