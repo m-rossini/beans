@@ -50,8 +50,6 @@
     "min_speed_factor": 0.07
   },
   "environment": {
-    "random_mode": "seeded",
-    "environment_seed": 42,
     "cell_size": 20,
     "food_density": 0.01,
     "hazard_density": 0.002,

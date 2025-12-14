@@ -50,8 +50,6 @@
     "min_speed_factor": 0.07
   },
   "environment": {
-    "random_mode": "explicit",
-    "environment_seed": null,
     "cell_size": 40,
     "food_density": 0.02,
     "hazard_density": 0.005,
@@ -66,9 +64,6 @@
     "temperature_variability": 1.0,
     "temp_to_food_factor": 0.3,
     "temp_to_metabolic_penalty": 0.05,
-    "hazard_decay_rate_per_hit": 1.0,
-    "explicit_food": [{"x": 100, "y": 100, "energy": 50}, {"x": 200, "y": 400, "energy": 75}],
-    "explicit_hazards": [{"x": 500, "y": 500, "radius": 20, "damage": 10, "potency": 3}],
-    "explicit_temperature_grid": [[30, 35, 40], [25, 30, 35], [20, 25, 30]]
+    "hazard_decay_rate_per_hit": 1.0
   }
 } 

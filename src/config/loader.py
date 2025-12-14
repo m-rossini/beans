@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -71,8 +71,6 @@ class BeansConfig:
 
 @dataclass
 class EnvironmentConfig:
-    random_mode: str = "random"  # "random" | "seeded" | "explicit"
-    environment_seed: Optional[int] = None
     cell_size: int = 20
     food_density: float = 0.0
     hazard_density: float = 0.0
@@ -88,9 +86,6 @@ class EnvironmentConfig:
     temp_to_food_factor: float = 0.0
     temp_to_metabolic_penalty: float = 0.0
     hazard_decay_rate_per_hit: float = 1.0
-    explicit_food: Optional[List[dict]] = None
-    explicit_hazards: Optional[List[dict]] = None
-    explicit_temperature_grid: Optional[List[List[float]]] = None
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -229,8 +224,6 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig, Enviro
     # Environment config
     env_data = data.get("environment", {})
     environment_config: EnvironmentConfig = EnvironmentConfig(
-        random_mode=env_data.get("random_mode", "random"),
-        environment_seed=env_data.get("environment_seed", None),
         cell_size=env_data.get("cell_size", 20),
         food_density=env_data.get("food_density", 0.0),
         hazard_density=env_data.get("hazard_density", 0.0),
@@ -246,9 +239,6 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig, Enviro
         temp_to_food_factor=env_data.get("temp_to_food_factor", 0.0),
         temp_to_metabolic_penalty=env_data.get("temp_to_metabolic_penalty", 0.0),
         hazard_decay_rate_per_hit=env_data.get("hazard_decay_rate_per_hit", 1.0),
-        explicit_food=env_data.get("explicit_food", None),
-        explicit_hazards=env_data.get("explicit_hazards", None),
-        explicit_temperature_grid=env_data.get("explicit_temperature_grid", None),
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
@@ -317,12 +307,7 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig, Enviro
             raise ValueError(f"hazard_density must be >= 0.0, got {cfg.hazard_density}")
         if not (0.0 <= cfg.decomposition_fraction_to_food <= 1.0):
             raise ValueError(f"decomposition_fraction_to_food must be between 0.0 and 1.0, got {cfg.decomposition_fraction_to_food}")
-        if cfg.random_mode not in ("random", "seeded", "explicit"):
-            raise ValueError(f"random_mode must be 'random','seeded' or 'explicit', got {cfg.random_mode}")
-        # explicit mode requires at least one explicit list/grid to be present (partial explicit allowed)
-        if cfg.random_mode == "explicit":
-            if not (cfg.explicit_food or cfg.explicit_hazards or cfg.explicit_temperature_grid):
-                raise ValueError("explicit mode requires at least one of explicit_food, explicit_hazards or explicit_temperature_grid")
+        # randomness control removed from environment config — handled at world creation
 
     logger.debug(">>>>> Validating world config")
     validate_world(world_config)
