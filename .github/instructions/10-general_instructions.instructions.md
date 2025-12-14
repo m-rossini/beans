@@ -22,12 +22,13 @@ Follow the instructions on this section and the instructions on each file.
 
 ## Procedures
 - Always plan first
-- Divide the problem in phases
+- Divide the problem in phases and steps inside phases
 - If current branch is main, create a new branch to implement the plan
-- For each phase create a TODO list
-- For each TODO item create a plan of attack
-- Implement each TODO item one at a time
+- Implement each phase following TDD
+- Ask if you can commit and once commited, you move to the next phase.
+- No need to ask permission between steps in the same phase, only to commit and change phase
 - Each cycle of TDD and Implementation that is successful ALL tests must run and pass
+- Tests must run as make, first specific tests and once all pass, make test for all tests
 - After all tests pass, commit the changes with a concise message of what was done
 - After each phase commit and ask to proceed with the next phase
 - After all phases are done, create a PULL REQUEST and ask for a code review
