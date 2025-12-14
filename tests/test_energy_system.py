@@ -1,6 +1,6 @@
 from beans.bean import Bean, Sex
 from beans.energy_system import create_energy_system_from_name
-from beans.genetics import Gene, Genotype, create_phenotype, create_random_genotype
+from beans.genetics import Gene, Genotype, create_phenotype_from_values, create_random_genotype
 from config.loader import BeansConfig
 
 
@@ -41,6 +41,7 @@ def make_test_config():
 
 
 def make_bean_with_genes(config: BeansConfig, *, energy: float | None = None, size: float = 10.0, speed: float = 3.0):
+    """Deterministic bean factory using explicit genotype and phenotype values."""
     genes = {
         Gene.METABOLISM_SPEED: 0.5,
         Gene.MAX_GENETIC_SPEED: 0.5,
@@ -48,9 +49,7 @@ def make_bean_with_genes(config: BeansConfig, *, energy: float | None = None, si
         Gene.MAX_GENETIC_AGE: 0.5,
     }
     genotype = Genotype(genes=genes)
-    phenotype = create_phenotype(config, genotype)
-    phenotype.size = size
-    phenotype.speed = speed
+    phenotype = create_phenotype_from_values(config, genotype, age=0.0, speed=float(speed), energy=float(config.initial_energy), size=float(size), target_size=float(size))
     bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     if energy is not None:
         set_bean_state(bean, energy=energy)
@@ -64,8 +63,9 @@ def test_intake_increases_energy():
 
     before = bean.energy
     state = energy_system.apply_energy_system(bean, energy_intake_eu=20.0)
-    bean.update_from_state(state)
-    assert bean.energy > before
+    # returned state should reflect increased energy and original bean should be unchanged
+    assert state.energy > before
+    assert bean.energy == before
 
 
 def test_metabolism_reduces_energy_over_time():
@@ -74,11 +74,13 @@ def test_metabolism_reduces_energy_over_time():
     # start with higher energy and no intake
     bean = make_bean_with_genes(config, energy=120.0)
 
-    before = bean.energy
+    prev = bean.energy
     for _ in range(5):
         state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
-        bean.update_from_state(state)
-    assert bean.energy < before
+        assert state.energy <= prev
+        prev = state.energy
+    # original bean remains unchanged
+    assert bean.energy == 120.0
 
 
 def test_size_increases_when_energy_above_baseline():
@@ -88,8 +90,8 @@ def test_size_increases_when_energy_above_baseline():
 
     size_before = bean.size
     state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
-    bean.update_from_state(state)
-    assert bean.size >= size_before
+    assert state.size >= size_before
+    assert bean.size == size_before
 
 
 def test_size_decreases_when_energy_below_baseline():
@@ -99,8 +101,8 @@ def test_size_decreases_when_energy_below_baseline():
 
     size_before = bean.size
     state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
-    bean.update_from_state(state)
-    assert bean.size <= size_before
+    assert state.size <= size_before
+    assert bean.size == size_before
 
 
 def test_size_clamping():
@@ -110,15 +112,16 @@ def test_size_clamping():
     bean = make_bean_with_genes(config, energy=50.0)
     set_bean_state(bean, size=1.0)
     state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
-    bean.update_from_state(state)
-    assert bean.size >= config.min_bean_size
+    # the returned state should be clamped; original bean still holds the old size
+    assert state.size >= config.min_bean_size
+    assert bean.size == 1.0
 
     # too large
     bean2 = make_bean_with_genes(config, energy=50.0)
     set_bean_state(bean2, size=50.0)
     state2 = energy_system.apply_energy_system(bean2, energy_intake_eu=0.0)
-    bean2.update_from_state(state2)
-    assert bean2.size <= config.max_bean_size
+    assert state2.size <= config.max_bean_size
+    assert bean2.size == 50.0
 
 
 def test_survival_health_and_starvation():
@@ -132,7 +135,7 @@ def test_survival_health_and_starvation():
     )
     energy_system = create_energy_system_from_name("standard", config)
     genotype = create_random_genotype()
-    phenotype = create_phenotype(config, genotype)
+    phenotype = create_phenotype_from_values(config, genotype, age=0.0, speed=0.0, energy=100.0, size=10.0, target_size=10.0)
     phenotype.size = 30.0  # Obese
     bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     set_bean_state(bean, energy=100.0)
