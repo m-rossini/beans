@@ -1,11 +1,10 @@
-from beans.genetics import Gene, Genotype, age_speed_factor
-from config.loader import BeansConfig
+import pytest
+
+from beans.genetics import Gene, Genotype, age_speed_factor, genetic_max_age, genetic_max_speed, size_target
+from beans.world import World
+from config.loader import BeansConfig, WorldConfig
 from src.beans.bean import BeanState
 from src.beans.dynamics.bean_dynamics import BeanDynamics
-from beans.world import World
-from config.loader import WorldConfig
-from beans.genetics import genetic_max_age, genetic_max_speed, size_target
-import pytest
 
 
 def test_bean_dynamics_speed_calculation():
@@ -66,3 +65,21 @@ def test_world_min_speed_floor():
     bean.update_from_state(state)
     world.step(dt=1.0)
     assert bean.speed == pytest.approx(bcfg.min_speed_factor)
+
+
+def test_bean_dynamics_size_speed_penalty_behaviour():
+    """Unit test for BeanDynamics._size_speed_penalty edge cases."""
+    cfg = BeansConfig(speed_min=0.0, speed_max=1.0, min_speed_factor=0.0, initial_bean_size=10)
+    bd = BeanDynamics(cfg)
+
+    # size equal to target -> penalty 1.0
+    state = BeanState(id=1, age=5, speed=0.0, energy=10.0, size=10.0, target_size=10.0, alive=True)
+    assert pytest.approx(1.0, rel=1e-6) == bd._size_speed_penalty(state)
+
+    # significantly larger than target -> penalty < 1.0
+    state.store(size=100.0)
+    assert bd._size_speed_penalty(state) < 1.0
+
+    # significantly smaller than target -> penalty < 1.0
+    state.store(size=1.0)
+    assert bd._size_speed_penalty(state) < 1.0
