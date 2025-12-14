@@ -1,6 +1,6 @@
 """Tests for the rendering window and its interaction with the World and beans.
 
-This module contains tests for sprite creation, movement, color assignment, 
+This module contains tests for sprite creation, movement, color assignment,
 window events, and reporting in the simulation rendering layer.
 """
 
@@ -9,6 +9,8 @@ import logging
 import arcade
 
 from beans.dynamics.bean_dynamics import BeanDynamics
+from beans.bean import Bean
+from beans.genetics import create_phenotype_from_values
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
 from config.loader import BeansConfig, WorldConfig
@@ -31,7 +33,17 @@ def test_sprite_position_updates_on_movement(monkeypatch):
     initial_x = sprite.center_x
     initial_y = sprite.center_y
     sprite.direction = 0.0  # Move right
-    sprite.bean._phenotype.speed = 10.0
+    # Avoid touching private phenotype; assign a bean with the desired speed
+    b = sprite.bean
+    from beans.genetics import create_phenotype_from_values
+    new_ph = create_phenotype_from_values(b.beans_config, b.genotype, age=0.0, speed=10.0, energy=b.energy, size=b.size, target_size=b.size)
+    new_bean = Bean(config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph)
+    sprite.bean = new_bean
+    # Ensure world also uses the updated bean instance so movement is applied
+    for i, wb in enumerate(world.beans):
+        if wb.id == b.id:
+            world.beans[i] = new_bean
+            break
     win.on_update(0.1)
     # Assert position has changed after movement
     assert sprite.center_x != initial_x or sprite.center_y != initial_y
@@ -188,7 +200,15 @@ def test_window_bounce_deducts_energy(monkeypatch):
     sprite.center_x = win.width - (sprite.bean.size / 2.0) - 1
     sprite.center_y = win.height / 2
     sprite.direction = 0.0
-    sprite.bean._phenotype.speed = 50.0
+    # Avoid mutating private phenotype - replace bean on the sprite
+    b = sprite.bean
+    new_ph = create_phenotype_from_values(b.beans_config, b.genotype, age=0.0, speed=50.0, energy=b.energy, size=b.size, target_size=b.size)
+    new_b = Bean(config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph)
+    sprite.bean = new_b
+    for i, wb in enumerate(world.beans):
+        if wb.id == b.id:
+            world.beans[i] = new_b
+            break
     initial_energy = sprite.bean.energy
     # call on_update which will cause movement and bounce in the rendering layer
     win.on_update(0.1)
