@@ -1,5 +1,4 @@
 from config.loader import load_config
-import pytest
 
 
 def test_small_config_parses_environment(tmp_path):
@@ -20,5 +19,6 @@ def test_large_config_parses_explicit_grid(tmp_path):
     cfg_path = "src/config/large.json"
     world_cfg, beans_cfg, env_cfg = load_config(cfg_path)
     assert env_cfg.random_mode == "explicit"
-    assert isinstance(env_cfg.explicit_food, list)
-    assert isinstance(env_cfg.explicit_temperature_grid, list)
+    # explicit lists should be present and non-empty
+    assert env_cfg.explicit_food
+    assert env_cfg.explicit_temperature_grid
