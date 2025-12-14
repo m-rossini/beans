@@ -7,6 +7,7 @@ Below is a list of different files covering different topics that MUST be follow
 
 
 (VERY IMPORTANT) NEVER EVER USE INSTROSPECTION TO SOLVE ANY PROBLEM UNLESS EXPLICITLY ASKED TO DO SO IN THE INSTRUCTIONS
+Avoid commenting code whenever possible
 
 ## General Instructions
 Follow the instructions on this section and the instructions on each file.

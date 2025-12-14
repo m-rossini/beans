@@ -9,7 +9,9 @@ and will be extended in later phases per the plan.
 import logging
 import random
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
+
+from config.loader import BeansConfig
 
 from .bean import Bean
 
@@ -19,6 +21,7 @@ class SurvivalResult:
     alive: bool
     reason: Optional[str] = None
     message: Optional[str] = None
+    bean: Optional[Bean] = None
 
 
 class SurvivalChecker:
@@ -41,48 +44,70 @@ class DefaultSurvivalChecker(SurvivalChecker):
       (represents drawing on fat) and survive the tick.
     """
 
-    def __init__(self, config, rng=None) -> None:
-        self.config = config
-        self.rng = rng
+    def __init__(self, config: BeansConfig, rng: Optional[random.Random] = None) -> None:
+        # Fail-fast if a non-config object is passed; keeps behaviour explicit
+        if not isinstance(config, BeansConfig):
+            raise TypeError("DefaultSurvivalChecker requires a BeansConfig instance")
+
+        self.config: BeansConfig = config
+        self.rng: Optional[random.Random] = rng
         self.logger = logging.getLogger(__name__)
 
     def check(self, bean: Bean) -> SurvivalResult:
-        # Age check (priority)
-        if not bean.can_survive_age():
-            # Use canonical reason used by existing Bean.survive() (tests expect this string)
+        config: BeansConfig = self.config
+
+        if bean.age >= bean._max_age:
             return SurvivalResult(alive=False, reason="max_age_reached", message="Age exceeded genetic max")
 
-        # Starvation behavior
         if bean.energy <= 0:
-            self.logger.debug(f">>>>> Survival.check: bean={bean.id}, energy={bean.energy}, size={bean.size}, min_size={self.config.min_bean_size}")
-            # If at or below minimum healthy size, die of starvation
-            if bean.size <= self.config.min_bean_size:
-                # For compatibility with existing tests, report energy_depleted when
-                # there is no fat left to sustain the bean.
+            self.logger.debug(f">>>>> Survival.check: bean={bean.id}, energy={bean.energy}, size={bean.size}, min_size={config.min_bean_size}")
+            if bean.size <= config.min_bean_size:
                 return SurvivalResult(alive=False, reason="energy_depleted", message="No fat left to sustain (energy depleted)")
 
-            # Draw on fat: reduce size by a configurable amount
-            # Use direct attribute access (fail-fast) instead of introspection
-            # to match project coding standards.
-            base = self.config.starvation_base_depletion
-            mult = self.config.starvation_depletion_multiplier
+            base = config.starvation_base_depletion
+            mult = config.starvation_depletion_multiplier
             depletion = base * mult
-            new_size = max(self.config.min_bean_size, bean.size - depletion)
-            # Apply the change to the bean phenotype (mutating bean in-place)
+            new_size = max(config.min_bean_size, bean.size - depletion)
             bean._phenotype.size = new_size
-            # Normalize energy to zero (representing debt satisfied by fat)
             bean._phenotype.energy = 0.0
             return SurvivalResult(alive=True, reason=None, message=f"Drew {depletion} fat due to starvation; new_size={new_size}")
 
-        # Probabilistic obesity death (config-driven)
-        # Use direct access to config attributes rather than getattr/introspection
-        if self.config.enable_obesity_death:
-            threshold = self.config.max_bean_size * self.config.obesity_threshold_factor
+        if config.enable_obesity_death:
+            threshold = config.max_bean_size * config.obesity_threshold_factor
             if bean.size >= threshold:
                 rng = self.rng or random
-                prob = self.config.obesity_death_probability
+                prob = config.obesity_death_probability
                 self.logger.debug(f">>>>> Survival.check: obesity check bean={bean.id}, size={bean.size}, threshold={threshold}, prob={prob}")
                 if rng.random() < prob:
                     return SurvivalResult(alive=False, reason="obesity", message="Probabilistic obesity death")
 
         return SurvivalResult(alive=True)
+
+
+class SurvivalManager:
+    """Manager that encapsulates a SurvivalChecker and records dead beans.
+
+    This keeps death bookkeeping inside the survival subsystem instead of
+    scattering it in `World.step()`.
+    """
+
+    def __init__(self, config: BeansConfig, rng: Optional[random.Random] = None) -> None:
+        if not isinstance(config, BeansConfig):
+            raise TypeError("SurvivalManager requires a BeansConfig instance")
+
+        self.config: BeansConfig = config
+        self.rng: Optional[random.Random] = rng
+        self.logger = logging.getLogger(__name__)
+        self.checker = DefaultSurvivalChecker(config, rng=self.rng)
+        self.dead_beans: List[SurvivalResult] = []
+
+    def check_and_record(self, bean: Bean) -> SurvivalResult:
+        result = self.checker.check(bean)
+        if not result.alive:
+            bean.die()
+
+            result.bean = bean
+            self.dead_beans.append(result)
+            self.logger.debug(f">>>>> SurvivalManager: bean {bean.id} died: reason={result.reason}")
+
+        return result
