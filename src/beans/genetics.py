@@ -41,7 +41,7 @@ def size_z_score(size: float, target: float) -> float:
 
 def apply_age_gene_curve(raw_value: float) -> float:
     """Apply logarithmic curve to MAX_GENETIC_AGE gene value.
-    
+
     Transforms a uniform random value [0,1] into a logarithmic distribution
     that favors longevity:
     - raw 0.0 → 0.1 (minimum 10% lifespan)
@@ -57,7 +57,7 @@ def apply_age_gene_curve(raw_value: float) -> float:
 
 def age_speed_factor(age: float, max_age: float, min_speed_factor: float = 0.0) -> float:
     """Calculate speed factor based on age lifecycle curve, with configurable minimum.
-    
+
     Returns a value between min_speed_factor and 1 representing the speed multiplier
     based on the bean's age relative to its maximum age.
     """
@@ -80,14 +80,14 @@ def age_speed_factor(age: float, max_age: float, min_speed_factor: float = 0.0) 
 
 def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> float:
     """Calculate energy efficiency based on age lifecycle curve.
-    
+
     Returns a value between min_efficiency and 1.0 representing how
     efficiently a bean uses energy at its current age.
-    
+
     - Newborns start at min_efficiency (inefficient)
     - Peak efficiency (~1.0) at maturity
     - Declines in old age but never below min_efficiency
-    
+
     Uses similar curve shape to age_speed_factor.
     """
     if max_age <= 0:
@@ -128,9 +128,9 @@ class GeneInfo(NamedTuple):
 
 class Gene(Enum):
     """Gene types for beans with validation ranges.
-    
+
     Each gene influences a bean's characteristics. Values are between 0.0 and 1.0.
-    
+
     - METABOLISM_SPEED: How quickly a bean burns energy (higher = faster metabolism)
     - MAX_GENETIC_SPEED: Maximum speed a bean can achieve genetically
     - FAT_ACCUMULATION: How efficiently a bean stores excess energy as fat
@@ -184,7 +184,7 @@ class Genotype(BaseModel):
 @dataclass
 class Phenotype:
     """Mutable expression of genetic traits that change over time.
-    
+
     Attributes:
         age: Current age in simulation ticks
         speed: Current movement speed (absolute, direction handled by sprite)
@@ -211,7 +211,7 @@ class Phenotype:
 
 def genetic_max_age(config: BeansConfig, genotype: Genotype) -> float:
     """Calculate maximum age from config and genotype.
-    
+
     The gene value is already transformed via apply_age_gene_curve() at
     genotype creation, so this is a simple multiplication.
     """
@@ -220,7 +220,7 @@ def genetic_max_age(config: BeansConfig, genotype: Genotype) -> float:
 
 def size_target(age: float, genotype: Genotype, config: BeansConfig) -> float:
     """Calculate target size based on age and genotype.
-    
+
     Uses a bell curve centered at mid-life to model size changes.
     """
     max_age = genetic_max_age(config, genotype)
@@ -246,7 +246,7 @@ def genetic_max_speed(config: BeansConfig, genotype: Genotype) -> float:
 
 def create_random_genotype(rng: Optional[random.Random] = None) -> Genotype:
     """Create a genotype with random values within each gene's valid range.
-    
+
     MAX_GENETIC_AGE uses a logarithmic curve to favor longevity.
     """
     genes = {}
@@ -265,7 +265,7 @@ def create_random_genotype(rng: Optional[random.Random] = None) -> Genotype:
 
 def create_phenotype(config: BeansConfig, genotype: Genotype, rng: Optional[random.Random] = None) -> Phenotype:
     """Create initial phenotype from config and genotype.
-    
+
     Newborn beans start with age=0 and speed=0 (since age_speed_factor(0) = 0).
     Initial values have ±5% random variation.
     """
@@ -305,7 +305,7 @@ def create_phenotype_from_values(config: BeansConfig, genotype: Genotype, age: f
 # =============================================================================
 # Survival Checks (TODO)
 # =============================================================================
-
+#TODO MOve to survival check system
 def can_survive_size(size: float) -> bool:
     """Check if size allows survival."""
     raise NotImplementedError("Need to implement and use")

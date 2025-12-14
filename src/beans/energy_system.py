@@ -301,6 +301,9 @@ class StandardEnergySystem(EnergySystem):
             return bean_state.energy, bean_state.size
 
         fat_burned = self.config.fat_burn_rate * fat_accumulation * deficit
+        # Do not burn below minimum bean size — only burn available fat
+        available_fat = max(0.0, bean_state.size - self.config.min_bean_size)
+        fat_burned = min(fat_burned, available_fat)
         energy_gain = fat_burned * self.config.fat_to_energy_ratio
 
         phenotype_size = bean_state.size - fat_burned
@@ -328,10 +331,15 @@ class StandardEnergySystem(EnergySystem):
         if bean_state.energy >= 0:
             return (bean_state.energy, bean_state.size)
 
-        fat_burned = abs(bean_state.energy) / self.config.fat_to_energy_ratio
+        # Only burn available fat above minimum size
+        fat_needed = abs(bean_state.energy) / self.config.fat_to_energy_ratio
+        available_fat = max(0.0, bean_state.size - self.config.min_bean_size)
+        fat_burned = min(fat_needed, available_fat)
+
         phenotype_size = bean_state.size - fat_burned
-        phenotype_energy = 0.0
-        logger.debug(f">>>>> Bean {bean_state.id} handle_negative_energy: negative_energy={bean_state.energy:.2f}, fat_burned={fat_burned:.2f}, new_energy={phenotype_energy:.2f}")
+        phenotype_energy = bean_state.energy + fat_burned * self.config.fat_to_energy_ratio
+
+        logger.debug(f">>>>> Bean {bean_state.id} handle_negative_energy: negative_energy={bean_state.energy:.2f}, fat_needed={fat_needed:.2f}, fat_burned={fat_burned:.2f}, new_energy={phenotype_energy:.2f}")
         return (phenotype_energy, phenotype_size)
 
     def _clamp_size(self, bean_state: BeanState) -> float:

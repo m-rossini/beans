@@ -1,11 +1,8 @@
 from beans.bean import Bean, Sex
 from beans.energy_system import create_energy_system_from_name
 from beans.genetics import Gene, Genotype, create_phenotype_from_values, create_random_genotype
+from beans.survival import DefaultSurvivalChecker
 from config.loader import BeansConfig
-
-
-# Note: Tests should not call update_from_state directly; create deterministic
-# beans via `make_bean_with_genes` instead (it uses `create_phenotype_from_values`).
 
 
 def make_test_config():
@@ -133,6 +130,8 @@ def test_survival_health_and_starvation():
     phenotype.size = 30.0  # Obese
     # Create bean already at zero energy to test immediate starvation behavior
     bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=create_phenotype_from_values(config, genotype, age=0.0, speed=0.0, energy=0.0, size=30.0, target_size=10.0))
-    survived, reason = bean.survive()
-    assert not survived
-    assert reason == "energy_depleted"
+    result = DefaultSurvivalChecker(config).check(bean)
+    # With sufficient fat, the survival checker draws on fat and the bean survives
+    assert result.alive is True
+    assert result.message is not None
+    assert "Drew" in result.message

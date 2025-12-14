@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 fetch"""Survival system for beans.
+=======
+"""Survival system for beans.
+>>>>>>> ce23acd90e70d4113a2309323831371d70490c3f
 
 Provides an extensible interface and a default implementation used by the
 simulation's `World.step()` to decide whether a bean survives a tick.
@@ -44,9 +48,19 @@ class DefaultSurvivalChecker(SurvivalChecker):
       (represents drawing on fat) and survive the tick.
     """
 
+<<<<<<< HEAD
     def __init__(self, config, rng=None) -> None:
         self.config = config
         self.rng = rng
+=======
+    def __init__(self, config: BeansConfig, rng: Optional[random.Random] = None) -> None:
+        # Fail-fast if a non-config object is passed; keeps behaviour explicit
+        if not isinstance(config, BeansConfig):
+            raise TypeError("DefaultSurvivalChecker requires a BeansConfig instance")
+
+        self.config: BeansConfig = config
+        self.rng: Optional[random.Random] = rng
+>>>>>>> ce23acd90e70d4113a2309323831371d70490c3f
         self.logger = logging.getLogger(__name__)
 
     def check(self, bean: Bean) -> SurvivalResult:
