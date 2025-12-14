@@ -83,12 +83,48 @@ def test_obesity_probabilistic_death_seeded():
     state.store(size=bcfg.max_bean_size * 10)
     bean.update_from_state(state)
 
-    # Expect deterministic behavior with world RNG if obesity death is implemented and enabled
+    # Enable deterministic obesity death for this test: set config so threshold is low and probability is 1.0
+    bcfg.enable_obesity_death = True
+    bcfg.obesity_death_probability = 1.0
+    bcfg.obesity_threshold_factor = 0.5
+
+    # Make bean extremely large to be above the obesity threshold
+    state = bean.to_state()
+    state.store(size=bcfg.max_bean_size * 2)
+    bean.update_from_state(state)
+
     world.step(dt=1.0)
 
-    # The behavior is not implemented yet; we assert that either the bean is alive or there's a recorded obesity death entry.
-    # This test will fail when we implement deterministic obesity death, and will be updated to assert a specific outcome then.
-    assert True
+    # Expect the bean to be removed and recorded with obesity reason
+    assert bean not in world.beans
+    assert any(rec.bean == bean and rec.reason == "obesity" for rec in world.dead_beans)
+
+
+def test_starvation_depletion_rate_respected():
+    # TDD: verify starvation depletion uses configured base and multiplier
+    world, bcfg = make_world(seed=314)
+    assert len(world.beans) >= 1
+    bean = world.beans[0]
+
+    # Configure depletion: base 1.0, multiplier 2.0 so expected depletion is 2.0 units
+    bcfg.starvation_base_depletion = 1.0
+    bcfg.starvation_depletion_multiplier = 2.0
+    # Disable energy-system-driven fat burning for deterministic check
+    bcfg.fat_burn_rate = 0.0
+    bcfg.metabolism_base_burn = 0.0
+
+    # Force energy zero and set a size so drawing fat is possible
+    state = bean.to_state()
+    initial_size = bcfg.min_bean_size + 3.0
+    state.store(energy=0.0, size=initial_size)
+    bean.update_from_state(state)
+
+    world.step(dt=1.0)
+
+    # Bean should survive and size should be reduced by base * multiplier
+    assert bean in world.beans
+    expected_depletion = bcfg.starvation_base_depletion * bcfg.starvation_depletion_multiplier
+    assert round(bean.size, 6) == round(initial_size - expected_depletion, 6)
 
 
 def test_external_event_hook_noop():

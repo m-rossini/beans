@@ -7,6 +7,7 @@ This is a minimal implementation to satisfy current integration tests
 and will be extended in later phases per the plan.
 """
 import logging
+import random
 from dataclasses import dataclass
 from typing import Optional
 
@@ -60,13 +61,25 @@ class DefaultSurvivalChecker(SurvivalChecker):
                 # there is no fat left to sustain the bean.
                 return SurvivalResult(alive=False, reason="energy_depleted", message="No fat left to sustain (energy depleted)")
 
-            # Draw on fat: reduce size by a small amount; configurable in Phase 3
-            depletion = 1.0  # conservative default; will be replaced by config later
+            # Draw on fat: reduce size by a configurable amount
+            base = getattr(self.config, "starvation_base_depletion", 1.0)
+            mult = getattr(self.config, "starvation_depletion_multiplier", 1.0)
+            depletion = base * mult
             new_size = max(self.config.min_bean_size, bean.size - depletion)
             # Apply the change to the bean phenotype (mutating bean in-place)
             bean._phenotype.size = new_size
             # Normalize energy to zero (representing debt satisfied by fat)
             bean._phenotype.energy = 0.0
             return SurvivalResult(alive=True, reason=None, message=f"Drew {depletion} fat due to starvation; new_size={new_size}")
+
+        # Probabilistic obesity death (config-driven)
+        if getattr(self.config, "enable_obesity_death", False):
+            threshold = self.config.max_bean_size * getattr(self.config, "obesity_threshold_factor", 1.0)
+            if bean.size >= threshold:
+                rng = self.rng or random
+                prob = getattr(self.config, "obesity_death_probability", 0.0)
+                self.logger.debug(f">>>>> Survival.check: obesity check bean={bean.id}, size={bean.size}, threshold={threshold}, prob={prob}")
+                if rng.random() < prob:
+                    return SurvivalResult(alive=False, reason="obesity", message="Probabilistic obesity death")
 
         return SurvivalResult(alive=True)
