@@ -62,8 +62,10 @@ class DefaultSurvivalChecker(SurvivalChecker):
                 return SurvivalResult(alive=False, reason="energy_depleted", message="No fat left to sustain (energy depleted)")
 
             # Draw on fat: reduce size by a configurable amount
-            base = getattr(self.config, "starvation_base_depletion", 1.0)
-            mult = getattr(self.config, "starvation_depletion_multiplier", 1.0)
+            # Use direct attribute access (fail-fast) instead of introspection
+            # to match project coding standards.
+            base = self.config.starvation_base_depletion
+            mult = self.config.starvation_depletion_multiplier
             depletion = base * mult
             new_size = max(self.config.min_bean_size, bean.size - depletion)
             # Apply the change to the bean phenotype (mutating bean in-place)
@@ -73,11 +75,12 @@ class DefaultSurvivalChecker(SurvivalChecker):
             return SurvivalResult(alive=True, reason=None, message=f"Drew {depletion} fat due to starvation; new_size={new_size}")
 
         # Probabilistic obesity death (config-driven)
-        if getattr(self.config, "enable_obesity_death", False):
-            threshold = self.config.max_bean_size * getattr(self.config, "obesity_threshold_factor", 1.0)
+        # Use direct access to config attributes rather than getattr/introspection
+        if self.config.enable_obesity_death:
+            threshold = self.config.max_bean_size * self.config.obesity_threshold_factor
             if bean.size >= threshold:
                 rng = self.rng or random
-                prob = getattr(self.config, "obesity_death_probability", 0.0)
+                prob = self.config.obesity_death_probability
                 self.logger.debug(f">>>>> Survival.check: obesity check bean={bean.id}, size={bean.size}, threshold={threshold}, prob={prob}")
                 if rng.random() < prob:
                     return SurvivalResult(alive=False, reason="obesity", message="Probabilistic obesity death")

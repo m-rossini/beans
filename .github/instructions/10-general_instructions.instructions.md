@@ -5,6 +5,9 @@ applyTo: '**'
 This file outlines STRICT abnd HARD rules that must be followed to the letter when using agents to code.
 Below is a list of different files covering different topics that MUST be followed
 
+
+(VERY IMPORTANT) NEVER EVER USE INSTROSPECTION TO SOLVE ANY PROBLEM UNLESS EXPLICITLY ASKED TO DO SO IN THE INSTRUCTIONS
+
 ## General Instructions
 Follow the instructions on this section and the instructions on each file.
 
