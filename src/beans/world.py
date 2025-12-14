@@ -10,12 +10,12 @@ from .bean import Bean, BeanState, Sex
 from .context import BeanContext
 from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_phenotype, create_random_genotype
-from .survival import DefaultSurvivalChecker
 from .placement import create_strategy_from_name
 from .population import (
     PopulationEstimator,
     create_population_estimator_from_name,
 )
+from .survival import DefaultSurvivalChecker
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +92,8 @@ class World:
         for bean in self.beans:
             _: BeanState = self._update_bean(bean)
 
-            # Log phenotype before survival check for easier debugging
-            logger.info(f">>>>> World.step.pre_survival: Bean {bean.id} phenotype={bean._phenotype.to_dict()}")
             # Use the survival checker (integration point) to decide if the bean lives
-            result = self.survival_checker.check(bean, self)
+            result = self.survival_checker.check(bean)
             if not result.alive:
                 #TODO move _mark_dead to SurvivalChecker
                 #TODO Keep th elis tof dead beans in the SurvivalChecker

@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .bean import Bean
-from .world import World
 
 
 @dataclass
@@ -46,7 +45,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
         self.rng = rng
         self.logger = logging.getLogger(__name__)
 
-    def check(self, bean: Bean, world: World) -> SurvivalResult:
+    def check(self, bean: Bean) -> SurvivalResult:
         # Age check (priority)
         if not bean.can_survive_age():
             # Use canonical reason used by existing Bean.survive() (tests expect this string)
