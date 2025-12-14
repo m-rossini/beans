@@ -1,25 +1,17 @@
 import json
-import tempfile
-
 import pytest
 
 from config.loader import EnvironmentConfig, load_config
 
 
-def test_load_config_returns_environment_config():
+def test_load_config_returns_environment_config(tmp_path):
     data = {"world": {}, "beans": {}, "environment": {}}
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        json.dump(data, f)
-        p = f.name
+    p = tmp_path / "cfg.json"
+    p.write_text(json.dumps(data))
 
-    try:
-        world_config, beans_config, env_config = load_config(p)
-        # Assert default random mode is used (explicit type check unnecessary)
-        assert env_config.random_mode == "random"
-    finally:
-        import os
-
-        os.unlink(p)
+    world_config, beans_config, env_config = load_config(str(p))
+    # Assert default random mode is used (explicit type check unnecessary)
+    assert env_config.random_mode == "random"
 
 
 def test_environment_config_validation_explicit_requires_values(tmp_path):
