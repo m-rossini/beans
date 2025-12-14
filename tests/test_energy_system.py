@@ -137,6 +137,6 @@ def test_survival_health_and_starvation():
     assert not survived
     assert reason == "energy_depleted"
 
-    if hasattr(energy_system, "can_survive_starvation"):
-        survived_starvation = energy_system.can_survive_starvation(bean)
-        assert isinstance(survived_starvation, bool)
+    # Survival logic is asserted via `bean.survive()` above; energy system
+    # internal helpers (e.g. `_can_survive_starvation`) are implementation
+    # details and should not be called from tests.
