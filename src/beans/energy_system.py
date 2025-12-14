@@ -12,7 +12,6 @@ The module uses an abstract base class pattern to allow different
 energy system implementations while sharing common logic.
 """
 import logging
-import math
 from abc import ABC, abstractmethod
 from typing import Tuple
 

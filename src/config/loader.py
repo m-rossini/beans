@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class WorldConfig:
     placement_strategy: str          # Algorithm for initial bean placement.
     population_estimator: str = "density"  # Method for estimating initial population.
     energy_system: str = "standard"        # Energy system type used in simulation.
+    environment: str = "default"          # Environment implementation to use (factory name)
     background_color: str = "white"        # Background color of the world.
     max_age_years: int = 100               # Maximum bean age in years.
     rounds_per_year: int = 12              # Simulation rounds per year.
@@ -98,6 +99,7 @@ DEFAULT_WORLD_CONFIG = WorldConfig(
     placement_strategy="random",
     population_estimator="density",
     energy_system="standard",
+    environment="default",
     background_color="white",
     max_age_years=100,
     rounds_per_year=12,
@@ -146,6 +148,24 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     collision_damage_speed_factor=0.05,
     collision_min_damage=0.5,
     collision_damage_sex_factors=(1.0, 1.0),
+)
+
+DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
+    cell_size=20,
+    food_density=0.0,
+    hazard_density=0.0,
+    food_spawn_rate_per_round=0.0,
+    hazard_spawn_rate_per_round=0.0,
+    decomposition_rounds=3,
+    decomposition_fraction_to_food=0.5,
+    temp_min=0.0,
+    temp_max=100.0,
+    temperature_diffusion_rate=0.1,
+    temperature_migration_vector=(0.0, 0.0),
+    temperature_variability=0.0,
+    temp_to_food_factor=0.0,
+    temp_to_metabolic_penalty=0.0,
+    hazard_decay_rate_per_hit=1.0,
 )
 
 def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig, EnvironmentConfig]:

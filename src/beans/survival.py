@@ -88,9 +88,6 @@ class SurvivalManager:
     """
 
     def __init__(self, config: BeansConfig, rng: Optional[random.Random] = None) -> None:
-        if not isinstance(config, BeansConfig):
-            raise TypeError("SurvivalManager requires a BeansConfig instance")
-
         self.config: BeansConfig = config
         self.rng: Optional[random.Random] = rng
         self.logger = logging.getLogger(__name__)

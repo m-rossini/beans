@@ -1,8 +1,6 @@
-import pytest
 
-from beans.genetics import create_genotype_from_values, create_phenotype_from_values
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 
 def make_world(seed: int = 42) -> tuple[World, BeansConfig]:
@@ -17,7 +15,8 @@ def make_world(seed: int = 42) -> tuple[World, BeansConfig]:
     )
     # Ensure no automatic energy intake to exercise starvation behavior deterministically
     bcfg = BeansConfig(speed_min=-1.0, speed_max=1.0, energy_gain_per_step=0.0)
-    return World(config=wcfg, beans_config=bcfg), bcfg
+    env_cfg = EnvironmentConfig()
+    return World(config=wcfg, beans_config=bcfg, env_config=env_cfg), bcfg
 
 
 def test_starvation_depletes_fat_and_survives_until_min_size():

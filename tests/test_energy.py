@@ -6,7 +6,7 @@ from beans.bean import Bean, Sex
 from beans.genetics import Gene, Genotype, Phenotype, age_energy_efficiency
 from beans.survival import DefaultSurvivalChecker
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +154,8 @@ def test_world_records_dead_bean_with_reason():
         energy_cost_per_speed=10.0,  # high cost to ensure death
         initial_bean_size=5,
     )
-    world = World(config=world_cfg, beans_config=beans_cfg)
+    env_cfg = EnvironmentConfig()
+    world = World(config=world_cfg, beans_config=beans_cfg, env_config=env_cfg)
     for _ in range(10):
         world.step(dt=1.0)
 

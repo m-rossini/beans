@@ -2,6 +2,7 @@
   "world": {
     "width": 400,
     "height": 300,
+    "environment": "default",
     "population_density": 0.005,
     "male_female_ratio": 1.0,
     "placement_strategy": "random",

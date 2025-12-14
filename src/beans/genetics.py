@@ -12,10 +12,9 @@ This module contains:
 import logging
 import math
 import random
-from typing import Optional
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from pydantic import BaseModel, field_validator
 

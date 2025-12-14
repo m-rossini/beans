@@ -86,9 +86,7 @@ class World:
 
     def step(self, dt: float) -> None:
         logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
-        # Run environment update at the start of each tick
-        if self.environment is not None:
-            self.environment.step()
+        self.environment.step()
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
@@ -128,12 +126,7 @@ class World:
         Currently returns a hardcoded default value.
         TODO: Implement dynamic energy intake based on world state.
         """
-        # Delegate to environment when present
-        if self.environment is not None:
-            return self.environment.get_energy_intake()
-
-        # Fallback: return configured per-step intake from BeansConfig.
-        return self.beans_config.energy_gain_per_step
+        return self.environment.get_energy_intake()
 
     def get_temperature(self) -> float:
         """Return the current world temperature.
@@ -141,7 +134,4 @@ class World:
         Currently returns a hardcoded default value.
         TODO: Implement dynamic temperature based on world state.
         """
-        if self.environment is not None:
-            return self.environment.get_temperature()
-
-        return 1.0
+        return self.environment.get_temperature()

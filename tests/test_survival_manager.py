@@ -1,5 +1,5 @@
 from beans.world import World
-from config.loader import WorldConfig
+from config.loader import EnvironmentConfig, WorldConfig
 from tests.test_energy import make_beans_config
 
 
@@ -20,10 +20,11 @@ def test_world_records_dead_bean_and_marks_bean_dead():
         energy_cost_per_speed=10.0,
         initial_bean_size=5,
     )
-    world = World(config=world_cfg, beans_config=beans_cfg)
+
+    env_cfg = EnvironmentConfig()
+    world = World(config=world_cfg, beans_config=beans_cfg, env_config=env_cfg)
     for _ in range(10):
         world.step(dt=1.0)
 
     assert len(world.dead_beans) > 0
-    # Ensure beans recorded as dead are actually marked dead
     assert all(not rec.bean.alive for rec in world.dead_beans)

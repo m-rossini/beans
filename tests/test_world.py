@@ -4,7 +4,7 @@ from beans.bean import Bean, Sex
 from beans.dynamics.bean_dynamics import BeanDynamics
 from beans.genetics import create_phenotype, create_random_genotype
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 from rendering.window import WorldWindow
 
 logger = logging.getLogger(__name__)
@@ -13,14 +13,16 @@ logger = logging.getLogger(__name__)
 def test_world_initialize_counts_by_density():
     cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=20, height=20, population_density=1.0, placement_strategy="random")
     bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
-    w = World(config=cfg, beans_config=bcfg)
+    env_cfg = EnvironmentConfig()
+    w = World(config=cfg, beans_config=bcfg, env_config=env_cfg)
     assert len(w.beans) == 4
 
 
 def test_world_uses_config_dimensions_by_default():
     cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=20, height=20, population_density=1.0, placement_strategy="random")
     bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
-    w = World(config=cfg, beans_config=bcfg)
+    env_cfg = EnvironmentConfig()
+    w = World(config=cfg, beans_config=bcfg, env_config=env_cfg)
     assert w.width == cfg.width
     assert w.height == cfg.height
 
@@ -28,7 +30,8 @@ def test_world_uses_config_dimensions_by_default():
 def test_world_window_title_displays_round_number():
     cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=200, population_density=0.1, placement_strategy="random")
     bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
-    world = World(config=cfg, beans_config=bcfg)
+    env_cfg = EnvironmentConfig()
+    world = World(config=cfg, beans_config=bcfg, env_config=env_cfg)
     window = WorldWindow(world)
     # Patch bean_dynamics to use the first bean's genotype and max_age
     if world.beans:
@@ -57,7 +60,8 @@ def test_world_kills_beans_when_age_limit_reached():
         rounds_per_year=12,
     )
     bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=12, initial_bean_size=10)
-    world = World(config=cfg, beans_config=bcfg)
+    env_cfg = EnvironmentConfig()
+    world = World(config=cfg, beans_config=bcfg, env_config=env_cfg)
     genotype = create_random_genotype()
     phenotype = create_phenotype(bcfg, genotype)
     bean = Bean(config=bcfg, id=0, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
@@ -85,9 +89,10 @@ class TestWorldEnvironmentStubs:
             placement_strategy="random",
         )
         bcfg = BeansConfig(speed_min=-5, speed_max=5)
-        world = World(config=cfg, beans_config=bcfg)
+        env_cfg = EnvironmentConfig()
+        world = World(config=cfg, beans_config=bcfg, env_config=env_cfg)
 
-        assert world.get_energy_intake() == 1.0
+        assert world.get_energy_intake() == bcfg.energy_gain_per_step
 
     def test_world_get_temperature_returns_default(self):
         """World.get_temperature() should return DEFAULT_TEMPERATURE (1.0)."""
@@ -101,6 +106,8 @@ class TestWorldEnvironmentStubs:
             placement_strategy="random",
         )
         bcfg = BeansConfig(speed_min=-5, speed_max=5)
-        world = World(config=cfg, beans_config=bcfg)
+        env_cfg = EnvironmentConfig()
+        world = World(config=cfg, beans_config=bcfg, env_config=env_cfg)
 
-        assert world.get_temperature() == 1.0
+        expected_temp = (env_cfg.temp_min + env_cfg.temp_max) / 2.0
+        assert world.get_temperature() == expected_temp

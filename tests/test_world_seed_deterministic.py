@@ -3,13 +3,14 @@ import pytest
 
 from beans.genetics import age_speed_factor, genetic_max_age, genetic_max_speed, size_target
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 
 def make_seeded_world(seed: int, width: int = 20, height: int = 20, density: float = 1.0, speed_min=0.1, speed_max=1.0, min_speed_factor=0.2):
     wcfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=width, height=height, population_density=density, placement_strategy="random", seed=seed)
     bcfg = BeansConfig(speed_min=speed_min, speed_max=speed_max, min_speed_factor=min_speed_factor, energy_cost_per_speed=0.0, metabolism_base_burn=0.0, fat_gain_rate=0.0, fat_burn_rate=0.0, energy_gain_per_step=0.0, initial_bean_size=10)
-    return World(config=wcfg, beans_config=bcfg), bcfg
+    env_cfg = EnvironmentConfig()
+    return World(config=wcfg, beans_config=bcfg, env_config=env_cfg), bcfg
 
 
 def assert_worlds_same_initial(world_a: World, world_b: World):

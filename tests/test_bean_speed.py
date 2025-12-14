@@ -1,5 +1,5 @@
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 
 def test_bean_speed_nonzero_after_5_rounds():
@@ -17,7 +17,8 @@ def test_bean_speed_nonzero_after_5_rounds():
         male_sprite_color=(0, 0, 255),
         female_sprite_color=(255, 0, 0)
     )
-    world = World(world_config, beans_config)
+    env_cfg = EnvironmentConfig()
+    world = World(world_config, beans_config, env_config=env_cfg)
     for _ in range(5):
         world.step(1.0)
     assert len(world.beans) > 0, "All beans died before round 5."

@@ -5,7 +5,7 @@ import os
 import arcade
 
 from beans.world import World
-from config.loader import load_config
+from config.loader import DEFAULT_BEANS_CONFIG, DEFAULT_ENVIRONMENT_CONFIG, DEFAULT_WORLD_CONFIG, load_config
 from rendering.window import WorldWindow
 
 
@@ -48,16 +48,16 @@ def _configure_logging(level: str, log_file: str | None = None) -> None:
 def run(config_path: str | None = None):
     logger = logging.getLogger(__name__)
     logger.debug(f">>>>> Starting run with config_path={config_path}")
-
     if config_path:
-        world_config, beans_config = load_config(config_path)
+        # load_config now returns (WorldConfig, BeansConfig, EnvironmentConfig)
+        world_config, beans_config, env_config = load_config(config_path)
     else:
-        from config.loader import DEFAULT_BEANS_CONFIG, DEFAULT_WORLD_CONFIG
         world_config = DEFAULT_WORLD_CONFIG
         beans_config = DEFAULT_BEANS_CONFIG
+        env_config = DEFAULT_ENVIRONMENT_CONFIG
         logger.debug(">>>>> Using default configurations")
 
-    world = World(config=world_config, beans_config=beans_config)
+    world = World(config=world_config, beans_config=beans_config, env_config=env_config)
     window = WorldWindow(world)
     arcade.run()
 
