@@ -20,7 +20,7 @@ from .survival import SurvivalManager, SurvivalResult
 logger = logging.getLogger(__name__)
 
 class World:
-    def __init__(self, config: WorldConfig, beans_config: BeansConfig, env_config: EnvironmentConfig | None = None, environment: Environment | None = None) -> None:
+    def __init__(self, config: WorldConfig, beans_config: BeansConfig, env_config: EnvironmentConfig) -> None:
         logger.debug(f">>>>> World.__init__: width={config.width}, height={config.height}, population_density={config.population_density}")
         self.world_config = config
         self.beans_config = beans_config
@@ -35,22 +35,13 @@ class World:
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
+        self.environment : Environment = create_environment_from_name(self.world_config.environment, env_config, beans_config)
         self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.bean_dynamics = BeanDynamics(beans_config)
         self.survival_manager = SurvivalManager(beans_config, rng=self._rng)
         self.survival_checker = self.survival_manager.checker
-        # Create or accept an Environment instance. Behavior mirrors the energy
-        # system factory pattern: if an explicit instance is provided use it;
-        # otherwise, if an env_config is supplied create via factory using the
-        # name in world_config.environment.
-        if environment is not None:
-            self.environment = environment
-        elif env_config is not None:
-            self.environment = create_environment_from_name(self.world_config.environment, env_config, beans_config)
-        else:
-            self.environment = None
         self.round: int = 1
         logger.info(f">>>> World initialized with {len(self.beans)} beans")
 

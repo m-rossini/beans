@@ -23,7 +23,11 @@ def test_world_calls_environment_step_and_delegates(tmp_path):
 
     from beans.world import World
 
-    w = World(world_cfg, beans_cfg, environment=fake)
+    # Construct world with the parsed env_config, then inject a fake
+    # environment instance for the purposes of this test.
+    w = World(world_cfg, beans_cfg, env_cfg)
+    w.environment = fake
+
     # Step should call environment.step()
     w.step(1.0)
     assert fake.stepped is True
@@ -35,6 +39,7 @@ def test_world_delegates_energy_and_temperature_to_environment(tmp_path):
 
     from beans.world import World
 
-    w = World(world_cfg, beans_cfg, environment=fake)
+    w = World(world_cfg, beans_cfg, env_cfg)
+    w.environment = fake
     assert w.get_energy_intake() == 3.14
     assert w.get_temperature() == 7.0
