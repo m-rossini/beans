@@ -1,6 +1,11 @@
 from beans.bean import Bean, Sex
 from beans.energy_system import create_energy_system_from_name
-from beans.genetics import Gene, Genotype, create_phenotype_from_values, create_random_genotype
+from beans.genetics import (
+    Gene,
+    Genotype,
+    create_phenotype_from_values,
+    create_random_genotype,
+)
 from beans.survival import DefaultSurvivalChecker
 from config.loader import BeansConfig
 
@@ -28,7 +33,13 @@ def make_test_config():
     )
 
 
-def make_bean_with_genes(config: BeansConfig, *, energy: float | None = None, size: float = 10.0, speed: float = 3.0):
+def make_bean_with_genes(
+    config: BeansConfig,
+    *,
+    energy: float | None = None,
+    size: float = 10.0,
+    speed: float = 3.0,
+):
     """Deterministic bean factory using explicit genotype and phenotype values.
 
     If `energy` is provided, it will be embedded into the phenotype at
@@ -43,9 +54,17 @@ def make_bean_with_genes(config: BeansConfig, *, energy: float | None = None, si
     genotype = Genotype(genes=genes)
     energy_val = float(energy) if energy is not None else float(config.initial_energy)
     phenotype = create_phenotype_from_values(
-        config, genotype, age=0.0, speed=float(speed), energy=energy_val, size=float(size), target_size=float(size)
+        config,
+        genotype,
+        age=0.0,
+        speed=float(speed),
+        energy=energy_val,
+        size=float(size),
+        target_size=float(size),
     )
-    bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
+    bean = Bean(
+        config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype
+    )
     return bean
 
 
@@ -124,12 +143,28 @@ def test_survival_health_and_starvation():
         min_bean_size=3.0,
         max_bean_size=20.0,
     )
-    energy_system = create_energy_system_from_name("standard", config)
+    # energy_system is not required for this survival test; remove unused variable
     genotype = create_random_genotype()
-    phenotype = create_phenotype_from_values(config, genotype, age=0.0, speed=0.0, energy=100.0, size=10.0, target_size=10.0)
+    phenotype = create_phenotype_from_values(
+        config, genotype, age=0.0, speed=0.0, energy=100.0, size=10.0, target_size=10.0
+    )
     phenotype.size = 30.0  # Obese
     # Create bean already at zero energy to test immediate starvation behavior
-    bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=create_phenotype_from_values(config, genotype, age=0.0, speed=0.0, energy=0.0, size=30.0, target_size=10.0))
+    bean = Bean(
+        config=config,
+        id=1,
+        sex=Sex.MALE,
+        genotype=genotype,
+        phenotype=create_phenotype_from_values(
+            config,
+            genotype,
+            age=0.0,
+            speed=0.0,
+            energy=0.0,
+            size=30.0,
+            target_size=10.0,
+        ),
+    )
     result = DefaultSurvivalChecker(config).check(bean)
     # With sufficient fat, the survival checker draws on fat and the bean survives
     assert result.alive is True

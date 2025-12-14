@@ -15,7 +15,7 @@ def test_bean_speed_nonzero_after_5_rounds():
         population_estimator="density",
         energy_system="standard",
         male_sprite_color=(0, 0, 255),
-        female_sprite_color=(255, 0, 0)
+        female_sprite_color=(255, 0, 0),
     )
     env_cfg = EnvironmentConfig()
     world = World(world_config, beans_config, env_config=env_cfg)
@@ -23,4 +23,6 @@ def test_bean_speed_nonzero_after_5_rounds():
         world.step(1.0)
     assert len(world.beans) > 0, "All beans died before round 5."
     for bean in world.beans:
-        assert bean.speed != 0, f"Bean {bean.id} speed is still zero after 5 rounds: {bean.speed}"
+        assert (
+            bean.speed != 0
+        ), f"Bean {bean.id} speed is still zero after 5 rounds: {bean.speed}"

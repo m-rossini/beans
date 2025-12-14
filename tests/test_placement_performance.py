@@ -6,7 +6,7 @@ from beans.population import DensityPopulationEstimator
 
 def test_random_placement_performance_small_config():
     """Test placement performance with small.json config dimensions and population.
-    
+
     small.json has: width=400, height=300, population_density=0.005
     This should result in approximately 6 beans (400*300*0.005 = 600 beans worth of space = ~6 at size 10)
     """
@@ -23,7 +23,7 @@ def test_random_placement_performance_small_config():
         height=height,
         sprite_size=sprite_size,
         population_density=population_density,
-        male_female_ratio=1.0
+        male_female_ratio=1.0,
     )
     total_count = male_count + female_count
 
@@ -37,7 +37,9 @@ def test_random_placement_performance_small_config():
     elapsed_ms = (end_time - start_time) * 1000
 
     # Verify results
-    assert len(positions) >= int(total_count * 0.9), f"Failed to place 90% of beans. Expected {total_count}, got {len(positions)}"
+    assert len(positions) >= int(
+        total_count * 0.9
+    ), f"Failed to place 90% of beans. Expected {total_count}, got {len(positions)}"
 
     # Log performance metrics
     print("\nPlacement Performance (small.json config):")
@@ -61,7 +63,7 @@ def test_random_placement_performance_medium_scale():
         height=height,
         sprite_size=sprite_size,
         population_density=population_density,
-        male_female_ratio=1.0
+        male_female_ratio=1.0,
     )
     total_count = male_count + female_count
 
@@ -96,7 +98,7 @@ def test_random_placement_performance_large_scale():
         height=height,
         sprite_size=sprite_size,
         population_density=population_density,
-        male_female_ratio=1.0
+        male_female_ratio=1.0,
     )
     total_count = male_count + female_count
 

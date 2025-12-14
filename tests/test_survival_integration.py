@@ -1,17 +1,17 @@
-
 from beans.world import World
 from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 
 def make_world(seed: int = 42) -> tuple[World, BeansConfig]:
-    wcfg = WorldConfig( male_sprite_color="blue",
-                        female_sprite_color="red",
-                        male_female_ratio=1.0,
-                        width=20,
-                        height=20,
-                        population_density=1.0,
-                        placement_strategy="random",
-                        seed=seed
+    wcfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=20,
+        height=20,
+        population_density=1.0,
+        placement_strategy="random",
+        seed=seed,
     )
     # Ensure no automatic energy intake to exercise starvation behavior deterministically
     bcfg = BeansConfig(speed_min=-1.0, speed_max=1.0, energy_gain_per_step=0.0)
@@ -33,7 +33,9 @@ def test_starvation_depletes_fat_and_survives_until_min_size():
 
     # Expect bean to still be alive and size to have decreased (starvation draws on fat)
     assert bean in world.beans, "Bean should survive while drawing on fat"
-    assert bean.size < bcfg.min_bean_size + 2.0, "Bean size should have decreased due to starvation"
+    assert (
+        bean.size < bcfg.min_bean_size + 2.0
+    ), "Bean size should have decreased due to starvation"
 
 
 def test_death_when_fat_depleted_and_energy_zero():
@@ -51,7 +53,9 @@ def test_death_when_fat_depleted_and_energy_zero():
     # Expect bean to be removed and recorded as dead for starvation
     assert bean not in world.beans, "Bean should die when fat is depleted"
     # Use canonical reason string used across the codebase
-    assert any(rec.bean == bean and rec.reason == "energy_depleted" for rec in world.dead_beans), "Dead reason should be energy_depleted"
+    assert any(
+        rec.bean == bean and rec.reason == "energy_depleted" for rec in world.dead_beans
+    ), "Dead reason should be energy_depleted"
 
 
 def test_age_death():
@@ -69,7 +73,9 @@ def test_age_death():
 
     assert bean not in world.beans
     # Use canonical reason string used across the codebase
-    assert any(rec.bean == bean and rec.reason == "max_age_reached" for rec in world.dead_beans)
+    assert any(
+        rec.bean == bean and rec.reason == "max_age_reached" for rec in world.dead_beans
+    )
 
 
 def test_obesity_probabilistic_death_seeded():
@@ -122,7 +128,9 @@ def test_starvation_depletion_rate_respected():
 
     # Bean should survive and size should be reduced by base * multiplier
     assert bean in world.beans
-    expected_depletion = bcfg.starvation_base_depletion * bcfg.starvation_depletion_multiplier
+    expected_depletion = (
+        bcfg.starvation_base_depletion * bcfg.starvation_depletion_multiplier
+    )
     assert round(bean.size, 6) == round(initial_size - expected_depletion, 6)
 
 

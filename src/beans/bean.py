@@ -13,6 +13,7 @@ from .genetics import (
 
 logger = logging.getLogger(__name__)
 
+
 class BeanState(BaseModel):
     """Pydantic-based DTO for Bean mutable state.
 
@@ -33,10 +34,20 @@ class BeanState(BaseModel):
     def __setattr__(self, name, value):
         # Prevent id from being changed after initialization
         if name == "id" and "id" in self.__dict__:
-            raise AttributeError("id is read-only and cannot be modified after creation")
+            raise AttributeError(
+                "id is read-only and cannot be modified after creation"
+            )
         super().__setattr__(name, value)
 
-    def store(self, *, age: float | None = None, speed: float | None = None, energy: float | None = None, size: float | None = None, target_size: float | None = None) -> None:
+    def store(
+        self,
+        *,
+        age: float | None = None,
+        speed: float | None = None,
+        energy: float | None = None,
+        size: float | None = None,
+        target_size: float | None = None,
+    ) -> None:
         """Update only provided fields in-place for efficient reuse.
 
         Example::
@@ -55,9 +66,11 @@ class BeanState(BaseModel):
             self.target_size = target_size
         # 'alive' is not set via store; use Bean.die() to change alive state.
 
+
 class Sex(Enum):
     MALE = "male"
     FEMALE = "female"
+
 
 class Bean:
     """Bean with mutable state, initialized from BeansConfig.
@@ -82,9 +95,28 @@ class Bean:
         self._phenotype = phenotype
         self._max_age = genetic_max_age(config, genotype)
         self.alive = True
-        self._dto = BeanState(id=self.id, age=self.age, speed=self.speed, energy=self.energy, size=self.size, target_size=self._phenotype.target_size, alive=self.alive)
+        self._dto = BeanState(
+            id=self.id,
+            age=self.age,
+            speed=self.speed,
+            energy=self.energy,
+            size=self.size,
+            target_size=self._phenotype.target_size,
+            alive=self.alive,
+        )
 
-        logger.debug(f">>>>> Bean {self.id} created: sex={self.sex.value}, genotype={self.genotype.to_compact_str()}, phenotype={{age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, alive:{self.alive}, energy:{self._phenotype.energy:.1f}, size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}}}")
+        phenotype_str = (
+            f"age:{self._phenotype.age:.1f}, speed:{self._phenotype.speed:.2f}, "
+            f"alive:{self.alive}, energy:{self._phenotype.energy:.1f}, "
+            f"size:{self._phenotype.size:.2f}, target_size:{self._phenotype.target_size:.2f}"
+        )
+        logger.debug(
+            ">>>>> Bean %s created: sex=%s, genotype=%s, phenotype=%s",
+            self.id,
+            self.sex.value,
+            self.genotype.to_compact_str(),
+            phenotype_str,
+        )
 
     @property
     def age(self) -> float:
@@ -125,7 +157,9 @@ class Bean:
         are called by World, not by Bean itself.
         """
         if self._is_dead():
-            logger.warning(f">>> Bean {self.id} update called on dead bean. No update performed.")
+            logger.warning(
+                f">>> Bean {self.id} update called on dead bean. No update performed."
+            )
             return {"phenotype": self._phenotype.to_dict()}
 
         return self._phenotype.age + 1
@@ -151,19 +185,24 @@ class Bean:
 
         """
         if state.id != self.id:
-            raise ValueError(f"BeanState id {state.id} does not match Bean id {self.id}")
+            raise ValueError(
+                f"BeanState id {state.id} does not match Bean id {self.id}"
+            )
 
         if self._is_dead():
-            logger.warning(f">>> Bean {self.id} update_from_state called on dead bean. No update performed.")
+            logger.warning(
+                f">>> Bean {self.id} update_from_state called on dead bean. No update performed."
+            )
             return
 
-        logger.debug(f">>>>> Bean {self.id} update_from_state: before update"
-                     f" phenotype={self._phenotype.to_dict()},"
-                     f" state={{age:{state.age}, speed:{state.speed}, energy:{state.energy}, size:{state.size}}}")
+        logger.debug(
+            f">>>>> Bean {self.id} update_from_state: before update"
+            f" phenotype={self._phenotype.to_dict()},"
+            f" state={{age:{state.age}, speed:{state.speed}, energy:{state.energy}, size:{state.size}}}"
+        )
         self._phenotype.age = state.age
         self._phenotype.speed = state.speed
         self._phenotype.energy = state.energy
         self._phenotype.size = state.size
 
         return self.to_state()
-

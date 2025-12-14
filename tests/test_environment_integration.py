@@ -1,3 +1,4 @@
+from beans.world import World
 from config.loader import load_config
 
 
@@ -6,6 +7,15 @@ class FakeEnv:
         self.stepped = False
         self.energy = 3.14
         self.temp = 7.0
+
+        class _FM:
+            def __init__(self):
+                self.stepped = False
+
+            def step(self):
+                self.stepped = True
+
+        self.food_manager = _FM()
 
     def step(self) -> None:
         self.stepped = True
@@ -21,14 +31,8 @@ def test_world_calls_environment_step_and_delegates(tmp_path):
     world_cfg, beans_cfg, env_cfg = load_config("src/config/small.json")
     fake = FakeEnv()
 
-    from beans.world import World
-
-    # Construct world with the parsed env_config, then inject a fake
-    # environment instance for the purposes of this test.
     w = World(world_cfg, beans_cfg, env_cfg)
     w.environment = fake
-
-    # Step should call environment.step()
     w.step(1.0)
     assert fake.stepped is True
 
@@ -36,8 +40,6 @@ def test_world_calls_environment_step_and_delegates(tmp_path):
 def test_world_delegates_energy_and_temperature_to_environment(tmp_path):
     world_cfg, beans_cfg, env_cfg = load_config("src/config/small.json")
     fake = FakeEnv()
-
-    from beans.world import World
 
     w = World(world_cfg, beans_cfg, env_cfg)
     w.environment = fake

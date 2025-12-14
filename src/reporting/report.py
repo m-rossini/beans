@@ -15,15 +15,26 @@ logger = logging.getLogger(__name__)
 
 class SimulationReport(ABC):
     @abstractmethod
-    def generate(self, world_config: WorldConfig, beans_config: BeansConfig, world: World, window: "WorldWindow") -> None:
-        ...
+    def generate(
+        self,
+        world_config: WorldConfig,
+        beans_config: BeansConfig,
+        world: World,
+        window: "WorldWindow",
+    ) -> None: ...
 
 
 class ConsoleSimulationReport(SimulationReport):
     def __init__(self) -> None:
         self._logger = logger
 
-    def generate(self, world_config: WorldConfig, beans_config: BeansConfig, world: World, window: "WorldWindow") -> None:
+    def generate(
+        self,
+        world_config: WorldConfig,
+        beans_config: BeansConfig,
+        world: World,
+        window: "WorldWindow",
+    ) -> None:
         report_lines = [
             "Simulation Report:",
             f"  Rounds completed: {world.round}",

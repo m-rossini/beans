@@ -78,7 +78,7 @@ class SpaceAvailabilityValidator(PlacementValidator):
         bit_index = cell_index % 8
         byte_val = self.bitmap[byte_index]
         bit_was_set = (byte_val >> bit_index) & 1
-        self.bitmap[byte_index] |= (1 << bit_index)
+        self.bitmap[byte_index] |= 1 << bit_index
         if not bit_was_set:
             self.occupied_count += 1
         return bit_was_set
@@ -146,7 +146,9 @@ class SpatialHash:
             self.grid[cell] = []
         self.grid[cell].append((x, y))
 
-    def get_neighbors(self, x: float, y: float, radius: float) -> list[tuple[float, float]]:
+    def get_neighbors(
+        self, x: float, y: float, radius: float
+    ) -> list[tuple[float, float]]:
         """Get all positions in the 9 surrounding grid cells."""
         cell = self._get_cell(x, y)
         neighbors = []
@@ -160,26 +162,38 @@ class SpatialHash:
 
 
 class PlacementStrategy:
-    def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
+    def place(
+        self, count: int, width: int, height: int, size: int
+    ) -> List[Tuple[float, float]]:
         raise NotImplementedError()
 
     @staticmethod
-    def consecutive_failure_validator(threshold: int = 3) -> ConsecutiveFailureValidator:
+    def consecutive_failure_validator(
+        threshold: int = 3,
+    ) -> ConsecutiveFailureValidator:
         """Create a consecutive failure validator."""
         return ConsecutiveFailureValidator(threshold=threshold)
 
     @staticmethod
-    def space_availability_validator(width: int, height: int, cell_size: int = 1) -> SpaceAvailabilityValidator:
+    def space_availability_validator(
+        width: int, height: int, cell_size: int = 1
+    ) -> SpaceAvailabilityValidator:
         """Create a space availability validator."""
-        return SpaceAvailabilityValidator(width=width, height=height, cell_size=cell_size)
+        return SpaceAvailabilityValidator(
+            width=width, height=height, cell_size=cell_size
+        )
 
 
 class RandomPlacementStrategy(PlacementStrategy):
     def __init__(self, max_retries: int = 50) -> None:
         self.max_retries = max_retries
 
-    def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
-        logger.info(f">>>>> RandomPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
+    def place(
+        self, count: int, width: int, height: int, size: int
+    ) -> List[Tuple[float, float]]:
+        logger.info(
+            f">>>>> RandomPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}"
+        )
         if count <= 0:
             logger.warning(">>> Count <= 0, returning empty list")
             return []
@@ -212,31 +226,46 @@ class RandomPlacementStrategy(PlacementStrategy):
 
             if not placed:
                 validator.mark_failed()
-                logger.warning(f">>> Failed to place bean {bean_idx} after {self.max_retries} attempts")
+                logger.warning(
+                    f">>> Failed to place bean {bean_idx} after {self.max_retries} attempts"
+                )
                 if validator.is_saturated():
-                    logger.warning(f">>> World saturated: {len(positions)} of {count} beans placed ({len(positions)/count*100:.1f}%)")
+                    logger.warning(
+                        f">>> World saturated: {len(positions)} of {count} beans placed ({len(positions)/count*100:.1f}%)"
+                    )
                     break
 
         logger.info(f">>>> Generated {len(positions)} positions")
         return positions
 
-#TODO Implement strategy: GridPlacementStrategy
+
+# TODO Implement strategy: GridPlacementStrategy
 class GridPlacementStrategy(PlacementStrategy):
     def __init__(self) -> None:
         pass
 
-    def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
-        logger.info(f">>>> GridPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
+    def place(
+        self, count: int, width: int, height: int, size: int
+    ) -> List[Tuple[float, float]]:
+        logger.info(
+            f">>>> GridPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}"
+        )
         raise NotImplementedError("GridPlacementStrategy is not yet implemented.")
 
-#TODO Implement strategy: ClusteredPlacementStrategy
+
+# TODO Implement strategy: ClusteredPlacementStrategy
 class ClusteredPlacementStrategy(PlacementStrategy):
     def __init__(self) -> None:
         pass
 
-    def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
-        logger.info(f">>>> ClusteredPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
+    def place(
+        self, count: int, width: int, height: int, size: int
+    ) -> List[Tuple[float, float]]:
+        logger.info(
+            f">>>> ClusteredPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}"
+        )
         raise NotImplementedError("ClusteredPlacementStrategy is not yet implemented.")
+
 
 def create_strategy_from_name(name: str) -> PlacementStrategy:
     """Return a placement strategy instance given a config name string."""
@@ -249,5 +278,7 @@ def create_strategy_from_name(name: str) -> PlacementStrategy:
         case "clustered" | "cluster":
             return ClusteredPlacementStrategy()
         case _:
-            logger.debug(f">>>>> Unknown strategy '{name}', defaulting to RandomPlacementStrategy")
+            logger.debug(
+                f">>>>> Unknown strategy '{name}', defaulting to RandomPlacementStrategy"
+            )
             return RandomPlacementStrategy()

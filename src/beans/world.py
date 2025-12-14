@@ -3,7 +3,7 @@ import random
 from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
-from beans.environment.environment import Environment, create_environment_from_name
+from beans.environment.environment import create_environment_from_name
 from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 from .bean import Bean, BeanState, Sex
@@ -19,9 +19,20 @@ from .survival import SurvivalManager, SurvivalResult
 
 logger = logging.getLogger(__name__)
 
+
 class World:
-    def __init__(self, config: WorldConfig, beans_config: BeansConfig, env_config: EnvironmentConfig) -> None:
-        logger.debug(f">>>>> World.__init__: width={config.width}, height={config.height}, population_density={config.population_density}")
+    def __init__(
+        self,
+        config: WorldConfig,
+        beans_config: BeansConfig,
+        env_config: EnvironmentConfig,
+    ) -> None:
+        logger.debug(
+            ">>>>> World.__init__: width=%d, height=%d, population_density=%0.2f",
+            config.width,
+            config.height,
+            config.population_density,
+        )
         self.world_config = config
         self.beans_config = beans_config
         self.width = config.width
@@ -32,18 +43,35 @@ class World:
         self.max_age_years = config.max_age_years
         self.rounds_per_year = config.rounds_per_year
         self.max_age_rounds = self.max_age_years * self.rounds_per_year
-        self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
-        self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
-        self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
-        self.environment : Environment = create_environment_from_name(self.world_config.environment, env_config, beans_config)
-        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
+        self.placement_strategy = create_strategy_from_name(
+            self.world_config.placement_strategy
+        )
+        self.population_estimator: PopulationEstimator = (
+            create_population_estimator_from_name(
+                self.world_config.population_estimator
+            )
+        )
+        self.energy_system: EnergySystem = create_energy_system_from_name(
+            self.world_config.energy_system, beans_config
+        )
+        self.environment = create_environment_from_name(
+            self.world_config.environment, env_config, beans_config, self.world_config
+        )
+        self._rng = (
+            random.Random(self.world_config.seed)
+            if self.world_config.seed is not None
+            else None
+        )
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.bean_dynamics = BeanDynamics(beans_config)
         self.survival_manager = SurvivalManager(beans_config, rng=self._rng)
         self.survival_checker = self.survival_manager.checker
         self.round: int = 1
-        logger.info(f">>>> World initialized with {len(self.beans)} beans")
+        logger.info(
+            ">>>> World initialized with %d beans",
+            len(self.beans),
+        )
 
     def _initialize(self) -> List[Bean]:
         male_count, female_count = self.population_estimator.estimate(
@@ -54,13 +82,19 @@ class World:
             male_female_ratio=self.male_female_ratio,
         )
         bean_count = male_count + female_count
-        logger.info(f">>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
+        logger.info(
+            ">>>> World._initialize: calculated population. male_count=%d, female_count=%d",
+            male_count,
+            female_count,
+        )
         ctx = BeanContext(bean_count=bean_count, male_count=male_count, rng=self._rng)
         beans = self._create_beans(self.beans_config, ctx)
 
         return beans
 
-    def _create_beans(self, beans_config: BeansConfig, bean_context: BeanContext) -> List[Bean]:
+    def _create_beans(
+        self, beans_config: BeansConfig, bean_context: BeanContext
+    ) -> List[Bean]:
         beans = []
         for i in range(bean_context.bean_count):
             genotype = create_random_genotype(rng=bean_context.rng)
@@ -76,7 +110,9 @@ class World:
         return beans
 
     def step(self, dt: float) -> None:
-        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
+        logger.debug(
+            f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}"
+        )
         self.environment.step()
         survivors: List[Bean] = []
         deaths_this_step = 0
@@ -85,20 +121,37 @@ class World:
             result = self.survival_manager.check_and_record(bean)
             if not result.alive:
                 deaths_this_step += 1
-                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={result.reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
+                logger.debug(
+                    ">>>>> World.step.dead_bean: Bean %s died: reason=%s, sex=%s, max_age=%0.2f",
+                    bean.id,
+                    result.reason,
+                    bean.sex.value,
+                    bean._max_age,
+                )
+                logger.debug(
+                    "phenotype=%s, genotype=%s",
+                    bean._phenotype.to_dict(),
+                    bean.genotype.to_compact_str(),
+                )
             else:
                 survivors.append(bean)
 
         self.beans = survivors
         if deaths_this_step > 0:
-            logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
+            logger.debug(
+                f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived"
+            )
 
         self.round += 1
 
     def _update_bean(self, bean: Bean) -> BeanState:
-        bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
+        bean_state = self.energy_system.apply_energy_system(
+            bean, self.get_energy_intake()
+        )
 
-        speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
+        speed = self.bean_dynamics.calculate_speed(
+            bean_state, bean.genotype, bean._max_age
+        )
         bean_state.store(speed=speed)
 
         age = bean.age_bean()

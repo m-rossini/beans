@@ -11,7 +11,14 @@ from src.rendering.movement import SpriteMovementSystem
 
 # Helper functions
 
-def make_bean_and_sprite(size: float = 10.0, speed: float = 0.0, sex: Sex = Sex.MALE, beans_config=None, id: int = 1) -> Tuple[Bean, BeanSprite]:
+
+def make_bean_and_sprite(
+    size: float = 10.0,
+    speed: float = 0.0,
+    sex: Sex = Sex.MALE,
+    beans_config=None,
+    id: int = 1,
+) -> Tuple[Bean, BeanSprite]:
     if beans_config is None:
         # Use default beans config for tests when no config provided
         beans_config = DEFAULT_BEANS_CONFIG
@@ -44,7 +51,13 @@ def movement_system() -> SpriteMovementSystem:
     return SpriteMovementSystem()
 
 
-def run_frame_for_sprites(movement: SpriteMovementSystem, sprites: List[BeanSprite], width: int = 500, height: int = 500, delta_time: float = 1.0) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
+def run_frame_for_sprites(
+    movement: SpriteMovementSystem,
+    sprites: List[BeanSprite],
+    width: int = 500,
+    height: int = 500,
+    delta_time: float = 1.0,
+) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
     # Collect targets from move_sprite
     targets = []
     for s in sprites:
@@ -156,8 +169,12 @@ def test_sex_multiplier_ladies_first_mapping(movement_system):
     beans_config.collision_damage_sex_factors = (1.05, 1.0)
     # map is expected to be created by loader; tests assume resolve_collisions uses the mapping
 
-    b_male, s_male = make_bean_and_sprite(size=10.0, speed=1.0, sex=Sex.MALE, beans_config=beans_config, id=50)
-    b_female, s_female = make_bean_and_sprite(size=10.0, speed=1.0, sex=Sex.FEMALE, beans_config=beans_config, id=51)
+    b_male, s_male = make_bean_and_sprite(
+        size=10.0, speed=1.0, sex=Sex.MALE, beans_config=beans_config, id=50
+    )
+    b_female, s_female = make_bean_and_sprite(
+        size=10.0, speed=1.0, sex=Sex.FEMALE, beans_config=beans_config, id=51
+    )
 
     s_male.center_x, s_male.center_y = 400.0, 400.0
     s_male.direction = 0.0

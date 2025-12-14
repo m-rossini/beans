@@ -22,7 +22,14 @@ class BeanDynamics:
         age_factor = age_speed_factor(bean_state.age, max_age, min_speed)
         size_penalty = self._size_speed_penalty(bean_state)
         speed = vmax * age_factor * size_penalty
-        logger.debug(f">>>>> BeanDynamics.calculate_speed: vmax={vmax:.2f}, age_factor={age_factor:.2f}, size_penalty={size_penalty:.2f}, min_speed={min_speed:.2f}, result={speed:.2f}")
+        logger.debug(
+            ">>>>> BeanDynamics.calculate_speed: vmax=%0.2f, age_factor=%0.2f, size_penalty=%0.2f, min_speed=%0.2f, result=%0.2f",
+            vmax,
+            age_factor,
+            size_penalty,
+            min_speed,
+            speed,
+        )
         return max(min_speed, speed)
 
     def _size_speed_penalty(self, bean_state: BeanState) -> float:
@@ -37,4 +44,3 @@ class BeanDynamics:
             return max(0.2, 1 - z * 0.25)
         else:
             return 1.0
-

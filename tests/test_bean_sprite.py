@@ -25,12 +25,14 @@ class TestBeanSprite:
 
     @pytest.fixture
     def sample_genotype(self):
-        return Genotype(genes={
-            Gene.METABOLISM_SPEED: 0.5,
-            Gene.MAX_GENETIC_SPEED: 0.5,
-            Gene.FAT_ACCUMULATION: 0.5,
-            Gene.MAX_GENETIC_AGE: 0.5,
-        })
+        return Genotype(
+            genes={
+                Gene.METABOLISM_SPEED: 0.5,
+                Gene.MAX_GENETIC_SPEED: 0.5,
+                Gene.FAT_ACCUMULATION: 0.5,
+                Gene.MAX_GENETIC_AGE: 0.5,
+            }
+        )
 
     @pytest.fixture
     def sample_phenotype(self):
@@ -39,11 +41,23 @@ class TestBeanSprite:
 
     @pytest.fixture
     def male_bean(self, beans_config, sample_genotype, sample_phenotype):
-        return Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=sample_phenotype)
+        return Bean(
+            config=beans_config,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=sample_phenotype,
+        )
 
     @pytest.fixture
     def female_bean(self, beans_config, sample_genotype, sample_phenotype):
-        return Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=sample_phenotype)
+        return Bean(
+            config=beans_config,
+            id=2,
+            sex=Sex.FEMALE,
+            genotype=sample_genotype,
+            phenotype=sample_phenotype,
+        )
 
     def test_sprite_creation_male(self, male_bean):
         position = (100.0, 200.0)
@@ -78,15 +92,39 @@ class TestBeanSprite:
         assert sprite.scale == (1.0, 1.0)  # scale is a tuple (x, y)
 
         # Change bean size and verify scale updates by replacing the sprite's bean
-        bigger_ph = Phenotype(age=male_bean.age, speed=male_bean.speed, energy=male_bean.energy, size=initial_size * 1.5, target_size=male_bean.to_state().target_size)
-        bigger_bean = Bean(config=male_bean.beans_config, id=male_bean.id, sex=male_bean.sex, genotype=male_bean.genotype, phenotype=bigger_ph)
+        bigger_ph = Phenotype(
+            age=male_bean.age,
+            speed=male_bean.speed,
+            energy=male_bean.energy,
+            size=initial_size * 1.5,
+            target_size=male_bean.to_state().target_size,
+        )
+        bigger_bean = Bean(
+            config=male_bean.beans_config,
+            id=male_bean.id,
+            sex=male_bean.sex,
+            genotype=male_bean.genotype,
+            phenotype=bigger_ph,
+        )
         sprite.bean = bigger_bean
         sprite.update_from_bean()
         assert sprite.scale == (1.5, 1.5)
 
         # Change bean size again (smaller)
-        smaller_ph = Phenotype(age=male_bean.age, speed=male_bean.speed, energy=male_bean.energy, size=initial_size * 0.8, target_size=male_bean.to_state().target_size)
-        smaller_bean = Bean(config=male_bean.beans_config, id=male_bean.id, sex=male_bean.sex, genotype=male_bean.genotype, phenotype=smaller_ph)
+        smaller_ph = Phenotype(
+            age=male_bean.age,
+            speed=male_bean.speed,
+            energy=male_bean.energy,
+            size=initial_size * 0.8,
+            target_size=male_bean.to_state().target_size,
+        )
+        smaller_bean = Bean(
+            config=male_bean.beans_config,
+            id=male_bean.id,
+            sex=male_bean.sex,
+            genotype=male_bean.genotype,
+            phenotype=smaller_ph,
+        )
         sprite.bean = smaller_bean
         sprite.update_from_bean()
         assert sprite.scale == (0.8, 0.8)
