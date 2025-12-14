@@ -3,8 +3,8 @@ import random
 from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
-from config.loader import BeansConfig, WorldConfig, EnvironmentConfig
-from beans.environment.interface import Environment
+from beans.environment.environment import Environment, create_environment_from_name
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 from .bean import Bean, BeanState, Sex
 from .context import BeanContext
@@ -20,13 +20,10 @@ from .survival import SurvivalManager, SurvivalResult
 logger = logging.getLogger(__name__)
 
 class World:
-    def __init__(self, config: WorldConfig, beans_config: BeansConfig, environment: Environment | None = None) -> None:
+    def __init__(self, config: WorldConfig, beans_config: BeansConfig, env_config: EnvironmentConfig | None = None, environment: Environment | None = None) -> None:
         logger.debug(f">>>>> World.__init__: width={config.width}, height={config.height}, population_density={config.population_density}")
         self.world_config = config
         self.beans_config = beans_config
-        # Environment is optional; if provided, World will delegate energy and
-        # temperature queries and will call `step()` at the start of each tick.
-        self.environment = environment
         self.width = config.width
         self.height = config.height
         self.sprite_size = beans_config.initial_bean_size
@@ -44,6 +41,16 @@ class World:
         self.bean_dynamics = BeanDynamics(beans_config)
         self.survival_manager = SurvivalManager(beans_config, rng=self._rng)
         self.survival_checker = self.survival_manager.checker
+        # Create or accept an Environment instance. Behavior mirrors the energy
+        # system factory pattern: if an explicit instance is provided use it;
+        # otherwise, if an env_config is supplied create via factory using the
+        # name in world_config.environment.
+        if environment is not None:
+            self.environment = environment
+        elif env_config is not None:
+            self.environment = create_environment_from_name(self.world_config.environment, env_config, beans_config)
+        else:
+            self.environment = None
         self.round: int = 1
         logger.info(f">>>> World initialized with {len(self.beans)} beans")
 
@@ -121,6 +128,7 @@ class World:
         Currently returns a hardcoded default value.
         TODO: Implement dynamic energy intake based on world state.
         """
+        # Delegate to environment when present
         if self.environment is not None:
             return self.environment.get_energy_intake()
 
