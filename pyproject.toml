@@ -4,7 +4,7 @@ line-length = 140
 
 [tool.ruff.lint]
 select = ["E", "F", "Q", "D", "I", "W"]
-ignore = ["D100", "D101", "D102", "D103", "D104", "D107"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107","W291", "W293"]
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]

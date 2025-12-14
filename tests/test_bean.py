@@ -39,20 +39,12 @@ def test_create_bean_default_values(beans_config, sample_genotype, sample_phenot
     assert b.genotype == sample_genotype
 
 
-def test_bean_update_increments_age(beans_config, sample_genotype):
-    phenotype = Phenotype(age=0.0, speed=10.0, energy=100.0, size=5.0, target_size=5.0)
-    b = Bean(config=beans_config, id=2, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=phenotype)
-    initial_age = b.age
-    b.update(dt=1.0)
-    assert b.age == initial_age + 1.0
-
-
-def test_bean_mutable_fields(beans_config, sample_genotype, sample_phenotype):
+def test_bean_update_increments_age(beans_config, sample_genotype, sample_phenotype):
     b = Bean(config=beans_config, id=3, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=sample_phenotype)
     # Phenotype changes through update cycle, not direct assignment
     initial_age = b.age
-    b.update(dt=1.0)
-    assert b.age == initial_age + 1.0
+    new_age = b.age_bean(dt=1.0)
+    assert new_age == initial_age + 1.0
 
 
 def test_random_placement_within_bounds():
@@ -62,9 +54,6 @@ def test_random_placement_within_bounds():
     for x, y in positions:
         assert 0.0 <= x <= 100.0
         assert 0.0 <= y <= 100.0
-
-
-# Genotype tests
 
 def test_create_random_genotype_has_all_genes():
     genotype = create_random_genotype()

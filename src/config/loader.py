@@ -43,6 +43,12 @@ class BeansConfig:
     female_bean_color: str = "red"        # Color for female beans (rendering).
     fat_gain_rate: float = 0.02           # Rate of fat storage from surplus energy (fraction per step).
     fat_burn_rate: float = 0.02           # Rate of fat burning from energy deficit (fraction per step).
+    # Survival system configuration
+    starvation_base_depletion: float = 1.0           # Base size units consumed per starvation tick
+    starvation_depletion_multiplier: float = 1.0     # Multiplier applied when energy is <= 0
+    enable_obesity_death: bool = False                # Toggle probabilistic obesity death
+    obesity_death_probability: float = 0.0            # Probability of death when above obesity threshold
+    obesity_threshold_factor: float = 1.0             # Threshold relative to max_bean_size to consider obese
     metabolism_base_burn: float = 0.01    # Basal metabolism burn rate per tick (energy units).
     energy_to_fat_ratio: float = 1.0      # Energy units required to store 1 unit of fat.
     fat_to_energy_ratio: float = 0.9      # Energy units recovered per unit of fat burned.
@@ -98,6 +104,12 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     # Energy system configuration fields (from spec)
     fat_gain_rate=0.02,
     fat_burn_rate=0.02,
+    # Survival defaults
+    starvation_base_depletion=1.0,
+    starvation_depletion_multiplier=1.0,
+    enable_obesity_death=False,
+    obesity_death_probability=0.0,
+    obesity_threshold_factor=1.0,
     metabolism_base_burn=0.01,
     energy_to_fat_ratio=1.0,
     fat_to_energy_ratio=0.9,
@@ -165,6 +177,12 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
         female_bean_color=beans_data.get("female_bean_color", DEFAULT_BEANS_CONFIG.female_bean_color),
         fat_gain_rate=beans_data.get("fat_gain_rate", DEFAULT_BEANS_CONFIG.fat_gain_rate),
         fat_burn_rate=beans_data.get("fat_burn_rate", DEFAULT_BEANS_CONFIG.fat_burn_rate),
+        # Survival system fields
+        starvation_base_depletion=beans_data.get("starvation_base_depletion", DEFAULT_BEANS_CONFIG.starvation_base_depletion),
+        starvation_depletion_multiplier=beans_data.get("starvation_depletion_multiplier", DEFAULT_BEANS_CONFIG.starvation_depletion_multiplier),
+        enable_obesity_death=beans_data.get("enable_obesity_death", DEFAULT_BEANS_CONFIG.enable_obesity_death),
+        obesity_death_probability=beans_data.get("obesity_death_probability", DEFAULT_BEANS_CONFIG.obesity_death_probability),
+        obesity_threshold_factor=beans_data.get("obesity_threshold_factor", DEFAULT_BEANS_CONFIG.obesity_threshold_factor),
         metabolism_base_burn=beans_data.get("metabolism_base_burn", DEFAULT_BEANS_CONFIG.metabolism_base_burn),
         energy_to_fat_ratio=beans_data.get("energy_to_fat_ratio", DEFAULT_BEANS_CONFIG.energy_to_fat_ratio),
         fat_to_energy_ratio=beans_data.get("fat_to_energy_ratio", DEFAULT_BEANS_CONFIG.fat_to_energy_ratio),
@@ -219,6 +237,15 @@ def load_config(config_file_path: str) -> tuple[WorldConfig, BeansConfig]:
             raise ValueError(f"energy_loss_on_bounce must be >= 0, got {cfg.energy_loss_on_bounce}")
         if not (0.0 <= cfg.min_speed_factor <= 1.0):
             raise ValueError(f"min_speed_factor must be between 0.0 and 1.0, got {cfg.min_speed_factor}")
+        # Validate survival configuration
+        if cfg.starvation_base_depletion < 0.0:
+            raise ValueError(f"starvation_base_depletion must be >= 0.0, got {cfg.starvation_base_depletion}")
+        if cfg.starvation_depletion_multiplier < 0.0:
+            raise ValueError(f"starvation_depletion_multiplier must be >= 0.0, got {cfg.starvation_depletion_multiplier}")
+        if not (0.0 <= cfg.obesity_death_probability <= 1.0):
+            raise ValueError(f"obesity_death_probability must be between 0.0 and 1.0, got {cfg.obesity_death_probability}")
+        if cfg.obesity_threshold_factor <= 0.0:
+            raise ValueError(f"obesity_threshold_factor must be > 0.0, got {cfg.obesity_threshold_factor}")
         # Validate collision sex factors: must be a sequence of two numeric values (female, male)
         try:
             factors = tuple(cfg.collision_damage_sex_factors)

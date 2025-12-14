@@ -1,6 +1,5 @@
 import logging
 import random
-from dataclasses import dataclass
 from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
@@ -15,14 +14,9 @@ from .population import (
     PopulationEstimator,
     create_population_estimator_from_name,
 )
+from .survival import SurvivalManager, SurvivalResult
 
 logger = logging.getLogger(__name__)
-
-@dataclass
-class DeadBeanRecord:
-    bean: Bean
-    reason: str
-
 
 class World:
     def __init__(self, config: WorldConfig, beans_config: BeansConfig) -> None:
@@ -40,14 +34,12 @@ class World:
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
-        # Create a private RNG seeded from world config if seed provided
         self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
-        # Single BeanDynamics instance per world; per-bean genotype and max_age
-        # are supplied at calculation time to avoid constructing one per bean.
         self.bean_dynamics = BeanDynamics(beans_config)
-        self.dead_beans: List[DeadBeanRecord] = []
+        self.survival_manager = SurvivalManager(beans_config, rng=self._rng)
+        self.survival_checker = self.survival_manager.checker
         self.round: int = 1
         logger.info(f">>>> World initialized with {len(self.beans)} beans")
 
@@ -61,7 +53,6 @@ class World:
         )
         bean_count = male_count + female_count
         logger.info(f">>>> World._initialize: calculated population. male_count={male_count}, female_count={female_count}")
-        # Build the bean creation context (contains counts and RNG)
         ctx = BeanContext(bean_count=bean_count, male_count=male_count, rng=self._rng)
         beans = self._create_beans(self.beans_config, ctx)
 
@@ -88,13 +79,10 @@ class World:
         deaths_this_step = 0
         for bean in self.beans:
             _: BeanState = self._update_bean(bean)
-            bean.update(dt)
-
-            alive, reason = bean.survive()
-            if not alive:
-                self._mark_dead(bean, reason=reason)
+            result = self.survival_manager.check_and_record(bean)
+            if not result.alive:
                 deaths_this_step += 1
-                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
+                logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={result.reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
             else:
                 survivors.append(bean)
 
@@ -106,15 +94,19 @@ class World:
 
     def _update_bean(self, bean: Bean) -> BeanState:
         bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
-        # Calculate speed using the world's BeanDynamics but pass per-bean
-        # genotype and max_age into the calculation.
+
         speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
         bean_state.store(speed=speed)
+
+        age = bean.age_bean()
+        bean_state.store(age=age)
+
         return bean.update_from_state(bean_state)
 
-    def _mark_dead(self, bean: Bean, reason: str) -> None:
-        logger.debug(f">>>>> Bean {bean.id} marked dead: reason={reason}, age={bean.age}, energy={bean.energy:.2f}")
-        self.dead_beans.append(DeadBeanRecord(bean=bean, reason=reason))
+    @property
+    def dead_beans(self) -> List[SurvivalResult]:
+        """Backwards compatible accessor for recorded dead beans."""
+        return self.survival_manager.dead_beans
 
     def get_energy_intake(self) -> float:
         """Return the energy intake available from the world.
