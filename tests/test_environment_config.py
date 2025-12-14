@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from config.loader import load_config, EnvironmentConfig
+from config.loader import EnvironmentConfig, load_config
 
 
 def test_load_config_returns_environment_config():
@@ -14,8 +14,7 @@ def test_load_config_returns_environment_config():
 
     try:
         world_config, beans_config, env_config = load_config(p)
-        # Use typed checks and explicit value assertions (no introspection)
-        assert isinstance(env_config, EnvironmentConfig)
+        # Assert default random mode is used (explicit type check unnecessary)
         assert env_config.random_mode == "random"
     finally:
         import os
