@@ -68,18 +68,35 @@ def test_world_min_speed_floor():
 
 
 def test_bean_dynamics_size_speed_penalty_behaviour():
-    """Unit test for BeanDynamics._size_speed_penalty edge cases."""
+    """Behavioural test: ensure size deviations reduce calculated speed via public API.
+
+    This avoids calling private methods directly and verifies the effective
+    speed penalty by observing the public `calculate_speed` output.
+    """
     cfg = BeansConfig(speed_min=0.0, speed_max=1.0, min_speed_factor=0.0, initial_bean_size=10)
     bd = BeanDynamics(cfg)
 
-    # size equal to target -> penalty 1.0
+    # deterministic genotype and max age to ensure stable calculations
+    genes = {
+        Gene.METABOLISM_SPEED: 1.0,
+        Gene.MAX_GENETIC_SPEED: 1.0,
+        Gene.FAT_ACCUMULATION: 1.0,
+        Gene.MAX_GENETIC_AGE: 1.0,
+    }
+    genotype = Genotype(genes=genes)
+    dummy_max_age = 100
+
+    # size equal to target -> baseline speed
     state = BeanState(id=1, age=5, speed=0.0, energy=10.0, size=10.0, target_size=10.0, alive=True)
-    assert pytest.approx(1.0, rel=1e-6) == bd._size_speed_penalty(state)
+    speed_target = bd.calculate_speed(state, genotype, dummy_max_age)
+    assert speed_target > 0.0
 
-    # significantly larger than target -> penalty < 1.0
+    # significantly larger than target -> calculated speed is reduced
     state.store(size=100.0)
-    assert bd._size_speed_penalty(state) < 1.0
+    speed_large = bd.calculate_speed(state, genotype, dummy_max_age)
+    assert speed_large < speed_target
 
-    # significantly smaller than target -> penalty < 1.0
+    # significantly smaller than target -> calculated speed is reduced
     state.store(size=1.0)
-    assert bd._size_speed_penalty(state) < 1.0
+    speed_small = bd.calculate_speed(state, genotype, dummy_max_age)
+    assert speed_small < speed_target
