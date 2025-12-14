@@ -47,6 +47,10 @@ class World:
         # Single BeanDynamics instance per world; per-bean genotype and max_age
         # are supplied at calculation time to avoid constructing one per bean.
         self.bean_dynamics = BeanDynamics(beans_config)
+        # Survival checker (will be implemented and expanded in Phase 2)
+        from .survival import DefaultSurvivalChecker
+
+        self.survival_checker = DefaultSurvivalChecker(beans_config, rng=self._rng)
         self.dead_beans: List[DeadBeanRecord] = []
         self.round: int = 1
         logger.info(f">>>> World initialized with {len(self.beans)} beans")
@@ -89,9 +93,10 @@ class World:
         for bean in self.beans:
             _: BeanState = self._update_bean(bean)
 
-            alive, reason = bean.survive()
-            if not alive:
-                self._mark_dead(bean, reason=reason)
+            # Use the survival checker (integration point) to decide if the bean lives
+            result = self.survival_checker.check(bean, self)
+            if not result.alive:
+                self._mark_dead(bean, reason=result.reason)
                 deaths_this_step += 1
                 logger.debug(f">>>>> World.step.dead_bean: Bean {bean.id} died: reason={reason}, sex={bean.sex.value},max_age={bean._max_age:.2f}, phenotype: {bean._phenotype.to_dict()}, genotype: {bean.genotype.to_compact_str()}" )
             else:
