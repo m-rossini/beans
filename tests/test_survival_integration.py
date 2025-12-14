@@ -51,7 +51,8 @@ def test_death_when_fat_depleted_and_energy_zero():
 
     # Expect bean to be removed and recorded as dead for starvation
     assert bean not in world.beans, "Bean should die when fat is depleted"
-    assert any(rec.bean == bean and rec.reason == "STARVATION" for rec in world.dead_beans), "Dead reason should be STARVATION"
+    # Use canonical reason string used across the codebase
+    assert any(rec.bean == bean and rec.reason == "energy_depleted" for rec in world.dead_beans), "Dead reason should be energy_depleted"
 
 
 def test_age_death():
@@ -68,7 +69,8 @@ def test_age_death():
     world.step(dt=1.0)
 
     assert bean not in world.beans
-    assert any(rec.bean == bean and rec.reason == "MAX_AGE" for rec in world.dead_beans)
+    # Use canonical reason string used across the codebase
+    assert any(rec.bean == bean and rec.reason == "max_age_reached" for rec in world.dead_beans)
 
 
 def test_obesity_probabilistic_death_seeded():

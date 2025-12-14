@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .bean import Bean
+from .world import World
 
 
 @dataclass
@@ -45,17 +46,20 @@ class DefaultSurvivalChecker(SurvivalChecker):
         self.rng = rng
         self.logger = logging.getLogger(__name__)
 
-    def check(self, bean: Bean, world) -> SurvivalResult:
+    def check(self, bean: Bean, world: World) -> SurvivalResult:
         # Age check (priority)
         if not bean.can_survive_age():
-            return SurvivalResult(alive=False, reason="MAX_AGE", message="Age exceeded genetic max")
+            # Use canonical reason used by existing Bean.survive() (tests expect this string)
+            return SurvivalResult(alive=False, reason="max_age_reached", message="Age exceeded genetic max")
 
         # Starvation behavior
         if bean.energy <= 0:
             self.logger.debug(f">>>>> Survival.check: bean={bean.id}, energy={bean.energy}, size={bean.size}, min_size={self.config.min_bean_size}")
             # If at or below minimum healthy size, die of starvation
             if bean.size <= self.config.min_bean_size:
-                return SurvivalResult(alive=False, reason="STARVATION", message="No fat left to sustain")
+                # For compatibility with existing tests, report energy_depleted when
+                # there is no fat left to sustain the bean.
+                return SurvivalResult(alive=False, reason="energy_depleted", message="No fat left to sustain (energy depleted)")
 
             # Draw on fat: reduce size by a small amount; configurable in Phase 3
             depletion = 1.0  # conservative default; will be replaced by config later

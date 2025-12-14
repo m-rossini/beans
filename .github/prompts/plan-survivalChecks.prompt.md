@@ -14,6 +14,7 @@ This document captures the TDD-first, phased plan for adding a starvation-aware,
 
 ### Pre Phase — Preparations
 - Ensure local environment is set up and tests run with `make test`.
+- Once you test the specific tests, and they pass, you must test all tests
 
 ### Phase 0 — Branch & Test Setup (in-progress)
 - Create feature branch `feat/survival-checks`.
