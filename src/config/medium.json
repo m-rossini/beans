@@ -48,7 +48,7 @@
     "collision_damage_size_exponent": 1.0,
     "collision_damage_sex_factors": [1.05, 1.0],
     "min_speed_factor": 0.07
-  }
+  },
   "environment": {
     "random_mode": "seeded",
     "environment_seed": 42,
