@@ -3,7 +3,8 @@ import random
 from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, WorldConfig, EnvironmentConfig
+from beans.environment import Environment
 
 from .bean import Bean, BeanState, Sex
 from .context import BeanContext
@@ -19,10 +20,13 @@ from .survival import SurvivalManager, SurvivalResult
 logger = logging.getLogger(__name__)
 
 class World:
-    def __init__(self, config: WorldConfig, beans_config: BeansConfig) -> None:
+    def __init__(self, config: WorldConfig, beans_config: BeansConfig, environment: Environment | None = None) -> None:
         logger.debug(f">>>>> World.__init__: width={config.width}, height={config.height}, population_density={config.population_density}")
         self.world_config = config
         self.beans_config = beans_config
+        # Environment is optional; if provided, World will delegate energy and
+        # temperature queries and will call `step()` at the start of each tick.
+        self.environment = environment
         self.width = config.width
         self.height = config.height
         self.sprite_size = beans_config.initial_bean_size
@@ -75,6 +79,9 @@ class World:
 
     def step(self, dt: float) -> None:
         logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
+        # Run environment update at the start of each tick
+        if self.environment is not None:
+            self.environment.step()
         survivors: List[Bean] = []
         deaths_this_step = 0
         for bean in self.beans:
@@ -114,8 +121,10 @@ class World:
         Currently returns a hardcoded default value.
         TODO: Implement dynamic energy intake based on world state.
         """
-        # Return configured per-step intake from BeansConfig. Fail fast if
-        # the config object lacks the attribute to surface misconfiguration.
+        if self.environment is not None:
+            return self.environment.get_energy_intake()
+
+        # Fallback: return configured per-step intake from BeansConfig.
         return self.beans_config.energy_gain_per_step
 
     def get_temperature(self) -> float:
@@ -124,4 +133,7 @@ class World:
         Currently returns a hardcoded default value.
         TODO: Implement dynamic temperature based on world state.
         """
+        if self.environment is not None:
+            return self.environment.get_temperature()
+
         return 1.0
