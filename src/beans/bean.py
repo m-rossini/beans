@@ -118,7 +118,7 @@ class Bean:
         """Check if the bean is dead."""
         return not self.alive
 
-    def update(self, dt: float = 1.0) -> dict[str, float]:
+    def age_bean(self, dt: float = 1.0) -> float:
         """Update bean in-place and return outcome metrics.
 
         Note: Energy system methods (basal metabolism, movement cost, etc.)
@@ -128,9 +128,7 @@ class Bean:
             logger.warning(f">>> Bean {self.id} update called on dead bean. No update performed.")
             return {"phenotype": self._phenotype.to_dict()}
 
-        self._phenotype.age += 1.0
-        logger.debug(f">>>>> Bean {self.id} after update: phenotype={self._phenotype.to_dict()}, genotype={self.genotype.to_compact_str()},  dt={dt}")
-        return {"phenotype": self._phenotype.to_dict()}
+        return self._phenotype.age + 1
 
     def to_state(self) -> BeanState:
         """Return a `BeanState` DTO representing the current mutable bean state.

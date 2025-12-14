@@ -88,7 +88,6 @@ class World:
         deaths_this_step = 0
         for bean in self.beans:
             _: BeanState = self._update_bean(bean)
-            bean.update(dt)
 
             alive, reason = bean.survive()
             if not alive:
@@ -106,10 +105,13 @@ class World:
 
     def _update_bean(self, bean: Bean) -> BeanState:
         bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
-        # Calculate speed using the world's BeanDynamics but pass per-bean
-        # genotype and max_age into the calculation.
+
         speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
         bean_state.store(speed=speed)
+
+        age = bean.age_bean()
+        bean_state.store(age=age)
+
         return bean.update_from_state(bean_state)
 
     def _mark_dead(self, bean: Bean, reason: str) -> None:

@@ -34,8 +34,6 @@ agent: agent
   - energy constrained
   - size constrained
   
-- Ensure all Systems are defined at configuration time
-
 ## Experimentation
 - Create tests to experiment with tunning parameters and compare results:
   - min_speed_factor, speed_min, speed_max
