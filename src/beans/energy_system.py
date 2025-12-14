@@ -147,21 +147,6 @@ class EnergySystem(ABC):
         ...
 
     @abstractmethod
-    def _size_speed_penalty(self, bean_state: BeanState) -> float:
-        """Calculate speed penalty based on bean size deviation from target.
-        
-        Returns 1.0 when within ±2σ of target size, otherwise a penalty < 1.0.
-        
-        Args:
-            bean: The bean to calculate penalty for.
-            
-        Returns:
-            Penalty multiplier between min_penalty and 1.0.
-
-        """
-        ...
-
-    @abstractmethod
     def _can_survive_starvation(self, bean: Bean) -> bool:
         """Check if bean survives starvation based on size.
         
@@ -371,42 +356,11 @@ class StandardEnergySystem(EnergySystem):
         return size
 
     def _size_speed_penalty(self, bean : Bean) -> float:
-        """Calculate speed penalty based on bean size deviation from target.
-        
-        Returns 1.0 when within ±2σ of target size, otherwise applies
-        exponential decay penalty based on z-score.
-        
-        Args:
-            bean: The bean to calculate penalty for.
-            
-        Returns:
-            Penalty multiplier between min_penalty and 1.0.
-
-        """
-        target_size = self.config.initial_bean_size
-        sigma = target_size * self.config.size_sigma_frac
-        z_score = (bean.size - target_size) / sigma
-
-        if abs(z_score) <= 2:
-            return 1.0
-
-        if z_score > 2:
-            # Overweight penalty
-            excess_z = z_score - 2
-            penalty = math.exp(-self.config.size_penalty_above_k * excess_z)
-            result = max(penalty, self.config.size_penalty_min_above)
-        else:
-            # Underweight penalty
-            deficit_z = abs(z_score) - 2
-            penalty = math.exp(-self.config.size_penalty_below_k * deficit_z)
-            result = max(penalty, self.config.size_penalty_min_below)
-
-        logger.debug(f">>>>> Bean {bean.id}"
-                     f" size_speed_penalty: size={bean.size:.2f},"
-                     f" z_score={z_score:.2f},"
-                     f" penalty={result:.3f}")
-
-        return result
+        # size-speed penalty belongs to BeanDynamics.calculate_speed
+        # and is not part of the EnergySystem responsibilities.
+        # This placeholder should not be used; raise if invoked to avoid
+        # silent divergence of behavior.
+        raise NotImplementedError("size-speed penalty is implemented in BeanDynamics")
 
     def _can_survive_starvation(self, bean: Bean) -> bool:
         """Check if bean survives starvation based on size.

@@ -28,7 +28,6 @@ class EnergySystem(ABC):
     def apply_fat_burning(bean) -> None
     def handle_negative_energy(bean) -> None
     def clamp_size(bean) -> None
-    def size_speed_penalty(bean) -> float
     def can_survive_starvation(bean) -> bool
     def can_survive_health(bean) -> bool
 ```
@@ -73,6 +72,7 @@ def _update_bean(self, bean: Bean) -> None:
 - **Fat storage**: `fat_gain = fat_gain_rate * FAT_ACCUMULATION * surplus`
 - **Fat burning**: `fat_burned = fat_burn_rate * FAT_ACCUMULATION * deficit`
 - **Size speed penalty**: Z-score based exponential decay when outside ±2σ of target size
+    (implemented in BeanDynamics.calculate_speed)
 - **Starvation**: Death when `size <= min_bean_size`
 - **Obesity**: Probabilistic death when `size > target_size * 2.5`
 

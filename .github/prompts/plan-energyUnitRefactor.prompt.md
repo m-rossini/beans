@@ -1,6 +1,6 @@
 # Energy Tests Refactor Plan (energyUnitRefactor)
 
-Goal: Convert fragile tests in `tests/test_energy_system.py` to deterministic, behavior-focused unit tests that assert on the returned `BeanState` from `EnergySystem.apply_energy_system()` and verify purity (the function should not mutate the original `Bean`). Keep each change small and follow TDD; ask for permission before each git action.
+Goal: Convert fragile tests in `tests/test_energy_system.py` to deterministic, behavior-focused unit tests that assert on the returned `BeanState` from `EnergySystem.apply_energy_system()` and verify purity (the function should not mutate the original `Bean`). Keep each change small and follow TDD; ask for permission before each git action. Tests must run using make commands. There are plenty of them in makefile
 
 ---
 

@@ -1,6 +1,6 @@
 """Tests for the rendering window and its interaction with the World and beans.
 
-This module contains tests for sprite creation, movement, color assignment, 
+This module contains tests for sprite creation, movement, color assignment,
 window events, and reporting in the simulation rendering layer.
 """
 

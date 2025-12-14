@@ -20,9 +20,13 @@ flowchart TB
         M5["apply_fat_burning"]
         M6["handle_negative_energy"]
         M7["clamp_size"]
-        M8["size_speed_penalty"]
         M9["can_survive_starvation"]
         M10["can_survive_health"]
+    end
+
+    subgraph Dynamics["BeanDynamics (speed calculations)"]
+        BD["BeanDynamics"]
+        S1["size_speed_penalty"]
     end
 
     subgraph Implementation["Implementation"]
@@ -52,6 +56,8 @@ flowchart TB
     W --> SES
     ES --> PH
     ES --> GE
+    BD --> S1
+    BD --> PH
     B --> PH
     B --> GE
 ```
