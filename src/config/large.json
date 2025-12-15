@@ -41,6 +41,7 @@
     "size_penalty_min_below": 0.4,
     "pixels_per_unit_speed": 1.0,
     "energy_loss_on_bounce": 2.0,
+    "enable_obesity_death": true,
     "collision_enable": true,
     "collision_base_damage": 5.0,
     "collision_damage_speed_factor": 0.05,
@@ -48,5 +49,22 @@
     "collision_damage_size_exponent": 1.0,
     "collision_damage_sex_factors": [1.05, 1.0],
     "min_speed_factor": 0.07
+  },
+  "environment": {
+    "cell_size": 40,
+    "food_density": 0.02,
+    "hazard_density": 0.005,
+    "food_spawn_rate_per_round": 1.0,
+    "hazard_spawn_rate_per_round": 0.1,
+    "decomposition_rounds": 4,
+    "decomposition_fraction_to_food": 0.7,
+    "temp_min": 0.0,
+    "temp_max": 100.0,
+    "temperature_diffusion_rate": 0.2,
+    "temperature_migration_vector": [0.2, 0.1],
+    "temperature_variability": 1.0,
+    "temp_to_food_factor": 0.3,
+    "temp_to_metabolic_penalty": 0.05,
+    "hazard_decay_rate_per_hit": 1.0
   }
 } 

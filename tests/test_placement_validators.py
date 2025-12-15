@@ -6,7 +6,7 @@ class TestConsecutiveFailureValidatorSaturationDetection:
 
     def test_successful_placement_gives_second_chance_after_saturation(self):
         """Validator should detect saturation when consecutive failures reach threshold.
-        
+
         This is the core purpose: knowing when placement is too difficult to continue.
         A successful placement resets, giving another chance.
         """
@@ -18,7 +18,7 @@ class TestConsecutiveFailureValidatorSaturationDetection:
         assert validator.is_saturated() is False  # Still trying
 
         validator.mark_failed()  # Attempt 3: couldn't place
-        assert validator.is_saturated() is True   # Stop! World is saturated
+        assert validator.is_saturated() is True  # Stop! World is saturated
 
         # But then we manage to place one bean
         validator.mark_placed(x=10.0, y=20.0, size=5)
@@ -33,7 +33,7 @@ class TestConsecutiveFailureValidatorSaturationDetection:
 
     def test_reset_allows_fresh_saturation_detection(self):
         """Reset should clear saturation, as if starting a new placement phase.
-        
+
         Useful when: starting placement in a new world or region.
         """
         validator = ConsecutiveFailureValidator(threshold=2)
@@ -55,7 +55,7 @@ class TestConsecutiveFailureValidatorSaturationDetection:
 
     def test_validator_survives_mixed_success_failure_sequence(self):
         """Validator should correctly track saturation through realistic placement attempts.
-        
+
         Scenario: trying to place beans in a progressively filling world.
         """
         validator = ConsecutiveFailureValidator(threshold=3)
@@ -82,7 +82,12 @@ class TestConsecutiveFailureValidatorSaturationDetection:
 class TestSpaceAvailabilityValidatorSaturationDetection:
     """Tests for SpaceAvailabilityValidator - detects when world is too crowded."""
 
-    def _fill_until_saturated(self, validator: SpaceAvailabilityValidator, size: int, max_attempts: int = 10_000) -> int:
+    def _fill_until_saturated(
+        self,
+        validator: SpaceAvailabilityValidator,
+        size: int,
+        max_attempts: int = 10_000,
+    ) -> int:
         for attempt in range(max_attempts):
             col = attempt % 100
             row = (attempt // 100) % 100
@@ -93,7 +98,7 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
 
     def test_empty_world_stays_unsaturated(self):
         """Empty world should never be saturated.
-        
+
         Purpose: Placement should always work when world is empty.
         """
         validator = SpaceAvailabilityValidator(width=100, height=100)
@@ -105,7 +110,7 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
 
     def test_gradually_filling_world_eventually_saturates(self):
         """As beans fill the world, saturation eventually triggers.
-        
+
         Purpose: Proves space tracking works and saturation happens when world fills.
         Scenario: 100x100 world, beans of size 5 - fill it progressively.
         """
@@ -134,7 +139,7 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
 
     def test_reset_clears_space_tracking(self):
         """Reset should clear all space tracking for fresh placement phase.
-        
+
         Purpose: Starting a new world or region should have full space available.
         """
         validator = SpaceAvailabilityValidator(width=100, height=100, cell_size=1)
@@ -152,7 +157,7 @@ class TestSpaceAvailabilityValidatorSaturationDetection:
 
     def test_larger_beans_saturate_world_faster(self):
         """Larger beans should saturate world faster due to covering more space.
-        
+
         Purpose: Proves bean size affects saturation - same number of large beans
         covers more space than small beans.
         """

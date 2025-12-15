@@ -14,12 +14,14 @@ logger = logging.getLogger(__name__)
 @pytest.fixture
 def sample_genotype() -> Genotype:
     """Create a valid genotype for testing."""
-    return Genotype(genes={
-        Gene.METABOLISM_SPEED: 0.5,
-        Gene.MAX_GENETIC_SPEED: 0.5,
-        Gene.FAT_ACCUMULATION: 0.5,
-        Gene.MAX_GENETIC_AGE: 0.5,
-    })
+    return Genotype(
+        genes={
+            Gene.METABOLISM_SPEED: 0.5,
+            Gene.MAX_GENETIC_SPEED: 0.5,
+            Gene.FAT_ACCUMULATION: 0.5,
+            Gene.MAX_GENETIC_AGE: 0.5,
+        }
+    )
 
 
 @pytest.fixture
@@ -34,13 +36,25 @@ def beans_config() -> BeansConfig:
 
 
 def test_create_bean_default_values(beans_config, sample_genotype, sample_phenotype):
-    b = Bean(config=beans_config, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=sample_phenotype)
+    b = Bean(
+        config=beans_config,
+        id=1,
+        sex=Sex.MALE,
+        genotype=sample_genotype,
+        phenotype=sample_phenotype,
+    )
     assert b.age == 0.0
     assert b.genotype == sample_genotype
 
 
 def test_bean_update_increments_age(beans_config, sample_genotype, sample_phenotype):
-    b = Bean(config=beans_config, id=3, sex=Sex.FEMALE, genotype=sample_genotype, phenotype=sample_phenotype)
+    b = Bean(
+        config=beans_config,
+        id=3,
+        sex=Sex.FEMALE,
+        genotype=sample_genotype,
+        phenotype=sample_phenotype,
+    )
     # Phenotype changes through update cycle, not direct assignment
     initial_age = b.age
     new_age = b.age_bean(dt=1.0)
@@ -54,6 +68,7 @@ def test_random_placement_within_bounds():
     for x, y in positions:
         assert 0.0 <= x <= 100.0
         assert 0.0 <= y <= 100.0
+
 
 def test_create_random_genotype_has_all_genes():
     genotype = create_random_genotype()
@@ -75,35 +90,40 @@ def test_genotype_is_immutable():
 
 def test_genotype_missing_gene_raises_error():
     with pytest.raises(ValidationError):
-        Genotype(genes={
-            Gene.METABOLISM_SPEED: 0.5,
-            Gene.MAX_GENETIC_SPEED: 0.5,
-            # Missing GENES
-        })
+        Genotype(
+            genes={
+                Gene.METABOLISM_SPEED: 0.5,
+                Gene.MAX_GENETIC_SPEED: 0.5,
+                # Missing GENES
+            }
+        )
 
 
 def test_genotype_value_out_of_range_raises_error():
     with pytest.raises(ValidationError):
-        Genotype(genes={
-            Gene.METABOLISM_SPEED: 1.5,  # Out of range
-            Gene.MAX_GENETIC_SPEED: 0.5,
-            Gene.FAT_ACCUMULATION: 0.5,
-            Gene.MAX_GENETIC_AGE: 0.5,
-        })
+        Genotype(
+            genes={
+                Gene.METABOLISM_SPEED: 1.5,  # Out of range
+                Gene.MAX_GENETIC_SPEED: 0.5,
+                Gene.FAT_ACCUMULATION: 0.5,
+                Gene.MAX_GENETIC_AGE: 0.5,
+            }
+        )
 
 
 def test_genotype_negative_value_raises_error():
     with pytest.raises(ValidationError):
-        Genotype(genes={
-            Gene.METABOLISM_SPEED: -0.1,  # Negative
-            Gene.MAX_GENETIC_SPEED: 0.5,
-            Gene.FAT_ACCUMULATION: 0.5,
-            Gene.MAX_GENETIC_AGE: 0.5,
-        })
+        Genotype(
+            genes={
+                Gene.METABOLISM_SPEED: -0.1,  # Negative
+                Gene.MAX_GENETIC_SPEED: 0.5,
+                Gene.FAT_ACCUMULATION: 0.5,
+                Gene.MAX_GENETIC_AGE: 0.5,
+            }
+        )
 
 
 def test_gene_enum_has_min_max_properties():
     for gene in Gene:
         assert hasattr(gene, "min")
         assert hasattr(gene, "max")
-

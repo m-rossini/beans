@@ -1,23 +1,22 @@
-import pytest
-
-from beans.genetics import create_genotype_from_values, create_phenotype_from_values
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 
 def make_world(seed: int = 42) -> tuple[World, BeansConfig]:
-    wcfg = WorldConfig( male_sprite_color="blue",
-                        female_sprite_color="red",
-                        male_female_ratio=1.0,
-                        width=20,
-                        height=20,
-                        population_density=1.0,
-                        placement_strategy="random",
-                        seed=seed
+    wcfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=20,
+        height=20,
+        population_density=1.0,
+        placement_strategy="random",
+        seed=seed,
     )
     # Ensure no automatic energy intake to exercise starvation behavior deterministically
     bcfg = BeansConfig(speed_min=-1.0, speed_max=1.0, energy_gain_per_step=0.0)
-    return World(config=wcfg, beans_config=bcfg), bcfg
+    env_cfg = EnvironmentConfig()
+    return World(config=wcfg, beans_config=bcfg, env_config=env_cfg), bcfg
 
 
 def test_starvation_depletes_fat_and_survives_until_min_size():
@@ -84,7 +83,6 @@ def test_obesity_probabilistic_death_seeded():
     bean.update_from_state(state)
 
     # Enable deterministic obesity death for this test: set config so threshold is low and probability is 1.0
-    bcfg.enable_obesity_death = True
     bcfg.obesity_death_probability = 1.0
     bcfg.obesity_threshold_factor = 0.5
 

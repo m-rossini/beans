@@ -12,10 +12,9 @@ This module contains:
 import logging
 import math
 import random
-from typing import Optional
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -27,6 +26,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
 
 def size_sigma(target_size: float) -> float:
     """Calculate standard deviation for size (±15% of target)."""
@@ -67,12 +67,12 @@ def age_speed_factor(age: float, max_age: float, min_speed_factor: float = 0.0) 
     x = min(max(age / max_age, 0.0), 1.0)
 
     # shape parameters
-    p = 2.0   # childhood growth rate
-    q = 2.0   # maturity steepness
-    r = 4.0   # aging decay strength
+    p = 2.0  # childhood growth rate
+    q = 2.0  # maturity steepness
+    r = 4.0  # aging decay strength
 
-    growth = (x ** p) * math.exp(-q * x)
-    aging = (1 - x ** r)
+    growth = (x**p) * math.exp(-q * x)
+    aging = 1 - x**r
 
     raw = max(0.0, growth * aging)
     return max(min_speed_factor, raw)
@@ -96,12 +96,12 @@ def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> 
     x = min(max(age / max_age, 0.0), 1.0)
 
     # shape parameters (similar to age_speed_factor)
-    p = 2.0   # childhood growth rate
-    q = 2.0   # maturity steepness
-    r = 4.0   # aging decay strength
+    p = 2.0  # childhood growth rate
+    q = 2.0  # maturity steepness
+    r = 4.0  # aging decay strength
 
-    growth = (x ** p) * math.exp(-q * x)
-    aging = (1 - x ** r)
+    growth = (x**p) * math.exp(-q * x)
+    aging = 1 - x**r
 
     raw_efficiency = max(0.0, growth * aging)
 
@@ -117,6 +117,7 @@ def age_energy_efficiency(age: float, max_age: float, min_efficiency: float) -> 
 # =============================================================================
 # Core Classes
 # =============================================================================
+
 
 class GeneInfo(NamedTuple):
     """Gene metadata: name and valid range."""
@@ -209,6 +210,7 @@ class Phenotype:
 # Genetic Calculation Functions
 # =============================================================================
 
+
 def genetic_max_age(config: BeansConfig, genotype: Genotype) -> float:
     """Calculate maximum age from config and genotype.
 
@@ -244,6 +246,7 @@ def genetic_max_speed(config: BeansConfig, genotype: Genotype) -> float:
 # Factory Functions
 # =============================================================================
 
+
 def create_random_genotype(rng: Optional[random.Random] = None) -> Genotype:
     """Create a genotype with random values within each gene's valid range.
 
@@ -273,7 +276,7 @@ def create_phenotype(config: BeansConfig, genotype: Genotype, rng: Optional[rand
     max_speed = config.speed_max * genotype.genes[Gene.MAX_GENETIC_SPEED]
 
     r = rng if rng is not None else random
-    initial_speed = max_speed * age_speed_factor(0, max_age,0.0)
+    initial_speed = max_speed * age_speed_factor(0, max_age, 0.0)
     random_low_bound = 0.95
     random_high_bound = 1.05
 
@@ -284,7 +287,21 @@ def create_phenotype(config: BeansConfig, genotype: Genotype, rng: Optional[rand
         size=float(config.initial_bean_size) * r.uniform(random_low_bound, random_high_bound),
         target_size=size_target(0.0, genotype, config),
     )
-    logger.debug(f">>>>> genetics::create_phenotype: created phenotype age={phenotype.age}, speed_base={initial_speed:.2f}, speed={phenotype.speed:.2f}, energy={phenotype.energy:.2f}, size={phenotype.size:.2f}, target_size={phenotype.target_size:.2f}, max_age={max_age:.2f}, max_speed={max_speed:.2f}")
+    msg = (
+        ">>>>> genetics::create_phenotype: created phenotype age=%0.2f, speed_base=%0.2f, speed=%0.2f, energy=%0.2f, "
+        "size=%0.2f, target_size=%0.2f, max_age=%0.2f, max_speed=%0.2f"
+    )
+    logger.debug(
+        msg,
+        phenotype.age,
+        initial_speed,
+        phenotype.speed,
+        phenotype.energy,
+        phenotype.size,
+        phenotype.target_size,
+        max_age,
+        max_speed,
+    )
     return phenotype
 
 
@@ -297,7 +314,15 @@ def create_genotype_from_values(genes: dict[Gene, float]) -> Genotype:
     return Genotype(genes=genes)
 
 
-def create_phenotype_from_values(config: BeansConfig, genotype: Genotype, age: float, speed: float, energy: float, size: float, target_size: float) -> Phenotype:
+def create_phenotype_from_values(
+    config: BeansConfig,
+    genotype: Genotype,
+    age: float,
+    speed: float,
+    energy: float,
+    size: float,
+    target_size: float,
+) -> Phenotype:
     """Create a phenotype instance with explicit values."""
     return Phenotype(age=age, speed=speed, energy=energy, size=size, target_size=target_size)
 
@@ -305,7 +330,7 @@ def create_phenotype_from_values(config: BeansConfig, genotype: Genotype, age: f
 # =============================================================================
 # Survival Checks (TODO)
 # =============================================================================
-#TODO MOve to survival check system
+# TODO MOve to survival check system
 def can_survive_size(size: float) -> bool:
     """Check if size allows survival."""
     raise NotImplementedError("Need to implement and use")

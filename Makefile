@@ -3,6 +3,9 @@
 # Force using Windows Command Prompt for make recipes so we match user environment
 SHELL := cmd.exe
 
+# Ensure running `make` with no target executes the full checks by default on Windows
+.DEFAULT_GOAL := all
+
 .PHONY: help install install-dev test lint format type-check clean build
 
 LOGGING_LEVEL ?= $(LOG_LEVEL)
@@ -39,7 +42,7 @@ ruff:  ## Run Ruff linter for log chevron enforcement
 	ruff check .
 
 lint:  ## Run flake8 linter
-	flake8 src/ tests/
+	flake8 --max-line-length=140 src/ tests/
 
 format:  ## Format code with black and isort
 	black src/ tests/

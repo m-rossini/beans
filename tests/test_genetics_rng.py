@@ -1,8 +1,15 @@
 import random
+
 import pytest
 
-from beans.genetics import create_random_genotype, create_phenotype, create_genotype_from_values, create_phenotype_from_values
-from beans.genetics import Genotype, Gene
+from beans.genetics import (
+    Gene,
+    Genotype,
+    create_genotype_from_values,
+    create_phenotype,
+    create_phenotype_from_values,
+    create_random_genotype,
+)
 from config.loader import BeansConfig
 
 

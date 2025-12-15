@@ -3,6 +3,8 @@ import logging
 import os
 import tempfile
 
+import pytest
+
 from config.loader import DEFAULT_BEANS_CONFIG, load_config
 
 logger = logging.getLogger(__name__)
@@ -16,22 +18,22 @@ def test_load_config_with_valid_file():
             "female_sprite_color": "pink",
             "male_female_ratio": 1.0,
             "population_density": 0.5,
-            "placement_strategy": "random"
+            "placement_strategy": "random",
         },
         "beans": {
             "speed_min": -5,
             "speed_max": 5,
             "initial_bean_size": 10,
             "male_bean_color": "navy",
-            "female_bean_color": "magenta"
-        }
+            "female_bean_color": "magenta",
+        },
     }
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
 
     try:
-        world_config, beans_config = load_config(temp_file)
+        world_config, beans_config, env_config = load_config(temp_file)
         assert world_config.male_sprite_color == "blue"
         assert world_config.female_sprite_color == "pink"
         assert world_config.male_female_ratio == 1.0
@@ -48,33 +50,30 @@ def test_load_config_with_valid_file():
         os.unlink(temp_file)
 
 
-
 def test_load_config_invalid_values_raise():
     # Negative width should raise
-    config_data = {"world": {"width": -10, "height": 100, "sprite_bean_size": 5, "male_female_ratio": 1.0, "population_density": 0.1, "placement_strategy": "random"}, "beans": {}}
+    config_data = {
+        "world": {
+            "width": -10,
+            "height": 100,
+            "sprite_bean_size": 5,
+            "male_female_ratio": 1.0,
+            "population_density": 0.1,
+            "placement_strategy": "random",
+        },
+        "beans": {},
+    }
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
         os.unlink(temp_file)
 
 
-def test_load_config_beans_invalid_speed_zero_raises():
-    # speed_min or speed_max zero should raise
-    config_data = {"world": {}, "beans": {"speed_min": 0, "speed_max": 5}}
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        json.dump(config_data, f)
-        temp_file = f.name
-    try:
-        import pytest
-        with pytest.raises(ValueError):
-            load_config(temp_file)
-    finally:
-        os.unlink(temp_file)
+# Duplicate test for zero speed values removed; comprehensive checks exist later.
 
 
 def test_load_config_world_invalid_height_raises():
@@ -84,7 +83,6 @@ def test_load_config_world_invalid_height_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -98,7 +96,6 @@ def test_load_config_beans_invalid_initial_bean_size_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -112,7 +109,6 @@ def test_load_config_world_invalid_population_density_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -126,7 +122,6 @@ def test_load_config_world_invalid_male_female_ratio_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -140,7 +135,6 @@ def test_load_config_beans_invalid_initial_energy_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -154,7 +148,6 @@ def test_load_config_beans_invalid_energy_gain_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -168,7 +161,6 @@ def test_load_config_beans_invalid_energy_cost_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -182,7 +174,6 @@ def test_load_config_beans_invalid_speed_zero_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -194,7 +185,6 @@ def test_load_config_beans_invalid_speed_zero_raises():
         json.dump(config_data, f)
         temp_file = f.name
     try:
-        import pytest
         with pytest.raises(ValueError):
             load_config(temp_file)
     finally:
@@ -247,4 +237,3 @@ class TestEnergySystemConfigFields:
     def test_beans_config_has_size_penalty_min_below(self):
         """BeansConfig should have size_penalty_min_below with default 0.4."""
         assert DEFAULT_BEANS_CONFIG.size_penalty_min_below == 0.4
-

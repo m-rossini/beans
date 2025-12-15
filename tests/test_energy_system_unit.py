@@ -5,6 +5,7 @@ from config.loader import BeansConfig
 
 # Minimal helpers copied from existing tests for deterministic creation
 
+
 def make_test_config():
     return BeansConfig(
         speed_min=-5,
@@ -28,7 +29,13 @@ def make_test_config():
     )
 
 
-def make_bean_with_genes(config: BeansConfig, *, energy: float | None = None, size: float = 10.0, speed: float = 3.0):
+def make_bean_with_genes(
+    config: BeansConfig,
+    *,
+    energy: float | None = None,
+    size: float = 10.0,
+    speed: float = 3.0,
+):
     """Create a bean deterministically using explicit genotype and phenotype values.
 
     Uses `create_phenotype_from_values` to avoid RNG-based variations and ensure
@@ -43,7 +50,15 @@ def make_bean_with_genes(config: BeansConfig, *, energy: float | None = None, si
     genotype = Genotype(genes=genes)
     # Determine deterministic energy value
     energy_val = energy if energy is not None else config.initial_energy
-    phenotype = create_phenotype_from_values(config, genotype, age=0.0, speed=float(speed), energy=float(energy_val), size=float(size), target_size=float(size))
+    phenotype = create_phenotype_from_values(
+        config,
+        genotype,
+        age=0.0,
+        speed=float(speed),
+        energy=float(energy_val),
+        size=float(size),
+        target_size=float(size),
+    )
     bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     return bean
 

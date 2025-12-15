@@ -2,6 +2,7 @@
   "world": {
     "width": 800,
     "height": 600,
+    "environment": "default",
     "population_density": 0.1,
     "male_female_ratio": 1.0,
     "placement_strategy": "random",
@@ -48,5 +49,22 @@
     "collision_damage_size_exponent": 1.0,
     "collision_damage_sex_factors": [1.05, 1.0],
     "min_speed_factor": 0.07
+  },
+  "environment": {
+    "cell_size": 20,
+    "food_density": 0.01,
+    "hazard_density": 0.002,
+    "food_spawn_rate_per_round": 0.5,
+    "hazard_spawn_rate_per_round": 0.05,
+    "decomposition_rounds": 5,
+    "decomposition_fraction_to_food": 0.6,
+    "temp_min": 0.0,
+    "temp_max": 100.0,
+    "temperature_diffusion_rate": 0.1,
+    "temperature_migration_vector": [0.1, 0.0],
+    "temperature_variability": 0.5,
+    "temp_to_food_factor": 0.25,
+    "temp_to_metabolic_penalty": 0.02,
+    "hazard_decay_rate_per_hit": 1.0
   }
 }

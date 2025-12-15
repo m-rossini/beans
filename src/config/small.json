@@ -2,6 +2,7 @@
   "world": {
     "width": 400,
     "height": 300,
+    "environment": "default",
     "population_density": 0.005,
     "male_female_ratio": 1.0,
     "placement_strategy": "random",
@@ -10,8 +11,8 @@
     "male_sprite_color": "blue",
     "female_sprite_color": "red",
     "background_color": "WHITE",
-    "max_age_years": 10,
-    "rounds_per_year": 5,
+    "max_age_years": 50,
+    "rounds_per_year": 12,
     "seed": null
   },
   "beans": {
@@ -48,5 +49,22 @@
     "collision_damage_size_exponent": 1.0,
     "collision_damage_sex_factors": [1.05, 1.0],
     "min_speed_factor": 0.07
+  },
+  "environment": {
+    "cell_size": 20,
+    "food_density": 0.001,
+    "hazard_density": 0.0005,
+    "food_spawn_rate_per_round": 0.1,
+    "hazard_spawn_rate_per_round": 0.01,
+    "decomposition_rounds": 3,
+    "decomposition_fraction_to_food": 0.5,
+    "temp_min": 0.0,
+    "temp_max": 100.0,
+    "temperature_diffusion_rate": 0.05,
+    "temperature_migration_vector": [0.0, 0.0],
+    "temperature_variability": 0.0,
+    "temp_to_food_factor": 0.2,
+    "temp_to_metabolic_penalty": 0.01,
+    "hazard_decay_rate_per_hit": 1.0
   }
 }

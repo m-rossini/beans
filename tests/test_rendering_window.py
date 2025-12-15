@@ -8,23 +8,40 @@ import logging
 
 import arcade
 
-from beans.dynamics.bean_dynamics import BeanDynamics
 from beans.bean import Bean
+from beans.dynamics.bean_dynamics import BeanDynamics
 from beans.genetics import create_phenotype_from_values
 from beans.placement import RandomPlacementStrategy
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
+from rendering.window import WorldWindow
 from reporting.report import SimulationReport
 
 logger = logging.getLogger(__name__)
 
+
 def test_sprite_position_updates_on_movement(monkeypatch):
     """TDD: Ensure WorldWindow.on_update updates sprite positions after movement."""
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=10, speed_max=10, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.1,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=10,
+        speed_max=10,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     sprite = win.bean_sprites[0]
     # Patch bean_dynamics to use the test bean's genotype and max_age
@@ -35,8 +52,15 @@ def test_sprite_position_updates_on_movement(monkeypatch):
     sprite.direction = 0.0  # Move right
     # Avoid touching private phenotype; assign a bean with the desired speed
     b = sprite.bean
-    from beans.genetics import create_phenotype_from_values
-    new_ph = create_phenotype_from_values(b.beans_config, b.genotype, age=0.0, speed=10.0, energy=b.energy, size=b.size, target_size=b.size)
+    new_ph = create_phenotype_from_values(
+        b.beans_config,
+        b.genotype,
+        age=0.0,
+        speed=10.0,
+        energy=b.energy,
+        size=b.size,
+        target_size=b.size,
+    )
     new_bean = Bean(config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph)
     sprite.bean = new_bean
     # Ensure world also uses the updated bean instance so movement is applied
@@ -48,13 +72,29 @@ def test_sprite_position_updates_on_movement(monkeypatch):
     # Assert position has changed after movement
     assert sprite.center_x != initial_x or sprite.center_y != initial_y
 
+
 def test_sprite_creation_initialization(monkeypatch):
     """TDD: Ensure WorldWindow creates sprites for all beans with correct attributes."""
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=0.5, width=100, height=100, population_density=0.2, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=1, speed_max=2, max_age_rounds=10, initial_bean_size=5, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=0.5,
+        width=100,
+        height=100,
+        population_density=0.2,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=1,
+        speed_max=2,
+        max_age_rounds=10,
+        initial_bean_size=5,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     # Assert sprite count matches bean count
     assert len(win.bean_sprites) == len(world.beans)
@@ -76,29 +116,65 @@ def _fake_arcade_init(self, width, height, title):
     self._event_queue = []
     self._enable_event_queue = False
     self._allow_dispatch_event = True
-    self.set_size = lambda w, h: (setattr(self, "_width", w), setattr(self, "_height", h))
+    self.set_size = lambda w, h: (
+        setattr(self, "_width", w),
+        setattr(self, "_height", h),
+    )
     self.get_size = lambda: (self._width, self._height)
 
+
 def test_world_window_esc_closes(monkeypatch):
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.1,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=-5,
+        speed_max=5,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
 
     closed = {"called": False}
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     monkeypatch.setattr(arcade, "close_window", lambda: closed.update({"called": True}), raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     win.on_key_press(arcade.key.ESCAPE, 0)
     assert closed["called"] is True
 
 
 def test_world_window_calls_placement(monkeypatch):
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.1,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=-5,
+        speed_max=5,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
 
     called = {"count": 0}
+
     class SpyPlacement(RandomPlacementStrategy):
         def place(self, count, width, height, size):
             called["count"] += 1
@@ -116,19 +192,33 @@ def test_world_window_calls_placement(monkeypatch):
 
     world.placement_strategy = SpyPlacement()
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     assert called["count"] == 1
     assert len(win.bean_sprites) == len(world.beans)
 
 
 def test_world_window_sprite_colors(monkeypatch):
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="green", female_bean_color="yellow")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.1,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=-5,
+        speed_max=5,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="green",
+        female_bean_color="yellow",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
 
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     for sprite in win.bean_sprites:
         if sprite.bean.is_male:
@@ -141,13 +231,30 @@ def test_world_window_sprite_colors(monkeypatch):
 
 
 def test_world_window_reports_when_empty(monkeypatch):
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.0,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=-5,
+        speed_max=5,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
 
     class SpyReporter(SimulationReport):
         def __init__(self) -> None:
             self.called = 0
+
         def generate(self, world_config, beans_config, world_arg, window_arg):
             self.called += 1
 
@@ -156,7 +263,6 @@ def test_world_window_reports_when_empty(monkeypatch):
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     closed = {"called": False}
     monkeypatch.setattr(arcade, "close_window", lambda: closed.update({"called": True}), raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world, reporters=[reporter])
     win.on_update(0)
     assert win._prompt_active
@@ -165,18 +271,35 @@ def test_world_window_reports_when_empty(monkeypatch):
 
 
 def test_world_window_pauses_when_empty(monkeypatch):
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.0, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.0,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=-5,
+        speed_max=5,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
     world.beans = []
 
     step_calls = {"count": 0}
+
     def spy_step(dt: float):
         step_calls["count"] += 1
+
     world.step = spy_step
 
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     win.on_update(0)
 
@@ -186,12 +309,27 @@ def test_world_window_pauses_when_empty(monkeypatch):
 
 
 def test_window_bounce_deducts_energy(monkeypatch):
-    cfg = WorldConfig(male_sprite_color="blue", female_sprite_color="red", male_female_ratio=1.0, width=200, height=150, population_density=0.1, placement_strategy="random")
-    bcfg = BeansConfig(speed_min=1.0, speed_max=200.0, max_age_rounds=100, initial_bean_size=10, male_bean_color="blue", female_bean_color="red")
-    world = World(cfg, bcfg)
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=200,
+        height=150,
+        population_density=0.1,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=1.0,
+        speed_max=200.0,
+        max_age_rounds=100,
+        initial_bean_size=10,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig()
+    world = World(cfg, bcfg, env_config=env_cfg)
 
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    from rendering.window import WorldWindow
     win = WorldWindow(world)
     sprite = win.bean_sprites[0]
     # Patch bean_dynamics to use the test bean's genotype and max_age
@@ -202,7 +340,15 @@ def test_window_bounce_deducts_energy(monkeypatch):
     sprite.direction = 0.0
     # Avoid mutating private phenotype - replace bean on the sprite
     b = sprite.bean
-    new_ph = create_phenotype_from_values(b.beans_config, b.genotype, age=0.0, speed=50.0, energy=b.energy, size=b.size, target_size=b.size)
+    new_ph = create_phenotype_from_values(
+        b.beans_config,
+        b.genotype,
+        age=0.0,
+        speed=50.0,
+        energy=b.energy,
+        size=b.size,
+        target_size=b.size,
+    )
     new_b = Bean(config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph)
     sprite.bean = new_b
     for i, wb in enumerate(world.beans):

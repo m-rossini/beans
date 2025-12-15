@@ -6,19 +6,21 @@ from beans.bean import Bean, Sex
 from beans.genetics import Gene, Genotype, Phenotype, age_energy_efficiency
 from beans.survival import DefaultSurvivalChecker
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
 def sample_genotype() -> Genotype:
-    return Genotype(genes={
-        Gene.METABOLISM_SPEED: 0.5,
-        Gene.MAX_GENETIC_SPEED: 0.5,
-        Gene.FAT_ACCUMULATION: 0.5,
-        Gene.MAX_GENETIC_AGE: 0.5,
-    })
+    return Genotype(
+        genes={
+            Gene.METABOLISM_SPEED: 0.5,
+            Gene.MAX_GENETIC_SPEED: 0.5,
+            Gene.FAT_ACCUMULATION: 0.5,
+            Gene.MAX_GENETIC_AGE: 0.5,
+        }
+    )
 
 
 @pytest.fixture
@@ -45,7 +47,13 @@ class TestBeanSurvival:
         """Bean can survive when age is below genetic max age."""
         cfg = make_beans_config()
         phenotype = Phenotype(age=10.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is True
 
@@ -54,7 +62,13 @@ class TestBeanSurvival:
         cfg = make_beans_config()
         # Gene value 0.5 means max age = 100 * 0.5 = 50 rounds
         phenotype = Phenotype(age=50.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is False
         assert result.reason == "max_age_reached"
@@ -63,7 +77,13 @@ class TestBeanSurvival:
         """Bean cannot survive when age exceeds genetic max age."""
         cfg = make_beans_config()
         phenotype = Phenotype(age=60.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is False
         assert result.reason == "max_age_reached"
@@ -72,7 +92,13 @@ class TestBeanSurvival:
         """survive() returns True when bean has energy and is young enough."""
         cfg = make_beans_config()
         phenotype = Phenotype(age=10.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is True
         assert result.reason is None
@@ -81,7 +107,13 @@ class TestBeanSurvival:
         """survive() returns False with reason when bean exceeds max age."""
         cfg = make_beans_config()
         phenotype = Phenotype(age=60.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is False
         assert result.reason == "max_age_reached"
@@ -90,7 +122,13 @@ class TestBeanSurvival:
         """When energy is depleted but bean still has fat, survival checker draws on fat and bean survives."""
         cfg = make_beans_config()
         phenotype = Phenotype(age=10.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is True
         assert result.message is not None
@@ -100,7 +138,13 @@ class TestBeanSurvival:
         """When both conditions fail, age death reason takes priority."""
         cfg = make_beans_config()
         phenotype = Phenotype(age=60.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
-        bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
+        bean = Bean(
+            config=cfg,
+            id=1,
+            sex=Sex.MALE,
+            genotype=sample_genotype,
+            phenotype=phenotype,
+        )
         result = DefaultSurvivalChecker(cfg).check(bean)
         assert result.alive is False
         assert result.reason == "max_age_reached"
@@ -127,7 +171,7 @@ class TestAgeEnergyEfficiency:
         cfg = make_beans_config(min_energy_efficiency=0.3)
         efficiency = age_energy_efficiency(age=95.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
         assert efficiency >= 0.3  # Never below floor
-        assert efficiency < 1.0   # But reduced from peak
+        assert efficiency < 1.0  # But reduced from peak
 
     def test_efficiency_never_below_minimum(self, sample_genotype):
         """Efficiency never falls below min_energy_efficiency."""
@@ -154,7 +198,8 @@ def test_world_records_dead_bean_with_reason():
         energy_cost_per_speed=10.0,  # high cost to ensure death
         initial_bean_size=5,
     )
-    world = World(config=world_cfg, beans_config=beans_cfg)
+    env_cfg = EnvironmentConfig()
+    world = World(config=world_cfg, beans_config=beans_cfg, env_config=env_cfg)
     for _ in range(10):
         world.step(dt=1.0)
 

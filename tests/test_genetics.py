@@ -15,22 +15,33 @@ from config.loader import BeansConfig, load_config
 
 logger = logging.getLogger(__name__)
 
+
 def test_age_speed_factor_respects_min_speed(monkeypatch):
     """age_speed_factor should never return less than config min_speed_factor (now uses config)."""
+
     class DummyConfig:
         min_speed_factor = 0.07
+
     min_speed = DummyConfig.min_speed_factor
     max_age = 100
     # Test for newborn (age=0) and very young (age=1)
     assert age_speed_factor(0, max_age, min_speed) >= min_speed
     assert age_speed_factor(1, max_age, min_speed) >= min_speed
 
+
 def test_beans_config_min_speed_factor_validation_loader(tmp_path):
     """Config loader should raise ValueError if min_speed_factor is out of [0,1]."""
     # Valid config
     valid = {
-        "world": {"width": 10, "height": 10, "population_density": 0.1, "male_female_ratio": 1.0, "max_age_years": 1, "rounds_per_year": 1},
-        "beans": {"speed_min": -5, "speed_max": 5, "min_speed_factor": 0.0}
+        "world": {
+            "width": 10,
+            "height": 10,
+            "population_density": 0.1,
+            "male_female_ratio": 1.0,
+            "max_age_years": 1,
+            "rounds_per_year": 1,
+        },
+        "beans": {"speed_min": -5, "speed_max": 5, "min_speed_factor": 0.0},
     }
     path = tmp_path / "valid.json"
     path.write_text(json.dumps(valid))
@@ -50,9 +61,11 @@ def test_beans_config_min_speed_factor_validation_loader(tmp_path):
     with pytest.raises(ValueError):
         load_config(str(path_high))
 
+
 @pytest.fixture
 def beans_config():
     return BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=1200, initial_bean_size=10)
+
 
 class TestApplyAgeGeneCurve:
     """Tests for the logarithmic age gene curve transformation."""
@@ -77,30 +90,36 @@ class TestApplyAgeGeneCurve:
         for i in range(len(values) - 1):
             assert values[i] < values[i + 1]
 
+
 class TestGeneticMaxAge:
     """Tests for genetic_max_age with pre-transformed gene values."""
 
     def test_gene_value_1_gives_max_age(self, beans_config):
         """Gene value 1.0 (pre-transformed) gives 100% of max_age_rounds."""
-        genotype = Genotype(genes={
-            Gene.METABOLISM_SPEED: 0.5,
-            Gene.MAX_GENETIC_SPEED: 0.5,
-            Gene.FAT_ACCUMULATION: 0.5,
-            Gene.MAX_GENETIC_AGE: 1.0,  # Already transformed
-        })
+        genotype = Genotype(
+            genes={
+                Gene.METABOLISM_SPEED: 0.5,
+                Gene.MAX_GENETIC_SPEED: 0.5,
+                Gene.FAT_ACCUMULATION: 0.5,
+                Gene.MAX_GENETIC_AGE: 1.0,  # Already transformed
+            }
+        )
         result = genetic_max_age(beans_config, genotype)
         assert result == beans_config.max_age_rounds
 
     def test_gene_value_minimum_gives_10_percent(self, beans_config):
         """Gene value 0.1 (minimum from curve) gives 10% of max_age_rounds."""
-        genotype = Genotype(genes={
-            Gene.METABOLISM_SPEED: 0.5,
-            Gene.MAX_GENETIC_SPEED: 0.5,
-            Gene.FAT_ACCUMULATION: 0.5,
-            Gene.MAX_GENETIC_AGE: 0.1,  # Minimum from apply_age_gene_curve(0.0)
-        })
+        genotype = Genotype(
+            genes={
+                Gene.METABOLISM_SPEED: 0.5,
+                Gene.MAX_GENETIC_SPEED: 0.5,
+                Gene.FAT_ACCUMULATION: 0.5,
+                Gene.MAX_GENETIC_AGE: 0.1,  # Minimum from apply_age_gene_curve(0.0)
+            }
+        )
         result = genetic_max_age(beans_config, genotype)
         assert result == beans_config.max_age_rounds * 0.1
+
 
 class TestCreateRandomGenotype:
     """Tests for create_random_genotype applying age curve."""

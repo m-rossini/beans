@@ -78,7 +78,7 @@ class SpaceAvailabilityValidator(PlacementValidator):
         bit_index = cell_index % 8
         byte_val = self.bitmap[byte_index]
         bit_was_set = (byte_val >> bit_index) & 1
-        self.bitmap[byte_index] |= (1 << bit_index)
+        self.bitmap[byte_index] |= 1 << bit_index
         if not bit_was_set:
             self.occupied_count += 1
         return bit_was_set
@@ -164,7 +164,9 @@ class PlacementStrategy:
         raise NotImplementedError()
 
     @staticmethod
-    def consecutive_failure_validator(threshold: int = 3) -> ConsecutiveFailureValidator:
+    def consecutive_failure_validator(
+        threshold: int = 3,
+    ) -> ConsecutiveFailureValidator:
         """Create a consecutive failure validator."""
         return ConsecutiveFailureValidator(threshold=threshold)
 
@@ -220,7 +222,8 @@ class RandomPlacementStrategy(PlacementStrategy):
         logger.info(f">>>> Generated {len(positions)} positions")
         return positions
 
-#TODO Implement strategy: GridPlacementStrategy
+
+# TODO Implement strategy: GridPlacementStrategy
 class GridPlacementStrategy(PlacementStrategy):
     def __init__(self) -> None:
         pass
@@ -229,7 +232,8 @@ class GridPlacementStrategy(PlacementStrategy):
         logger.info(f">>>> GridPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
         raise NotImplementedError("GridPlacementStrategy is not yet implemented.")
 
-#TODO Implement strategy: ClusteredPlacementStrategy
+
+# TODO Implement strategy: ClusteredPlacementStrategy
 class ClusteredPlacementStrategy(PlacementStrategy):
     def __init__(self) -> None:
         pass
@@ -237,6 +241,7 @@ class ClusteredPlacementStrategy(PlacementStrategy):
     def place(self, count: int, width: int, height: int, size: int) -> List[Tuple[float, float]]:
         logger.info(f">>>> ClusteredPlacementStrategy.place: count={count}, width={width}, height={height}, size={size}")
         raise NotImplementedError("ClusteredPlacementStrategy is not yet implemented.")
+
 
 def create_strategy_from_name(name: str) -> PlacementStrategy:
     """Return a placement strategy instance given a config name string."""

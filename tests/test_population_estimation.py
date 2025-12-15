@@ -8,7 +8,7 @@ from beans.population import (
     create_population_estimator_from_name,
 )
 from beans.world import World
-from config.loader import BeansConfig, WorldConfig
+from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,7 @@ logger = logging.getLogger(__name__)
         (500, 500, 10, 0.01, 1.0),
     ],
 )
-def test_density_population_estimates_total_counts(
-    width, height, sprite_size, population_density, male_female_ratio
-):
+def test_density_population_estimates_total_counts(width, height, sprite_size, population_density, male_female_ratio):
     estimator = DensityPopulationEstimator()
     male, female = estimator.estimate(
         width=width,
@@ -32,7 +30,7 @@ def test_density_population_estimates_total_counts(
         population_density=population_density,
         male_female_ratio=male_female_ratio,
     )
-    total = int(width * height * population_density / max(1, sprite_size ** 2))
+    total = int(width * height * population_density / max(1, sprite_size**2))
     assert male + female == total
     assert male == total // 2 or male == total - total // 2
 
@@ -54,14 +52,24 @@ def test_density_population_handles_unbalanced_ratios(ratio, expected_fraction):
         population_density=0.1,
         male_female_ratio=ratio,
     )
-    total = int(100 * 100 * 0.1 / (5 ** 2))
+    total = int(100 * 100 * 0.1 / (5**2))
     assert male + female == total
     assert abs(male - int(total * expected_fraction)) <= 1
 
 
 def test_population_estimator_factory_defaults_to_density():
     estimator = create_population_estimator_from_name("")
-    assert isinstance(estimator, DensityPopulationEstimator)
+    # default factory output should match a direct DensityPopulationEstimator
+    params = dict(
+        width=100,
+        height=100,
+        sprite_size=5,
+        population_density=0.1,
+        male_female_ratio=1.0,
+    )
+    male_e, female_e = estimator.estimate(**params)
+    male_d, female_d = DensityPopulationEstimator().estimate(**params)
+    assert male_e == male_d and female_e == female_d
 
 
 def test_world_initialization_respects_density_and_ratio():
@@ -75,7 +83,7 @@ def test_world_initialization_respects_density_and_ratio():
         placement_strategy="random",
     )
     bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
-    world = World(config=cfg, beans_config=bcfg)
+    world = World(config=cfg, beans_config=bcfg, env_config=EnvironmentConfig())
     total = 4
     assert len(world.beans) == total
     male_count = sum(1 for bean in world.beans if bean.is_male)
@@ -87,7 +95,13 @@ def test_world_initialization_respects_density_and_ratio():
 def test_soft_log_estimator_never_exceeds_density():
     density = DensityPopulationEstimator()
     soft_log = SoftLogPopulationEstimator()
-    params = dict(width=500, height=500, sprite_size=5, population_density=0.2, male_female_ratio=1.0)
+    params = dict(
+        width=500,
+        height=500,
+        sprite_size=5,
+        population_density=0.2,
+        male_female_ratio=1.0,
+    )
     male_d, female_d = density.estimate(**params)
     male_s, female_s = soft_log.estimate(**params)
 
@@ -98,7 +112,13 @@ def test_soft_log_estimator_never_exceeds_density():
 def test_soft_log_estimator_reaches_density_maximum():
     density = DensityPopulationEstimator()
     soft_log = SoftLogPopulationEstimator()
-    params = dict(width=5000, height=5000, sprite_size=1, population_density=1.0, male_female_ratio=2.0)
+    params = dict(
+        width=5000,
+        height=5000,
+        sprite_size=1,
+        population_density=1.0,
+        male_female_ratio=2.0,
+    )
     male_d, female_d = density.estimate(**params)
     male_s, female_s = soft_log.estimate(**params)
 
@@ -107,15 +127,43 @@ def test_soft_log_estimator_reaches_density_maximum():
 
 def test_population_estimator_factory_soft_log():
     estimator = create_population_estimator_from_name("soft_log")
-    assert isinstance(estimator, SoftLogPopulationEstimator)
+    # 'soft_log' factory output should match a direct SoftLogPopulationEstimator
+    params = dict(
+        width=500,
+        height=500,
+        sprite_size=5,
+        population_density=0.2,
+        male_female_ratio=1.0,
+    )
+    male_e, female_e = estimator.estimate(**params)
+    male_s, female_s = SoftLogPopulationEstimator().estimate(**params)
+    assert male_e == male_s and female_e == female_s
 
 
 @pytest.mark.parametrize(
     "params",
     [
-        dict(width=0, height=100, sprite_size=5, population_density=1.0, male_female_ratio=1.0),
-        dict(width=100, height=100, sprite_size=5, population_density=0.0, male_female_ratio=1.0),
-        dict(width=100, height=100, sprite_size=1000, population_density=0.0001, male_female_ratio=1.0),
+        dict(
+            width=0,
+            height=100,
+            sprite_size=5,
+            population_density=1.0,
+            male_female_ratio=1.0,
+        ),
+        dict(
+            width=100,
+            height=100,
+            sprite_size=5,
+            population_density=0.0,
+            male_female_ratio=1.0,
+        ),
+        dict(
+            width=100,
+            height=100,
+            sprite_size=1000,
+            population_density=0.0001,
+            male_female_ratio=1.0,
+        ),
     ],
 )
 def test_soft_log_estimator_handles_zero_capacity(params):

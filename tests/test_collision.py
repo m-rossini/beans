@@ -11,7 +11,14 @@ from src.rendering.movement import SpriteMovementSystem
 
 # Helper functions
 
-def make_bean_and_sprite(size: float = 10.0, speed: float = 0.0, sex: Sex = Sex.MALE, beans_config=None, id: int = 1) -> Tuple[Bean, BeanSprite]:
+
+def make_bean_and_sprite(
+    size: float = 10.0,
+    speed: float = 0.0,
+    sex: Sex = Sex.MALE,
+    beans_config=None,
+    id: int = 1,
+) -> Tuple[Bean, BeanSprite]:
     if beans_config is None:
         # Use default beans config for tests when no config provided
         beans_config = DEFAULT_BEANS_CONFIG
@@ -44,7 +51,13 @@ def movement_system() -> SpriteMovementSystem:
     return SpriteMovementSystem()
 
 
-def run_frame_for_sprites(movement: SpriteMovementSystem, sprites: List[BeanSprite], width: int = 500, height: int = 500, delta_time: float = 1.0) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
+def run_frame_for_sprites(
+    movement: SpriteMovementSystem,
+    sprites: List[BeanSprite],
+    width: int = 500,
+    height: int = 500,
+    delta_time: float = 1.0,
+) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
     # Collect targets from move_sprite
     targets = []
     for s in sprites:
