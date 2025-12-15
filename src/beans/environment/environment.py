@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 
 from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
-from .food_manager import FoodManager
-
 
 class Environment(ABC):
     """Abstract Environment interface.
@@ -36,19 +34,13 @@ class DefaultEnvironment(Environment):
         self,
         env_config: EnvironmentConfig,
         beans_config: BeansConfig,
-        world_config: "WorldConfig",
+        world_config: WorldConfig,
     ) -> None:
         self._env_config = env_config
         self._beans_config = beans_config
-        # Create the food manager for this environment.
-        self.food_manager = FoodManager(
-            env_config, world_config.width, world_config.height
-        )
 
     def step(self) -> None:
-        # Delegate to the food manager (required).
-        self.food_manager.step()
-        return None
+        pass
 
     def get_energy_intake(self) -> float:
         return self._beans_config.energy_gain_per_step

@@ -62,9 +62,7 @@ def make_bean_with_genes(
         size=float(size),
         target_size=float(size),
     )
-    bean = Bean(
-        config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype
-    )
+    bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     return bean
 
 
@@ -145,9 +143,7 @@ def test_survival_health_and_starvation():
     )
     # energy_system is not required for this survival test; remove unused variable
     genotype = create_random_genotype()
-    phenotype = create_phenotype_from_values(
-        config, genotype, age=0.0, speed=0.0, energy=100.0, size=10.0, target_size=10.0
-    )
+    phenotype = create_phenotype_from_values(config, genotype, age=0.0, speed=0.0, energy=100.0, size=10.0, target_size=10.0)
     phenotype.size = 30.0  # Obese
     # Create bean already at zero energy to test immediate starvation behavior
     bean = Bean(

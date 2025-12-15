@@ -41,6 +41,7 @@
     "size_penalty_min_below": 0.4,
     "pixels_per_unit_speed": 1.0,
     "energy_loss_on_bounce": 2.0,
+    "enable_obesity_death": true,
     "collision_enable": true,
     "collision_base_damage": 5.0,
     "collision_damage_speed_factor": 0.05,

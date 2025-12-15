@@ -23,6 +23,4 @@ def test_bean_speed_nonzero_after_5_rounds():
         world.step(1.0)
     assert len(world.beans) > 0, "All beans died before round 5."
     for bean in world.beans:
-        assert (
-            bean.speed != 0
-        ), f"Bean {bean.id} speed is still zero after 5 rounds: {bean.speed}"
+        assert bean.speed != 0, f"Bean {bean.id} speed is still zero after 5 rounds: {bean.speed}"

@@ -43,25 +43,11 @@ class World:
         self.max_age_years = config.max_age_years
         self.rounds_per_year = config.rounds_per_year
         self.max_age_rounds = self.max_age_years * self.rounds_per_year
-        self.placement_strategy = create_strategy_from_name(
-            self.world_config.placement_strategy
-        )
-        self.population_estimator: PopulationEstimator = (
-            create_population_estimator_from_name(
-                self.world_config.population_estimator
-            )
-        )
-        self.energy_system: EnergySystem = create_energy_system_from_name(
-            self.world_config.energy_system, beans_config
-        )
-        self.environment = create_environment_from_name(
-            self.world_config.environment, env_config, beans_config, self.world_config
-        )
-        self._rng = (
-            random.Random(self.world_config.seed)
-            if self.world_config.seed is not None
-            else None
-        )
+        self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
+        self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
+        self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
+        self.environment = create_environment_from_name(self.world_config.environment, env_config, beans_config, self.world_config)
+        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.bean_dynamics = BeanDynamics(beans_config)
@@ -92,9 +78,7 @@ class World:
 
         return beans
 
-    def _create_beans(
-        self, beans_config: BeansConfig, bean_context: BeanContext
-    ) -> List[Bean]:
+    def _create_beans(self, beans_config: BeansConfig, bean_context: BeanContext) -> List[Bean]:
         beans = []
         for i in range(bean_context.bean_count):
             genotype = create_random_genotype(rng=bean_context.rng)
@@ -138,20 +122,14 @@ class World:
 
         self.beans = survivors
         if deaths_this_step > 0:
-            logger.debug(
-                f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived"
-            )
+            logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
 
         self.round += 1
 
     def _update_bean(self, bean: Bean) -> BeanState:
-        bean_state = self.energy_system.apply_energy_system(
-            bean, self.get_energy_intake()
-        )
+        bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
 
-        speed = self.bean_dynamics.calculate_speed(
-            bean_state, bean.genotype, bean._max_age
-        )
+        speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
         bean_state.store(speed=speed)
 
         age = bean.age_bean()

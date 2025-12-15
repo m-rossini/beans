@@ -101,9 +101,7 @@ def test_horizontal_bounce_reflects_and_energy_loss(bean):
     sprite.center_x = 790.0
     sprite.center_y = 300.0
     # set radius so it's near boundary; bean.size is 10 -> radius 5
-    local_ph = Phenotype(
-        age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size
-    )
+    local_ph = Phenotype(age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size)
     local_bean = Bean(
         config=bean.beans_config,
         id=bean.id,
@@ -121,10 +119,7 @@ def test_horizontal_bounce_reflects_and_energy_loss(bean):
     assert sprite.direction == 180.0
     # Energy deduction must happen via DTO; ensure energy was reduced accordingly
     # Ensure the bean attached to the sprite loses energy after bounce
-    assert (
-        sprite.bean.energy
-        == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
-    )
+    assert sprite.bean.energy == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
 
 
 def test_vertical_bounce_reflects_and_energy_loss(bean):
@@ -132,9 +127,7 @@ def test_vertical_bounce_reflects_and_energy_loss(bean):
     sprite.direction = 90.0
     sprite.center_x = 400.0
     sprite.center_y = 595.0
-    local_ph = Phenotype(
-        age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size
-    )
+    local_ph = Phenotype(age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size)
     local_bean = Bean(
         config=bean.beans_config,
         id=bean.id,
@@ -148,10 +141,7 @@ def test_vertical_bounce_reflects_and_energy_loss(bean):
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     assert collisions >= 1
     assert sprite.direction == 270.0
-    assert (
-        sprite.bean.energy
-        == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
-    )
+    assert sprite.bean.energy == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
 
 
 def test_corner_bounce_reflects_and_energy_loss(bean):
@@ -159,9 +149,7 @@ def test_corner_bounce_reflects_and_energy_loss(bean):
     sprite.direction = 45.0
     sprite.center_x = 795.0
     sprite.center_y = 595.0
-    local_ph = Phenotype(
-        age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size
-    )
+    local_ph = Phenotype(age=bean.age, speed=20.0, energy=bean.energy, size=10.0, target_size=bean.size)
     local_bean = Bean(
         config=bean.beans_config,
         id=bean.id,
@@ -175,10 +163,7 @@ def test_corner_bounce_reflects_and_energy_loss(bean):
     new_x, new_y, collisions = mover.move_sprite(sprite, 800, 600)
     assert collisions >= 2
     assert sprite.direction == 225.0
-    assert (
-        sprite.bean.energy
-        == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
-    )
+    assert sprite.bean.energy == initial_energy - collisions * sprite.bean.beans_config.energy_loss_on_bounce
 
 
 def test_visual_interpolation(bean):
@@ -186,9 +171,7 @@ def test_visual_interpolation(bean):
     sprite.direction = 0.0
     sprite.center_x = 100.0
     sprite.center_y = 200.0
-    local_ph = Phenotype(
-        age=bean.age, speed=50.0, energy=bean.energy, size=10.0, target_size=bean.size
-    )
+    local_ph = Phenotype(age=bean.age, speed=50.0, energy=bean.energy, size=10.0, target_size=bean.size)
     local_bean = Bean(
         config=bean.beans_config,
         id=bean.id,

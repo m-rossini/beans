@@ -16,9 +16,7 @@ from src.beans.dynamics.bean_dynamics import BeanDynamics
 
 def test_bean_dynamics_speed_calculation():
     config = BeansConfig(speed_min=0.1, speed_max=1.0, min_speed_factor=0.2)
-    bean_state = BeanState(
-        id=1, age=5, speed=1.0, energy=10.0, size=10.0, target_size=10.0, alive=True
-    )
+    bean_state = BeanState(id=1, age=5, speed=1.0, energy=10.0, size=10.0, target_size=10.0, alive=True)
     # Provide dummy genotype and max_age for calculation
     genes = {
         Gene.METABOLISM_SPEED: 1.0,
@@ -33,9 +31,7 @@ def test_bean_dynamics_speed_calculation():
     # Expected: vmax * age_factor * size_penalty, all factors = 1.0 except min_speed_factor
     # For age=5, max_age=100, min_speed_factor=0.2, vmax=1.0, size_penalty=1.0
     expected_age_factor = age_speed_factor(5, dummy_max_age, config.min_speed_factor)
-    expected_speed = max(
-        config.min_speed_factor, config.speed_max * expected_age_factor * 1.0
-    )
+    expected_speed = max(config.min_speed_factor, config.speed_max * expected_age_factor * 1.0)
     assert speed == expected_speed
 
 
@@ -124,9 +120,7 @@ def test_bean_dynamics_size_speed_penalty_behaviour():
     This avoids calling private methods directly and verifies the effective
     speed penalty by observing the public `calculate_speed` output.
     """
-    cfg = BeansConfig(
-        speed_min=0.0, speed_max=1.0, min_speed_factor=0.0, initial_bean_size=10
-    )
+    cfg = BeansConfig(speed_min=0.0, speed_max=1.0, min_speed_factor=0.0, initial_bean_size=10)
     bd = BeanDynamics(cfg)
 
     # deterministic genotype and max age to ensure stable calculations
@@ -140,9 +134,7 @@ def test_bean_dynamics_size_speed_penalty_behaviour():
     dummy_max_age = 100
 
     # size equal to target -> baseline speed
-    state = BeanState(
-        id=1, age=5, speed=0.0, energy=10.0, size=10.0, target_size=10.0, alive=True
-    )
+    state = BeanState(id=1, age=5, speed=0.0, energy=10.0, size=10.0, target_size=10.0, alive=True)
     speed_target = bd.calculate_speed(state, genotype, dummy_max_age)
     assert speed_target > 0.0
 

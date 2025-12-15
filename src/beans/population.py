@@ -72,9 +72,7 @@ class SoftLogPopulationEstimator(PopulationEstimator):
         raw_total = area * population_density / per_bean_area
         capped_total = int(raw_total)
         if capped_total <= 0:
-            logger.info(
-                ">>>> SoftLogPopulationEstimator: capped_total <= 0, returning 0, 0"
-            )
+            logger.info(">>>> SoftLogPopulationEstimator: capped_total <= 0, returning 0, 0")
             return 0, 0
 
         log_value = math.log1p(raw_total)
@@ -115,7 +113,5 @@ def create_population_estimator_from_name(name: str) -> PopulationEstimator:
             logger.debug(">>>>> Creating SoftLogPopulationEstimator")
             return SoftLogPopulationEstimator()
         case _:
-            logger.debug(
-                f">>>>> Unknown estimator '{name}', defaulting to DensityPopulationEstimator"
-            )
+            logger.debug(f">>>>> Unknown estimator '{name}', defaulting to DensityPopulationEstimator")
             return DensityPopulationEstimator()

@@ -55,9 +55,7 @@ def test_create_phenotype_from_values_preserves_values():
     genes = {g: 0.5 for g in Gene}
     genotype = create_genotype_from_values(genes)
     cfg = BeansConfig(speed_min=0.1, speed_max=1.0, initial_bean_size=10)
-    ph = create_phenotype_from_values(
-        cfg, genotype, age=3.0, speed=0.5, energy=20.0, size=7.0, target_size=7.0
-    )
+    ph = create_phenotype_from_values(cfg, genotype, age=3.0, speed=0.5, energy=20.0, size=7.0, target_size=7.0)
     assert ph.age == 3.0
     assert ph.speed == 0.5
     assert ph.energy == 20.0

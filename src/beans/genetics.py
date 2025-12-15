@@ -55,9 +55,7 @@ def apply_age_gene_curve(raw_value: float) -> float:
     return min_fraction + (1 - min_fraction) * log_factor
 
 
-def age_speed_factor(
-    age: float, max_age: float, min_speed_factor: float = 0.0
-) -> float:
+def age_speed_factor(age: float, max_age: float, min_speed_factor: float = 0.0) -> float:
     """Calculate speed factor based on age lifecycle curve, with configurable minimum.
 
     Returns a value between min_speed_factor and 1 representing the speed multiplier
@@ -169,9 +167,7 @@ class Genotype(BaseModel):
                 raise ValueError(f"Missing gene: {gene.name}")
             value = v[gene]
             if not gene.min <= value <= gene.max:
-                raise ValueError(
-                    f"Gene {gene.name} value {value} out of range [{gene.min}, {gene.max}]"
-                )
+                raise ValueError(f"Gene {gene.name} value {value} out of range [{gene.min}, {gene.max}]")
         return v
 
     def to_compact_str(self) -> str:
@@ -266,15 +262,11 @@ def create_random_genotype(rng: Optional[random.Random] = None) -> Genotype:
             genes[gene] = raw_value
 
     genotype = Genotype(genes=genes)
-    logger.debug(
-        f">>>>> genetics::create_random_genotype: created genotype with genes={genes}"
-    )
+    logger.debug(f">>>>> genetics::create_random_genotype: created genotype with genes={genes}")
     return genotype
 
 
-def create_phenotype(
-    config: BeansConfig, genotype: Genotype, rng: Optional[random.Random] = None
-) -> Phenotype:
+def create_phenotype(config: BeansConfig, genotype: Genotype, rng: Optional[random.Random] = None) -> Phenotype:
     """Create initial phenotype from config and genotype.
 
     Newborn beans start with age=0 and speed=0 (since age_speed_factor(0) = 0).
@@ -290,12 +282,9 @@ def create_phenotype(
 
     phenotype = Phenotype(
         age=0.0,
-        speed=r.choice([-1, 1])
-        * initial_speed
-        * r.uniform(random_low_bound, random_high_bound),
+        speed=r.choice([-1, 1]) * initial_speed * r.uniform(random_low_bound, random_high_bound),
         energy=config.initial_energy * r.uniform(random_low_bound, random_high_bound),
-        size=float(config.initial_bean_size)
-        * r.uniform(random_low_bound, random_high_bound),
+        size=float(config.initial_bean_size) * r.uniform(random_low_bound, random_high_bound),
         target_size=size_target(0.0, genotype, config),
     )
     msg = (
@@ -335,9 +324,7 @@ def create_phenotype_from_values(
     target_size: float,
 ) -> Phenotype:
     """Create a phenotype instance with explicit values."""
-    return Phenotype(
-        age=age, speed=speed, energy=energy, size=size, target_size=target_size
-    )
+    return Phenotype(age=age, speed=speed, energy=energy, size=size, target_size=target_size)
 
 
 # =============================================================================

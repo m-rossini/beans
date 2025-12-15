@@ -19,9 +19,7 @@ def _color_from_name(name: str):
         logger.debug(f">>>>> _color_from_name: name={name} -> {color}")
         return color
     except Exception:
-        logger.debug(
-            f">>>>> _color_from_name: name={name} not found, defaulting to WHITE"
-        )
+        logger.debug(f">>>>> _color_from_name: name={name} not found, defaulting to WHITE")
         return arcade.color.WHITE
 
 
@@ -69,23 +67,14 @@ class WorldWindow(arcade.Window):
         )
         self._prompt_active = False
         self._paused = False
-        self._reporters: List[SimulationReport] = (
-            list(reporters) if reporters is not None else [ConsoleSimulationReport()]
-        )
+        self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
         self._help_active = False
 
     def _create_bean_sprites(self, positions) -> BeanSprite:
-        return [
-            self._create_sprite(bean, positions[i])
-            for i, bean in enumerate(self.world.beans)
-        ]
+        return [self._create_sprite(bean, positions[i]) for i, bean in enumerate(self.world.beans)]
 
     def _create_sprite(self, bean, position) -> BeanSprite:
-        color_str = (
-            self.world.beans_config.male_bean_color
-            if bean.is_male
-            else self.world.beans_config.female_bean_color
-        )
+        color_str = self.world.beans_config.male_bean_color if bean.is_male else self.world.beans_config.female_bean_color
         color = _color_from_name(color_str)
         return BeanSprite(bean, position, color)
 
@@ -118,9 +107,7 @@ class WorldWindow(arcade.Window):
         self.world.step(delta_time)
         self.title = f"{self.base_title} - round: {self.world.round}"
         old_count = len(self.bean_sprites)
-        self.bean_sprites = [
-            sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans
-        ]
+        self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
             logger.debug(
                 ">>>>> WorldWindow.on_update: %d sprites removed",
@@ -129,14 +116,10 @@ class WorldWindow(arcade.Window):
         # Collect target positions from movement system
         targets = []
         for sprite in self.bean_sprites:
-            tx, ty, _ = self._movement_system.move_sprite(
-                sprite, self.width, self.height
-            )
+            tx, ty, _ = self._movement_system.move_sprite(sprite, self.width, self.height)
             targets.append((sprite, tx, ty))
         # Resolve collisions and get adjusted positions
-        adjusted_targets, damage_report = self._movement_system.resolve_collisions(
-            targets, self.width, self.height
-        )
+        adjusted_targets, damage_report = self._movement_system.resolve_collisions(targets, self.width, self.height)
         # Update sprites with adjusted positions
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
@@ -181,9 +164,7 @@ class WorldWindow(arcade.Window):
         top = center_y + half_height
         overlay_color = self._overlay_color_for_background()
         arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, overlay_color)
-        arcade.draw_lrbt_rectangle_outline(
-            left, right, bottom, top, arcade.color.WHITE, border_width=2
-        )
+        arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, border_width=2)
         prompt_text = "No Alive Beans left."
         action_text = "Do you want a report? Y or N?"
         margin = max(24, overlay_width * 0.05)
@@ -219,9 +200,7 @@ class WorldWindow(arcade.Window):
 
     def _invoke_reports(self) -> None:
         for reporter in self._reporters:
-            reporter.generate(
-                self.world_config, self.world.beans_config, self.world, self
-            )
+            reporter.generate(self.world_config, self.world.beans_config, self.world, self)
 
     def _draw_help_overlay(self) -> None:
         overlay_width = self.width * 0.8
@@ -238,9 +217,7 @@ class WorldWindow(arcade.Window):
         top = center_y + half_height
         overlay_color = self._overlay_color_for_background()
         arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, overlay_color)
-        arcade.draw_lrbt_rectangle_outline(
-            left, right, bottom, top, arcade.color.WHITE, border_width=2
-        )
+        arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, border_width=2)
         title_text = "Help"
         help_lines = [
             "F1 - Toggle this help",

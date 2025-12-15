@@ -37,9 +37,7 @@ def test_random_placement_performance_small_config():
     elapsed_ms = (end_time - start_time) * 1000
 
     # Verify results
-    assert len(positions) >= int(
-        total_count * 0.9
-    ), f"Failed to place 90% of beans. Expected {total_count}, got {len(positions)}"
+    assert len(positions) >= int(total_count * 0.9), f"Failed to place 90% of beans. Expected {total_count}, got {len(positions)}"
 
     # Log performance metrics
     print("\nPlacement Performance (small.json config):")

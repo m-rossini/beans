@@ -34,9 +34,7 @@ class BeanState(BaseModel):
     def __setattr__(self, name, value):
         # Prevent id from being changed after initialization
         if name == "id" and "id" in self.__dict__:
-            raise AttributeError(
-                "id is read-only and cannot be modified after creation"
-            )
+            raise AttributeError("id is read-only and cannot be modified after creation")
         super().__setattr__(name, value)
 
     def store(
@@ -157,9 +155,7 @@ class Bean:
         are called by World, not by Bean itself.
         """
         if self._is_dead():
-            logger.warning(
-                f">>> Bean {self.id} update called on dead bean. No update performed."
-            )
+            logger.warning(f">>> Bean {self.id} update called on dead bean. No update performed.")
             return {"phenotype": self._phenotype.to_dict()}
 
         return self._phenotype.age + 1
@@ -185,14 +181,10 @@ class Bean:
 
         """
         if state.id != self.id:
-            raise ValueError(
-                f"BeanState id {state.id} does not match Bean id {self.id}"
-            )
+            raise ValueError(f"BeanState id {state.id} does not match Bean id {self.id}")
 
         if self._is_dead():
-            logger.warning(
-                f">>> Bean {self.id} update_from_state called on dead bean. No update performed."
-            )
+            logger.warning(f">>> Bean {self.id} update_from_state called on dead bean. No update performed.")
             return
 
         logger.debug(

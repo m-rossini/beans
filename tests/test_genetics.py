@@ -64,9 +64,7 @@ def test_beans_config_min_speed_factor_validation_loader(tmp_path):
 
 @pytest.fixture
 def beans_config():
-    return BeansConfig(
-        speed_min=-5, speed_max=5, max_age_rounds=1200, initial_bean_size=10
-    )
+    return BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=1200, initial_bean_size=10)
 
 
 class TestApplyAgeGeneCurve:

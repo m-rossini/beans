@@ -52,6 +52,13 @@ class DefaultSurvivalChecker(SurvivalChecker):
 
     def check(self, bean: Bean) -> SurvivalResult:
         config: BeansConfig = self.config
+        self.logger.debug(f">>>>> Survival.check: "
+                          f"bean={bean.id},"
+                          f" age={bean.age},"
+                          f"energy={bean.energy},"
+                          f"size={bean.size},"
+                          f"min_size={config.min_bean_size}"
+                          )
 
         if bean.age >= bean._max_age:
             return SurvivalResult(
@@ -83,20 +90,19 @@ class DefaultSurvivalChecker(SurvivalChecker):
                 message=f"Drew {depletion} fat due to starvation; new_size={new_size}",
             )
 
-        if config.enable_obesity_death:
-            threshold = config.max_bean_size * config.obesity_threshold_factor
-            if bean.size >= threshold:
-                rng = self.rng or random
-                prob = config.obesity_death_probability
-                self.logger.debug(
-                    f">>>>> Survival.check: obesity check bean={bean.id}, size={bean.size}, threshold={threshold}, prob={prob}"
+        threshold = config.max_bean_size * config.obesity_threshold_factor
+        if bean.size >= threshold:
+            rng = self.rng or random
+            prob = config.obesity_death_probability
+            self.logger.debug(
+                f">>>>> Survival.check: obesity check bean={bean.id}, size={bean.size}, threshold={threshold}, prob={prob}"
+            )
+            if rng.random() < prob:
+                return SurvivalResult(
+                    alive=False,
+                    reason="obesity",
+                    message="Probabilistic obesity death",
                 )
-                if rng.random() < prob:
-                    return SurvivalResult(
-                        alive=False,
-                        reason="obesity",
-                        message="Probabilistic obesity death",
-                    )
 
         return SurvivalResult(alive=True)
 
@@ -108,9 +114,7 @@ class SurvivalManager:
     scattering it in `World.step()`.
     """
 
-    def __init__(
-        self, config: BeansConfig, rng: Optional[random.Random] = None
-    ) -> None:
+    def __init__(self, config: BeansConfig, rng: Optional[random.Random] = None) -> None:
         self.config: BeansConfig = config
         self.rng: Optional[random.Random] = rng
         self.logger = logging.getLogger(__name__)
@@ -124,8 +128,6 @@ class SurvivalManager:
 
             result.bean = bean
             self.dead_beans.append(result)
-            self.logger.debug(
-                f">>>>> SurvivalManager: bean {bean.id} died: reason={result.reason}"
-            )
+            self.logger.debug(f">>>>> SurvivalManager: bean {bean.id} died: reason={result.reason}")
 
         return result

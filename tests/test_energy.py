@@ -36,9 +36,7 @@ def make_beans_config(**overrides) -> BeansConfig:
 def test_bean_initial_energy_from_config(sample_genotype):
     cfg = make_beans_config(initial_energy=50.0)
     phenotype = Phenotype(age=0.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
-    bean = Bean(
-        config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype
-    )
+    bean = Bean(config=cfg, id=1, sex=Sex.MALE, genotype=sample_genotype, phenotype=phenotype)
     assert bean.energy == 50.0
 
 
@@ -48,9 +46,7 @@ class TestBeanSurvival:
     def test_can_survive_age_true_when_below_max(self, sample_genotype):
         """Bean can survive when age is below genetic max age."""
         cfg = make_beans_config()
-        phenotype = Phenotype(
-            age=10.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -65,9 +61,7 @@ class TestBeanSurvival:
         """Bean cannot survive when age equals genetic max age."""
         cfg = make_beans_config()
         # Gene value 0.5 means max age = 100 * 0.5 = 50 rounds
-        phenotype = Phenotype(
-            age=50.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=50.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -82,9 +76,7 @@ class TestBeanSurvival:
     def test_can_survive_age_false_when_above_max(self, sample_genotype):
         """Bean cannot survive when age exceeds genetic max age."""
         cfg = make_beans_config()
-        phenotype = Phenotype(
-            age=60.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=60.0, speed=5.0, energy=100.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -99,9 +91,7 @@ class TestBeanSurvival:
     def test_survive_returns_true_when_healthy(self, sample_genotype):
         """survive() returns True when bean has energy and is young enough."""
         cfg = make_beans_config()
-        phenotype = Phenotype(
-            age=10.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -116,9 +106,7 @@ class TestBeanSurvival:
     def test_survive_returns_false_with_reason_when_too_old(self, sample_genotype):
         """survive() returns False with reason when bean exceeds max age."""
         cfg = make_beans_config()
-        phenotype = Phenotype(
-            age=60.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=60.0, speed=5.0, energy=50.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -133,9 +121,7 @@ class TestBeanSurvival:
     def test_survive_returns_false_with_reason_when_no_energy(self, sample_genotype):
         """When energy is depleted but bean still has fat, survival checker draws on fat and bean survives."""
         cfg = make_beans_config()
-        phenotype = Phenotype(
-            age=10.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=10.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -151,9 +137,7 @@ class TestBeanSurvival:
     def test_survive_age_takes_priority_over_energy(self, sample_genotype):
         """When both conditions fail, age death reason takes priority."""
         cfg = make_beans_config()
-        phenotype = Phenotype(
-            age=60.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0
-        )
+        phenotype = Phenotype(age=60.0, speed=5.0, energy=0.0, size=5.0, target_size=5.0)
         bean = Bean(
             config=cfg,
             id=1,
@@ -172,26 +156,20 @@ class TestAgeEnergyEfficiency:
     def test_newborn_has_minimum_efficiency(self, sample_genotype):
         """At age=0, efficiency equals min_energy_efficiency from config."""
         cfg = make_beans_config(min_energy_efficiency=0.3)
-        efficiency = age_energy_efficiency(
-            age=0.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency
-        )
+        efficiency = age_energy_efficiency(age=0.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
         assert efficiency == pytest.approx(0.3)
 
     def test_midlife_has_peak_efficiency(self, sample_genotype):
         """At mid-life, efficiency is near or at 1.0 (peak)."""
         cfg = make_beans_config(min_energy_efficiency=0.3)
         # Mid-life at about 25% of max age (similar to age_speed_factor peak)
-        efficiency = age_energy_efficiency(
-            age=25.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency
-        )
+        efficiency = age_energy_efficiency(age=25.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
         assert efficiency > 0.5  # Should be higher than minimum
 
     def test_old_age_has_reduced_efficiency(self, sample_genotype):
         """At old age, efficiency declines but stays above minimum."""
         cfg = make_beans_config(min_energy_efficiency=0.3)
-        efficiency = age_energy_efficiency(
-            age=95.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency
-        )
+        efficiency = age_energy_efficiency(age=95.0, max_age=100.0, min_efficiency=cfg.min_energy_efficiency)
         assert efficiency >= 0.3  # Never below floor
         assert efficiency < 1.0  # But reduced from peak
 
@@ -199,9 +177,7 @@ class TestAgeEnergyEfficiency:
         """Efficiency never falls below min_energy_efficiency."""
         min_eff = 0.3
         for age in [0, 10, 50, 90, 99, 100]:
-            efficiency = age_energy_efficiency(
-                age=float(age), max_age=100.0, min_efficiency=min_eff
-            )
+            efficiency = age_energy_efficiency(age=float(age), max_age=100.0, min_efficiency=min_eff)
             assert efficiency >= min_eff
 
 

@@ -59,9 +59,7 @@ def make_bean_with_genes(
         size=float(size),
         target_size=float(size),
     )
-    bean = Bean(
-        config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype
-    )
+    bean = Bean(config=config, id=1, sex=Sex.MALE, genotype=genotype, phenotype=phenotype)
     return bean
 
 

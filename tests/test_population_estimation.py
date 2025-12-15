@@ -21,9 +21,7 @@ logger = logging.getLogger(__name__)
         (500, 500, 10, 0.01, 1.0),
     ],
 )
-def test_density_population_estimates_total_counts(
-    width, height, sprite_size, population_density, male_female_ratio
-):
+def test_density_population_estimates_total_counts(width, height, sprite_size, population_density, male_female_ratio):
     estimator = DensityPopulationEstimator()
     male, female = estimator.estimate(
         width=width,
@@ -84,9 +82,7 @@ def test_world_initialization_respects_density_and_ratio():
         population_density=1.0,
         placement_strategy="random",
     )
-    bcfg = BeansConfig(
-        speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10
-    )
+    bcfg = BeansConfig(speed_min=-5, speed_max=5, max_age_rounds=100, initial_bean_size=10)
     world = World(config=cfg, beans_config=bcfg, env_config=EnvironmentConfig())
     total = 4
     assert len(world.beans) == total

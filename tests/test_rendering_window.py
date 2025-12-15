@@ -61,9 +61,7 @@ def test_sprite_position_updates_on_movement(monkeypatch):
         size=b.size,
         target_size=b.size,
     )
-    new_bean = Bean(
-        config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph
-    )
+    new_bean = Bean(config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph)
     sprite.bean = new_bean
     # Ensure world also uses the updated bean instance so movement is applied
     for i, wb in enumerate(world.beans):
@@ -148,9 +146,7 @@ def test_world_window_esc_closes(monkeypatch):
 
     closed = {"called": False}
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
-    monkeypatch.setattr(
-        arcade, "close_window", lambda: closed.update({"called": True}), raising=False
-    )
+    monkeypatch.setattr(arcade, "close_window", lambda: closed.update({"called": True}), raising=False)
     win = WorldWindow(world)
     win.on_key_press(arcade.key.ESCAPE, 0)
     assert closed["called"] is True
@@ -266,9 +262,7 @@ def test_world_window_reports_when_empty(monkeypatch):
 
     monkeypatch.setattr(arcade.Window, "__init__", _fake_arcade_init, raising=False)
     closed = {"called": False}
-    monkeypatch.setattr(
-        arcade, "close_window", lambda: closed.update({"called": True}), raising=False
-    )
+    monkeypatch.setattr(arcade, "close_window", lambda: closed.update({"called": True}), raising=False)
     win = WorldWindow(world, reporters=[reporter])
     win.on_update(0)
     assert win._prompt_active
@@ -355,9 +349,7 @@ def test_window_bounce_deducts_energy(monkeypatch):
         size=b.size,
         target_size=b.size,
     )
-    new_b = Bean(
-        config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph
-    )
+    new_b = Bean(config=b.beans_config, id=b.id, sex=b.sex, genotype=b.genotype, phenotype=new_ph)
     sprite.bean = new_b
     for i, wb in enumerate(world.beans):
         if wb.id == b.id:

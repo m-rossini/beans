@@ -61,16 +61,10 @@ class EnergySystem(ABC):
         bean_state.target_size = self._calculate_target_size(bean)
 
         bean_state.energy = self._apply_intake(bean_state, energy_intake_eu)
-        bean_state.energy = self._apply_basal_metabolism(
-            bean_state, self._get_metabolism_factor(bean)
-        )
+        bean_state.energy = self._apply_basal_metabolism(bean_state, self._get_metabolism_factor(bean))
         bean_state.energy = self._apply_movement_cost(bean_state)
-        bean_state.energy, bean_state.size = self._apply_fat_storage(
-            bean_state, bean.genotype.genes[Gene.FAT_ACCUMULATION]
-        )
-        bean_state.energy, bean_state.size = self._apply_fat_burning(
-            bean_state, bean.genotype.genes[Gene.FAT_ACCUMULATION]
-        )
+        bean_state.energy, bean_state.size = self._apply_fat_storage(bean_state, bean.genotype.genes[Gene.FAT_ACCUMULATION])
+        bean_state.energy, bean_state.size = self._apply_fat_burning(bean_state, bean.genotype.genes[Gene.FAT_ACCUMULATION])
         bean_state.energy, bean_state.size = self._handle_negative_energy(bean_state)
         bean_state.size = self._clamp_size(bean_state)
 
@@ -92,9 +86,7 @@ class EnergySystem(ABC):
         ...
 
     @abstractmethod
-    def _apply_basal_metabolism(
-        self, bean_state: BeanState, metabolism_factor: float
-    ) -> float:
+    def _apply_basal_metabolism(self, bean_state: BeanState, metabolism_factor: float) -> float:
         """Apply basal metabolic cost to a bean.
 
         Args:
@@ -114,9 +106,7 @@ class EnergySystem(ABC):
         ...
 
     @abstractmethod
-    def _apply_fat_storage(
-        self, bean_state: BeanState, fat_accumulation: float
-    ) -> Tuple[float, float]:
+    def _apply_fat_storage(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
         """Apply fat storage from energy surplus.
 
         Args:
@@ -126,9 +116,7 @@ class EnergySystem(ABC):
         ...
 
     @abstractmethod
-    def _apply_fat_burning(
-        self, bean_state: BeanState, fat_accumulation: float
-    ) -> Tuple[float, float]:
+    def _apply_fat_burning(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
         """Apply fat burning from energy deficit.
 
         Args:
@@ -226,9 +214,7 @@ class StandardEnergySystem(EnergySystem):
         )
         return ret_val
 
-    def _apply_basal_metabolism(
-        self, bean_state: BeanState, metabolism_factor: float
-    ) -> float:
+    def _apply_basal_metabolism(self, bean_state: BeanState, metabolism_factor: float) -> float:
         """Apply basal metabolic cost to a bean.
 
         Deducts metabolism burn from the bean's energy based on:
@@ -273,9 +259,7 @@ class StandardEnergySystem(EnergySystem):
         )
         return ret_val
 
-    def _apply_fat_storage(
-        self, bean_state: BeanState, fat_accumulation: float
-    ) -> Tuple[float, float]:
+    def _apply_fat_storage(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
         """Apply fat storage from energy surplus.
 
         When energy > energy_baseline, converts surplus to fat (size):
@@ -305,9 +289,7 @@ class StandardEnergySystem(EnergySystem):
         )
         return (phenotype_energy, phenotype_size)
 
-    def _apply_fat_burning(
-        self, bean_state: BeanState, fat_accumulation: float
-    ) -> Tuple[float, float]:
+    def _apply_fat_burning(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
         """Apply fat burning from energy deficit.
 
         When energy < energy_baseline, burns fat (size) to gain energy:
@@ -365,9 +347,7 @@ class StandardEnergySystem(EnergySystem):
         fat_burned = min(fat_needed, available_fat)
 
         phenotype_size = bean_state.size - fat_burned
-        phenotype_energy = (
-            bean_state.energy + fat_burned * self.config.fat_to_energy_ratio
-        )
+        phenotype_energy = bean_state.energy + fat_burned * self.config.fat_to_energy_ratio
 
         logger.debug(
             ">>>>> Bean %s handle_negative_energy: negative_energy=%0.2f, fat_needed=%0.2f, fat_burned=%0.2f, new_energy=%0.2f",
