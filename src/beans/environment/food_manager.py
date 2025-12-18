@@ -5,6 +5,7 @@ from typing import Dict, Tuple
 from config.loader import WorldConfig
 
 
+
 class FoodType(Enum):
     COMMON = auto()
     DEAD_BEAN = auto()
@@ -42,7 +43,7 @@ class HybridFoodManager(FoodManager):
         for pos, info in self.dead_beans.items():
             info["value"] *= 0.5
             info["rounds"] += 1
-            if info['rounds'] >= 3 or info['value'] < 1e-6:
+            if info["rounds"] >= 3 or info['value'] < 1e-6:
                 to_remove.append(pos)
         for pos in to_remove:
             del self.dead_beans[pos]
@@ -59,3 +60,10 @@ class HybridFoodManager(FoodManager):
         if position in self.dead_beans:
             result[FoodType.DEAD_BEAN] = self.dead_beans[position]['value']
         return result
+
+def create_food_manager_from_name(env_config: WorldConfig, world_config: WorldConfig) -> FoodManager:
+    name = env_config.food_manager.lower()
+    if name == "hybrid":
+        return HybridFoodManager(world_config)
+    else:
+        raise ValueError(f"Unknown food manager type: {name}")

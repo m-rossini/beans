@@ -5,11 +5,11 @@ import os
 
 def pytest_configure(config):
     """Configure logging for pytest.
-    
+
     Environment variables:
     - LOGGING_LEVEL: Global logging level (default: INFO)
     - LOG_FILE: File path to write logs to (optional, logs to console by default)
-    
+
     Example:
         LOGGING_LEVEL=DEBUG LOG_FILE=test_debug.log pytest -v -s
 

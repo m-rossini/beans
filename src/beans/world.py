@@ -4,6 +4,7 @@ from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
 from beans.environment.environment import create_environment_from_name
+from beans.environment.food_manager import FoodManager, create_food_manager_from_name
 from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 from .bean import Bean, BeanState, Sex
@@ -35,6 +36,7 @@ class World:
         )
         self.world_config = config
         self.beans_config = beans_config
+        self.env_config = env_config
         self.width = config.width
         self.height = config.height
         self.sprite_size = beans_config.initial_bean_size
@@ -46,7 +48,11 @@ class World:
         self.placement_strategy = create_strategy_from_name(self.world_config.placement_strategy)
         self.population_estimator: PopulationEstimator = create_population_estimator_from_name(self.world_config.population_estimator)
         self.energy_system: EnergySystem = create_energy_system_from_name(self.world_config.energy_system, beans_config)
-        self.environment = create_environment_from_name(self.world_config.environment, env_config, beans_config, self.world_config)
+        self.food_manager: FoodManager = create_food_manager_from_name(self.env_config, self.world_config)
+        self.environment = create_environment_from_name(self.world_config,
+                                                        self.env_config,
+                                                        self.beans_config,
+                                                        self.food_manager)
         self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
