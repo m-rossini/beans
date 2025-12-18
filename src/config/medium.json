@@ -65,6 +65,7 @@
     "temperature_variability": 0.5,
     "temp_to_food_factor": 0.25,
     "temp_to_metabolic_penalty": 0.02,
-    "hazard_decay_rate_per_hit": 1.0
+    "hazard_decay_rate_per_hit": 1.0,
+    "food_manager": "hybrid"
   }
 }

@@ -30,10 +30,10 @@ test-cov:  ## Run tests with coverage report
 	set PYTHONPATH=src && python -m coverage report -m --skip-empty
 	set PYTHONPATH=src && python -m coverage html
 
-TEST_SPECIFIC ?= tests/test_config.py
+# TEST_SPECIFIC ?= tests/test_config.py
 
 test-specific:  ## Run a specific test file only. Use TEST_SPECIFIC=path to override.
-	set LOGGING_LEVEL=$(LOGGING_LEVEL) && set PYTHONPATH=src && python -m pytest -v -s $(PYTEST_FLAGS) $(TEST_SPECIFIC)
+	set LOGGING_LEVEL=$(LOGGING_LEVEL) && set PYTHONPATH=src && python -m pytest -v -s $(PYTEST_FLAGS) $(TEST_FILE) 
 
 test-sequence: test-specific test  ## Run a specific test first, then the full test suite
 	@echo Completed test sequence (specific then full suite)

@@ -63,18 +63,17 @@ class DefaultEnvironment(Environment):
 
 
 def create_environment_from_name(
-    name: str,
+    world_config: WorldConfig,
     env_config: EnvironmentConfig,
     beans_config: BeansConfig,
-    world_config: WorldConfig,
     food_manager: FoodManager,
 ) -> Environment:
     """Instantiate an Environment implementation by name.
 
     Currently only "default" is supported. Raises ValueError for unknown names.
     """
-    name = name or "default"
-    if name == "default":
+    name = env_config.name.lower()
+    if name == "default".lower():
         return DefaultEnvironment(env_config, beans_config, world_config, food_manager=food_manager)
 
     raise ValueError(f"Unknown environment implementation: {name}")

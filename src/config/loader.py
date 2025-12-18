@@ -71,6 +71,7 @@ class BeansConfig:
 
 @dataclass
 class EnvironmentConfig:
+    name: str = "default"
     cell_size: int = 20
     food_density: float = 0.0
     hazard_density: float = 0.0
@@ -86,6 +87,7 @@ class EnvironmentConfig:
     temp_to_food_factor: float = 0.0
     temp_to_metabolic_penalty: float = 0.0
     hazard_decay_rate_per_hit: float = 1.0
+    food_manager: str = "hybrid"
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -149,6 +151,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
 )
 
 DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
+    name="default",
     cell_size=20,
     food_density=0.0,
     hazard_density=0.0,
@@ -164,6 +167,7 @@ DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
     temp_to_food_factor=0.0,
     temp_to_metabolic_penalty=0.0,
     hazard_decay_rate_per_hit=1.0,
+    food_manager = "hybrid"
 )
 
 
@@ -258,6 +262,7 @@ def load_config(
     # Environment config
     env_data = data.get("environment", {})
     environment_config: EnvironmentConfig = EnvironmentConfig(
+        name=env_data.get("name", DEFAULT_ENVIRONMENT_CONFIG.name),
         cell_size=env_data.get("cell_size", 20),
         food_density=env_data.get("food_density", 0.0),
         hazard_density=env_data.get("hazard_density", 0.0),
@@ -273,6 +278,7 @@ def load_config(
         temp_to_food_factor=env_data.get("temp_to_food_factor", 0.0),
         temp_to_metabolic_penalty=env_data.get("temp_to_metabolic_penalty", 0.0),
         hazard_decay_rate_per_hit=env_data.get("hazard_decay_rate_per_hit", 1.0),
+        food_manager=env_data.get("food_manager", "hybrid"),
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)
