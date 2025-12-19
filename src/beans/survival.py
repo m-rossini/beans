@@ -90,7 +90,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
                 message=f"Drew {depletion} fat due to starvation; new_size={new_size}",
             )
 
-        threshold = config.max_bean_size * config.obesity_threshold_factor
+        threshold = min(config.max_bean_size, config.initial_bean_size * config.obesity_threshold_factor)
         if bean.size >= threshold:
             rng = self.rng or random
             prob = config.obesity_death_probability

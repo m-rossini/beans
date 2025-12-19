@@ -310,5 +310,15 @@ class SpriteMovementSystem:
                     self._update_sprite_state(other, new_speed_b, new_dir_b)
 
                     self._nudge_positions(sprite, other, (tx, ty), npos, adjusted)
+                    logger.debug(f">>>>> Collision detected between "
+                                 f"bean A:{sprite.bean.id} "
+                                 f"bean B:{other.bean.id}"
+                                 f" at positions A:{(tx, ty)} B:{npos}"
+                                 f" applied damage ({damage_a:.2f}, {damage_b:.2f})"
+                                 f" old energies ({sprite.bean.energy + damage_a:.2f}, {other.bean.energy + damage_b:.2f})"
+                                 f" new energies ({sprite.bean.energy:.2f}, {other.bean.energy:.2f})"
+                                 f" new speeds ({new_speed_a:.2f}, {new_speed_b:.2f})"
+                                 f" new directions ({new_dir_a:.2f}, {new_dir_b:.2f})"
+                    )
 
         return adjusted, damage_report

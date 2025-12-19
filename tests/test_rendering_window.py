@@ -360,3 +360,38 @@ def test_window_bounce_deducts_energy(monkeypatch):
     win.on_update(0.1)
     # energy should be reduced by at least one bounce deduction
     assert sprite.bean.energy < initial_energy
+
+
+def test_food_rendering_scaling_and_color():
+    """TDD: Food and dead bean food should be rendered with correct color and size scaling."""
+    from beans.environment.food_manager import FoodManager
+    cfg = WorldConfig(
+        male_sprite_color="blue",
+        female_sprite_color="red",
+        male_female_ratio=1.0,
+        width=20,
+        height=20,
+        population_density=0.0,
+        placement_strategy="random",
+    )
+    bcfg = BeansConfig(
+        speed_min=1,
+        speed_max=2,
+        max_age_rounds=10,
+        initial_bean_size=5,
+        male_bean_color="blue",
+        female_bean_color="red",
+    )
+    env_cfg = EnvironmentConfig(food_manager="hybrid")
+    world = World(cfg, bcfg, env_config=env_cfg)
+    win = WorldWindow(world)
+    # Manipulate the food manager via the world instance
+    fm: FoodManager = world.food_manager
+    fm.grid[(5, 5)] = 10.0
+    fm.grid[(10, 10)] = 2.0
+    fm.dead_beans[(15, 15)] = {"value": 8.0, "rounds": 0}
+    # Use the window's public interface to get food positions and types
+    food_positions = list(win._all_food_positions())
+    assert (5, 'COMMON', 10.0) in food_positions
+    assert (10, 'COMMON', 2.0) in [(x, t, q) for (x, t, q) in food_positions if t == 'COMMON']
+    assert (15, 'DEAD_BEAN', 8.0) in [(x, t, q) for (x, t, q) in food_positions if t == 'DEAD_BEAN']
