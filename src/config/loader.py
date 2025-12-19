@@ -47,7 +47,7 @@ class BeansConfig:
     # Survival system configuration
     starvation_base_depletion: float = 1.0  # Base size units consumed per starvation tick
     starvation_depletion_multiplier: float = 1.0  # Multiplier applied when energy is <= 0
-    obesity_death_probability: float = 0.0  # Probability of death when above obesity threshold
+    obesity_death_probability: float = 0.1  # Probability of death when above obesity threshold
     obesity_threshold_factor: float = 1.0  # Threshold relative to max_bean_size to consider obese
     metabolism_base_burn: float = 0.01  # Basal metabolism burn rate per tick (energy units).
     energy_to_fat_ratio: float = 1.0  # Energy units required to store 1 unit of fat.
@@ -133,7 +133,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     # Survival defaults
     starvation_base_depletion=1.0,
     starvation_depletion_multiplier=1.0,
-    obesity_death_probability=0.0,
+    obesity_death_probability=0.01,
     obesity_threshold_factor=1.0,
     metabolism_base_burn=0.01,
     energy_to_fat_ratio=1.0,

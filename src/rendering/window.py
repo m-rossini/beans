@@ -107,10 +107,7 @@ class WorldWindow(arcade.Window):
             self._draw_help_overlay()
 
     def on_update(self, delta_time: float):
-        logger.debug(
-            ">>>>> WorldWindow.on_update: delta_time=%0.3f",
-            delta_time,
-        )
+        logger.debug(">>>>> WorldWindow.on_update: delta_time=%0.3f", delta_time)
         if self._pause_for_empty_world():
             return
         if self._paused:
@@ -120,10 +117,7 @@ class WorldWindow(arcade.Window):
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
-            logger.debug(
-                ">>>>> WorldWindow.on_update: %d sprites removed",
-                (old_count - len(self.bean_sprites)),
-            )
+            logger.debug(">>>>> WorldWindow.on_update: %d sprites removed", (old_count - len(self.bean_sprites)))
         # Collect target positions from movement system
         targets = []
         for sprite in self.bean_sprites:
@@ -136,11 +130,13 @@ class WorldWindow(arcade.Window):
         for sprite in self.bean_sprites:
             sprite.update_from_bean(delta_time, adjusted_targets[sprite])
             self.sprite_list.append(sprite)
-        logger.debug(
-            ">>>>> WorldWindow.on_update: %d sprites active",
-            len(self.bean_sprites),
-        )
-        self._pause_for_empty_world()
+        logger.debug(">>>>> WorldWindow.on_update: %d sprites active", len(self.bean_sprites))
+        empty =self._pause_for_empty_world()
+        if empty:
+            logger.info(">>>> WorldWindow.on_update: No alive beans left, pausing simulation. Here are the death reasons:")
+            for survival_result in self.world.dead_beans:
+                bean = survival_result.bean
+                logger.info(f">>>> Bean id={bean.id} died due to: {survival_result.reason}")
 
     def on_key_press(self, symbol: int, modifiers: int):
         if self._prompt_active:

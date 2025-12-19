@@ -53,7 +53,7 @@ class World:
                                                         self.env_config,
                                                         self.beans_config,
                                                         self.food_manager)
-        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
+        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else random.Random()
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
         self.bean_dynamics = BeanDynamics(beans_config)
