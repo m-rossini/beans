@@ -1,7 +1,12 @@
 
 import math
-from beans.environment.food_manager import HybridFoodManager, FoodType
-from config.loader import WorldConfig
+
+from beans.environment.food_manager import FoodType, HybridFoodManager
+from config.loader import EnvironmentConfig, WorldConfig
+
+
+def make_env_config():
+    return EnvironmentConfig(food_quality="medium")
 
 
 def make_world_config():
@@ -23,8 +28,9 @@ def make_world_config():
     )
 
 
-def test_dead_bean_food_decay_and_removal():
-    fm = HybridFoodManager(make_world_config())
+
+def test_dead_bean_food_decay():
+    fm = HybridFoodManager(make_world_config(), make_env_config())
     pos = (2, 2)
     size = 10.0
     fm.add_dead_bean_as_food(pos, size)
@@ -42,7 +48,7 @@ def test_dead_bean_food_decay_and_removal():
     assert food3.get(FoodType.DEAD_BEAN, 0.0) == 0.0, f"Expected 0.0, got {food3.get(FoodType.DEAD_BEAN, 0.0)}"
 
 def test_grid_food_decay():
-    fm = HybridFoodManager(make_world_config())
+    fm = HybridFoodManager(make_world_config(), make_env_config())
     pos = (1, 1)
     # Directly manipulate grid for test (assume grid is public or provide a method for test)
     fm.grid[(1, 1)] = 20.0

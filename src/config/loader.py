@@ -88,6 +88,10 @@ class EnvironmentConfig:
     temp_to_metabolic_penalty: float = 0.0
     hazard_decay_rate_per_hit: float = 1.0
     food_manager: str = "hybrid"
+    food_quality: str = "medium"  # Quality: 'low', 'medium', 'high'
+    food_max_energy: float = 10.0  # Max energy per food item
+    food_spawn_distribution: str = "random"  # Distribution type for food spawning
+    food_decay_rate: float = 0.01  # Decay rate per step for food
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -167,7 +171,11 @@ DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
     temp_to_food_factor=0.0,
     temp_to_metabolic_penalty=0.0,
     hazard_decay_rate_per_hit=1.0,
-    food_manager = "hybrid"
+    food_manager = "hybrid",
+    food_quality="medium",
+    food_max_energy=10.0,
+    food_spawn_distribution="random",
+    food_decay_rate=0.01
 )
 
 
@@ -279,6 +287,10 @@ def load_config(
         temp_to_metabolic_penalty=env_data.get("temp_to_metabolic_penalty", 0.0),
         hazard_decay_rate_per_hit=env_data.get("hazard_decay_rate_per_hit", 1.0),
         food_manager=env_data.get("food_manager", "hybrid"),
+        food_quality=env_data.get("food_quality", "medium"),
+        food_max_energy=env_data.get("food_max_energy", 10.0),
+        food_spawn_distribution=env_data.get("food_spawn_distribution", "random"),
+        food_decay_rate=env_data.get("food_decay_rate", 0.01),
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)

@@ -1,9 +1,9 @@
+
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Dict, Tuple
+from typing import Dict, Set, Tuple
 
-from config.loader import WorldConfig
-
+from config.loader import EnvironmentConfig, WorldConfig
 
 
 class FoodType(Enum):
@@ -11,8 +11,12 @@ class FoodType(Enum):
     DEAD_BEAN = auto()
 
 class FoodManager(ABC):
-    def __init__(self, world_config: WorldConfig) -> None:
+    def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
         self.world_config = world_config
+        self.env_config = env_config
+    @abstractmethod
+    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
+        pass
 
     @abstractmethod
     def step(self) -> None:
@@ -27,10 +31,14 @@ class FoodManager(ABC):
         pass
 
 class HybridFoodManager(FoodManager):
-    def __init__(self, world_config: WorldConfig) -> None:
-        super().__init__(world_config)
+    def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
+        super().__init__(world_config, env_config)
         self.grid: Dict[Tuple[int, int], float] = {}
         self.dead_beans: Dict[Tuple[int, int], Dict[str, float]] = {}
+
+    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
+        # Implementation will be added in the next phase
+        pass
 
     def step(self) -> None:
         # Decay grid food by 10% of original value per tick
@@ -64,6 +72,6 @@ class HybridFoodManager(FoodManager):
 def create_food_manager_from_name(env_config: WorldConfig, world_config: WorldConfig) -> FoodManager:
     name = env_config.food_manager.lower()
     if name == "hybrid":
-        return HybridFoodManager(world_config)
+        return HybridFoodManager(world_config, env_config)
     else:
         raise ValueError(f"Unknown food manager type: {name}")
