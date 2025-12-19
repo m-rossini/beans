@@ -59,3 +59,22 @@ def test_grid_food_decay():
     fm.step()
     after2 = fm.get_food_at(pos)
     assert math.isclose(after2.get(FoodType.COMMON, 0.0), orig * 0.9 * 0.9), f"Expected {orig * 0.9 * 0.9}, got {after2.get(FoodType.COMMON, 0.0)}"
+
+def test_initial_food_spawning_respects_occupied_positions_and_config():
+    world_cfg = make_world_config()
+    env_cfg = make_env_config()
+    env_cfg.food_spawn_rate_per_round = 5
+    env_cfg.food_max_energy = 10.0
+    env_cfg.food_spawn_distribution = "random"
+    fm = HybridFoodManager(world_cfg, env_cfg)
+    occupied = {(2, 2), (3, 3), (4, 4)}
+    fm.spawn_food(occupied)
+    # Ensure no food spawned on occupied positions
+    for pos in occupied:
+        assert fm.get_food_at(pos).get(FoodType.COMMON, 0.0) == 0.0, f"Food spawned on occupied position {pos}"
+    # Ensure correct number of food spawned
+    spawned_positions = [pos for pos in fm.grid.keys() if pos not in occupied]
+    assert len(spawned_positions) == env_cfg.food_spawn_rate_per_round, f"Expected {env_cfg.food_spawn_rate_per_round} food, got {len(spawned_positions)}"
+    # Ensure food energy does not exceed max
+    for pos in spawned_positions:
+        assert fm.grid[pos] <= env_cfg.food_max_energy, f"Food energy at {pos} exceeds max energy"

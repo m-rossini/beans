@@ -1,8 +1,9 @@
 
+
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Dict, Set, Tuple
-
+import random
 from config.loader import EnvironmentConfig, WorldConfig
 
 
@@ -37,8 +38,22 @@ class HybridFoodManager(FoodManager):
         self.dead_beans: Dict[Tuple[int, int], Dict[str, float]] = {}
 
     def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
-        # Implementation will be added in the next phase
-        pass
+        width = self.world_config.width
+        height = self.world_config.height
+        num_to_spawn = int(self.env_config.food_spawn_rate_per_round)
+        max_energy = self.env_config.food_max_energy
+        spawned = 0
+        attempts = 0
+        while spawned < num_to_spawn and attempts < num_to_spawn * 10:
+            x = random.randint(0, width - 1)
+            y = random.randint(0, height - 1)
+            pos = (x, y)
+            if pos in occupied_positions or pos in self.grid:
+                attempts += 1
+                continue
+            self.grid[pos] = max_energy
+            spawned += 1
+            attempts += 1
 
     def step(self) -> None:
         # Decay grid food by 10% of original value per tick
