@@ -24,6 +24,7 @@ def _color_from_name(name: str):
 
 
 class WorldWindow(arcade.Window):
+
     def __init__(
         self,
         world: World,
@@ -54,7 +55,7 @@ class WorldWindow(arcade.Window):
         for pos in positions:
             logger.debug(f">>>>> WorldWindow::__init__: Position: {pos}")
 
-        self.bean_sprites: List[BeanSprite] = self._create_bean_sprites(positions)
+        self.bean_sprites = self._create_bean_sprites(positions)  # type: List[BeanSprite]
         self.sprite_list = arcade.SpriteList()
         self.sprite_list.extend(self.bean_sprites)
         # Movement system for sprite animation and bouncing
@@ -69,6 +70,16 @@ class WorldWindow(arcade.Window):
         self._paused = False
         self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
         self._help_active = False
+
+    def _all_food_positions(self):
+        fm = self.world.food_manager
+        # Only works for HybridFoodManager for now, as per test
+        for pos, qty in getattr(fm, 'grid', {}).items():
+            if qty > 0:
+                yield (pos[0], 'COMMON', qty)
+        for pos, info in getattr(fm, 'dead_beans', {}).items():
+            if info['value'] > 0:
+                yield (pos[0], 'DEAD_BEAN', info['value'])
 
     def _create_bean_sprites(self, positions) -> BeanSprite:
         return [self._create_sprite(bean, positions[i]) for i, bean in enumerate(self.world.beans)]

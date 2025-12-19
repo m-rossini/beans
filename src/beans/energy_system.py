@@ -145,32 +145,6 @@ class EnergySystem(ABC):
         """
         ...
 
-    @abstractmethod
-    def _can_survive_starvation(self, bean: Bean) -> bool:
-        """Check if bean survives starvation based on size.
-
-        Args:
-            bean: The bean to check.
-
-        Returns:
-            True if size > min_bean_size, False otherwise.
-
-        """
-        ...
-
-    @abstractmethod
-    def _can_survive_health(self, bean: Bean) -> bool:
-        """Check if bean survives obesity-related health issues.
-
-        Args:
-            bean: The bean to check.
-
-        Returns:
-            True if survives, False if dies from obesity.
-
-        """
-        ...
-
     def _get_metabolism_factor(self, bean: Bean) -> float:
         """Calculate metabolism factor from bean's genetics.
 
@@ -285,6 +259,7 @@ class StandardEnergySystem(EnergySystem):
             f" fat_gain={fat_gain:.2f},"
             f" energy_cost={energy_cost:.2f}"
             f" new_energy={phenotype_energy:.2f},"
+            f" old_size={bean_state.size:.2f},"
             f" new_size={phenotype_size:.2f}"
         )
         return (phenotype_energy, phenotype_size)
@@ -390,62 +365,6 @@ class StandardEnergySystem(EnergySystem):
         # This placeholder should not be used; raise if invoked to avoid
         # silent divergence of behavior.
         raise NotImplementedError("size-speed penalty is implemented in BeanDynamics")
-
-    def _can_survive_starvation(self, bean: Bean) -> bool:
-        """Check if bean survives starvation based on size.
-
-        Bean dies of starvation when size reaches minimum (no more fat to burn).
-
-        Args:
-            bean: The bean to check.
-
-        Returns:
-            True if size > min_bean_size, False otherwise.
-
-        """
-        survives = bean.size > self.config.min_bean_size
-        logger.debug(
-            ">>>>> Bean %s can_survive_starvation: size=%0.2f, min_size=%0.2f, survives=%s",
-            bean.id,
-            bean.size,
-            self.config.min_bean_size,
-            survives,
-        )
-        return survives
-
-    def _can_survive_health(self, bean: Bean) -> bool:
-        """Check if bean survives obesity-related health issues.
-
-        When size > target_size * 2.5, there's a probability of death.
-        The probability increases with excess size.
-
-        Args:
-            bean: The bean to check.
-
-        Returns:
-            True if survives, False if dies from obesity.
-
-        """
-        import random
-
-        obesity_threshold = self.config.initial_bean_size * 2.5
-        if bean.size <= obesity_threshold:
-            return True
-
-        # Probability of death increases with excess size
-        excess_ratio = (bean.size - obesity_threshold) / obesity_threshold
-        death_probability = min(0.5, excess_ratio * 0.2)  # Max 50% death chance
-
-        survives = random.random() > death_probability
-        logger.debug(
-            ">>>>> Bean %s can_survive_health: size=%0.2f, obesity_threshold=%0.2f, death_prob=%0.2f, survives=%s",
-            bean.id,
-            bean.size,
-            obesity_threshold,
-            death_probability,
-            survives,
-        )
-        return survives
 
 
 def create_energy_system_from_name(name: str, config: BeansConfig) -> EnergySystem:
