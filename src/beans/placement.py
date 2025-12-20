@@ -121,7 +121,7 @@ class SpaceAvailabilityValidator(PlacementValidator):
         self.occupied_count = 0
 
 
-def _snap_to_half_pixel(value: float) -> float:
+def snap_to_half_pixel(value: float) -> float:
     """Round to nearest 0.5 for arcade pixel-perfect rendering."""
     return round(value * 2) / 2
 
@@ -193,8 +193,8 @@ class RandomPlacementStrategy(PlacementStrategy):
         for bean_idx in range(count):
             placed = False
             for attempt in range(self.max_retries):
-                x = _snap_to_half_pixel(random.uniform(0, width))
-                y = _snap_to_half_pixel(random.uniform(0, height))
+                x = snap_to_half_pixel(random.uniform(0, width))
+                y = snap_to_half_pixel(random.uniform(0, height))
 
                 # Check for collisions with existing positions
                 neighbors = spatial_hash.get_neighbors(x, y, radius=size)
