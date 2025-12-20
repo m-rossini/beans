@@ -1,5 +1,6 @@
 import logging
 import random
+from dataclasses import dataclass
 from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
@@ -20,6 +21,12 @@ from .survival import SurvivalManager, SurvivalResult
 
 logger = logging.getLogger(__name__)
 
+# Holds the state of the world after a simulation step
+@dataclass
+class WorldState:
+    alive_beans: List[Bean]
+    dead_beans: List[Bean]
+    current_round: int = 0
 
 class World:
     def __init__(
@@ -53,17 +60,16 @@ class World:
                                                         self.env_config,
                                                         self.beans_config,
                                                         self.food_manager)
-        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else None
+        self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else random.Random()
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
+        self.round: int = 1
+        # Persistent WorldState instance
+        self.state = WorldState(alive_beans=self.beans.copy(), dead_beans=[], current_round=self.round)
         self.bean_dynamics = BeanDynamics(beans_config)
         self.survival_manager = SurvivalManager(beans_config, rng=self._rng)
         self.survival_checker = self.survival_manager.checker
-        self.round: int = 1
-        logger.info(
-            ">>>> World initialized with %d beans",
-            len(self.beans),
-        )
+        logger.info(">>>> World initialized with %d beans",len(self.beans),)
 
     def _initialize(self) -> List[Bean]:
         male_count, female_count = self.population_estimator.estimate(
@@ -99,18 +105,18 @@ class World:
             beans.append(bean)
         return beans
 
-    def step(self, dt: float) -> None:
+
+    def step(self, dt: float) -> WorldState:
         logger.debug(
             f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}"
         )
         self.environment.step()
         survivors: List[Bean] = []
-        deaths_this_step = 0
+        dead_this_step: List[Bean] = []
         for bean in self.beans:
             _: BeanState = self._update_bean(bean)
             result = self.survival_manager.check_and_record(bean)
             if not result.alive:
-                deaths_this_step += 1
                 logger.debug(
                     ">>>>> World.step.dead_bean: Bean %s died: reason=%s, sex=%s, max_age=%0.2f",
                     bean.id,
@@ -123,14 +129,17 @@ class World:
                     bean._phenotype.to_dict(),
                     bean.genotype.to_compact_str(),
                 )
+                dead_this_step.append(bean)
             else:
                 survivors.append(bean)
 
         self.beans = survivors
-        if deaths_this_step > 0:
-            logger.debug(f">>>>> World.step.dead_beans: {deaths_this_step} beans died, {len(survivors)} survived")
-
         self.round += 1
+        # Update persistent WorldState instance
+        self.state.alive_beans = survivors.copy()
+        self.state.dead_beans = dead_this_step.copy()
+        self.state.current_round = self.round
+        return self.state
 
     def _update_bean(self, bean: Bean) -> BeanState:
         bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())

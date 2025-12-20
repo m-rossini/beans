@@ -13,6 +13,7 @@ energy system implementations while sharing common logic.
 """
 
 import logging
+import math
 from abc import ABC, abstractmethod
 from typing import Tuple
 
@@ -206,8 +207,10 @@ class StandardEnergySystem(EnergySystem):
         logger.debug(
             f">>>>> Bean {bean_state.id}"
             f" apply_basal_metabolism: size={size:.2f},"
+            f" metabolism_base_burn={self.config.metabolism_base_burn:.2f},"
             f" metabolism_factor={metabolism_factor:.2f},"
             f" burn={burn:.2f}"
+            f" old_energy={bean_state.energy:.2f},"
             f" new_energy={ret_val:.2f}"
         )
         return ret_val
@@ -229,6 +232,7 @@ class StandardEnergySystem(EnergySystem):
             f" apply_movement_cost: speed={bean_state.speed:.2f},"
             f" cost={cost:.2f},"
             f" energy_cost_per_speed={self.config.energy_cost_per_speed:.2f},"
+            f" old_energy={bean_state.energy:.2f},"
             f" new_energy={ret_val:.2f}"
         )
         return ret_val
@@ -255,7 +259,8 @@ class StandardEnergySystem(EnergySystem):
         phenotype_energy = bean_state.energy - energy_cost
         logger.debug(
             f">>>>> Bean {bean_state.id}"
-            f" apply_fat_storage: surplus={surplus:.2f},"
+            f" apply_fat_storage:"
+            f" surplus={surplus:.2f},"
             f" fat_gain={fat_gain:.2f},"
             f" energy_cost={energy_cost:.2f}"
             f" new_energy={phenotype_energy:.2f},"
@@ -265,43 +270,40 @@ class StandardEnergySystem(EnergySystem):
         return (phenotype_energy, phenotype_size)
 
     def _apply_fat_burning(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, float]:
-        """Apply fat burning from energy deficit.
-
-        When energy < energy_baseline, burns fat (size) to gain energy:
-        fat_burned = fat_burn_rate * FAT_ACCUMULATION * deficit
-        energy_gain = fat_burned * fat_to_energy_ratio
-
-        Args:
-            bean: The bean to apply fat burning to.
-
-        """
-        deficit = self.config.energy_baseline - bean_state.energy
-        if deficit <= 0:
-            return bean_state.energy, bean_state.size
-
-        fat_burned = self.config.fat_burn_rate * fat_accumulation * deficit
-        # Do not burn below minimum bean size — only burn available fat
-        available_fat = max(0.0, bean_state.size - self.config.min_bean_size)
-        fat_burned = min(fat_burned, available_fat)
+        """Apply fat burning from energy deficit or overdrawn state, using a helper for calculation."""
+        fat_burned, log_info = self._calculate_fat_burned(bean_state, fat_accumulation)
         energy_gain = fat_burned * self.config.fat_to_energy_ratio
-
         phenotype_size = bean_state.size - fat_burned
         phenotype_energy = bean_state.energy + energy_gain
-        msg = (
-            ">>>>> Bean %s apply_fat_burning: deficit=%0.2f, fat_burned=%0.2f, energy_gain=%0.2f, new_energy=%0.2f, "
-            "old_size=%0.2f, new_size=%0.2f"
-        )
         logger.debug(
-            msg,
+            ">>>>> Bean %s apply_fat_burning: %s old_size=%.2f, new_size=%.2f, old_energy=%.2f, new_energy=%.2f",
             bean_state.id,
-            deficit,
-            fat_burned,
-            energy_gain,
-            phenotype_energy,
+            log_info,
             bean_state.size,
             phenotype_size,
+            bean_state.energy,
+            phenotype_energy,
         )
         return (phenotype_energy, phenotype_size)
+
+    def _calculate_fat_burned(self, bean_state: BeanState, fat_accumulation: float) -> Tuple[float, str]:
+        """Helper to calculate fat burned and return a log info string for _apply_fat_burning."""
+        deficit = self.config.energy_baseline - bean_state.energy
+        available_fat = max(0.0, bean_state.size - self.config.min_bean_size)
+        if deficit > 0:
+            fat_burned = self.config.fat_burn_rate * fat_accumulation * deficit
+            fat_burned = min(fat_burned, available_fat)
+            log_info = (f"deficit={deficit:.2f}, available_fat={available_fat:.2f}, fat_burned={fat_burned:.2f} (normal)")
+            return fat_burned, log_info
+        elif bean_state.energy < 0:
+            log_factor = math.log1p(-bean_state.energy) if bean_state.energy < 0 else 0.0
+            max_burn_frac = 0.2
+            burn_frac = max_burn_frac * (1.0 - 1.0 / (1.0 + log_factor)) if log_factor > 0 else 0.0
+            fat_burned = available_fat * burn_frac
+            log_info = (f"energy={bean_state.energy:.2f}, available_fat={available_fat:.2f}, log_factor={log_factor:.4f}, burn_frac={burn_frac:.4f}, fat_burned={fat_burned:.4f} (logarithmic/overdrawn)")
+            return fat_burned, log_info
+        else:
+            return 0.0, "no deficit, no fat burned"
 
     def _handle_negative_energy(self, bean_state: BeanState) -> Tuple[float, float]:
         """Handle negative energy by burning fat to compensate.
@@ -325,7 +327,11 @@ class StandardEnergySystem(EnergySystem):
         phenotype_energy = bean_state.energy + fat_burned * self.config.fat_to_energy_ratio
 
         logger.debug(
-            ">>>>> Bean %s handle_negative_energy: negative_energy=%0.2f, fat_needed=%0.2f, fat_burned=%0.2f, new_energy=%0.2f",
+            ">>>>> Bean %s handle_negative_energy: "
+            "negative_energy=%0.2f, "
+            "fat_needed=%0.2f, "
+            "fat_burned=%0.2f, "
+            "new_energy=%0.2f",
             bean_state.id,
             bean_state.energy,
             fat_needed,

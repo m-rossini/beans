@@ -1,3 +1,4 @@
+import random
 from beans.bean import Bean, Sex
 from beans.energy_system import create_energy_system_from_name
 from beans.genetics import (
@@ -161,7 +162,7 @@ def test_survival_health_and_starvation():
             target_size=10.0,
         ),
     )
-    result = DefaultSurvivalChecker(config).check(bean)
+    result = DefaultSurvivalChecker(config, rng=random.Random()).check(bean)
     # With sufficient fat, the survival checker draws on fat and the bean survives
     assert result.alive is True
     assert result.message is not None

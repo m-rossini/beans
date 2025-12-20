@@ -47,7 +47,7 @@ class BeansConfig:
     # Survival system configuration
     starvation_base_depletion: float = 1.0  # Base size units consumed per starvation tick
     starvation_depletion_multiplier: float = 1.0  # Multiplier applied when energy is <= 0
-    obesity_death_probability: float = 0.0  # Probability of death when above obesity threshold
+    obesity_death_probability: float = 0.1  # Probability of death when above obesity threshold
     obesity_threshold_factor: float = 1.0  # Threshold relative to max_bean_size to consider obese
     metabolism_base_burn: float = 0.01  # Basal metabolism burn rate per tick (energy units).
     energy_to_fat_ratio: float = 1.0  # Energy units required to store 1 unit of fat.
@@ -73,9 +73,7 @@ class BeansConfig:
 class EnvironmentConfig:
     name: str = "default"
     cell_size: int = 20
-    food_density: float = 0.0
     hazard_density: float = 0.0
-    food_spawn_rate_per_round: float = 0.0
     hazard_spawn_rate_per_round: float = 0.0
     decomposition_rounds: int = 3
     decomposition_fraction_to_food: float = 0.5
@@ -88,6 +86,13 @@ class EnvironmentConfig:
     temp_to_metabolic_penalty: float = 0.0
     hazard_decay_rate_per_hit: float = 1.0
     food_manager: str = "hybrid"
+    food_density: float = 0.0005  # Density: fraction of world area covered by food
+    food_spawn_rate_per_round: float = 0.0
+    food_quality: float = 5  # Quality: 'low', 'medium', 'high'
+    food_max_energy: float = 10.0  # Max energy per food item
+    food_spawn_distribution: str = "random"  # Distribution type for food spawning
+    food_decay_rate: float = 0.01  # Decay rate per step for food
+    dead_bean_initial_food_size_factor: float = 0.5  #Initial food size for dead beans.When a bean dies, it sizes will be mulitplied by this
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -129,7 +134,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
     # Survival defaults
     starvation_base_depletion=1.0,
     starvation_depletion_multiplier=1.0,
-    obesity_death_probability=0.0,
+    obesity_death_probability=0.01,
     obesity_threshold_factor=1.0,
     metabolism_base_burn=0.01,
     energy_to_fat_ratio=1.0,
@@ -153,9 +158,7 @@ DEFAULT_BEANS_CONFIG = BeansConfig(
 DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
     name="default",
     cell_size=20,
-    food_density=0.0,
     hazard_density=0.0,
-    food_spawn_rate_per_round=0.0,
     hazard_spawn_rate_per_round=0.0,
     decomposition_rounds=3,
     decomposition_fraction_to_food=0.5,
@@ -167,7 +170,14 @@ DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
     temp_to_food_factor=0.0,
     temp_to_metabolic_penalty=0.0,
     hazard_decay_rate_per_hit=1.0,
-    food_manager = "hybrid"
+    food_manager = "hybrid",
+    food_density=0.0,
+    food_spawn_rate_per_round=0.0,
+    food_quality=5,
+    food_max_energy=10.0,
+    food_spawn_distribution="random",
+    food_decay_rate=0.01,
+    dead_bean_initial_food_size_factor=0.5,
 )
 
 
@@ -279,6 +289,11 @@ def load_config(
         temp_to_metabolic_penalty=env_data.get("temp_to_metabolic_penalty", 0.0),
         hazard_decay_rate_per_hit=env_data.get("hazard_decay_rate_per_hit", 1.0),
         food_manager=env_data.get("food_manager", "hybrid"),
+        food_quality=env_data.get("food_quality", 5),
+        food_max_energy=env_data.get("food_max_energy", 10.0),
+        food_spawn_distribution=env_data.get("food_spawn_distribution", "random"),
+        food_decay_rate=env_data.get("food_decay_rate", 0.01),
+        dead_bean_initial_food_size_factor=env_data.get("dead_bean_initial_food_size_factor", 0.5)
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)

@@ -48,11 +48,13 @@
     "collision_min_damage": 0.5,
     "collision_damage_size_exponent": 1.0,
     "collision_damage_sex_factors": [1.05, 1.0],
-    "min_speed_factor": 0.07
+    "min_speed_factor": 0.07,
+    "obesity_death_probability": 0.01,
+    "obesity_threshold_factor": 1.5
   },
   "environment": {
     "cell_size": 40,
-    "food_density": 0.02,
+    "food_density": 0.0005,
     "hazard_density": 0.005,
     "food_spawn_rate_per_round": 1.0,
     "hazard_spawn_rate_per_round": 0.1,
@@ -66,6 +68,11 @@
     "temp_to_food_factor": 0.3,
     "temp_to_metabolic_penalty": 0.05,
     "hazard_decay_rate_per_hit": 1.0,
-    "food_manager": "hybrid"
+    "food_manager": "hybrid",
+    "food_quality": 5,
+    "food_decay_rate": 0.01,
+    "food_spawn_distribution": "random",
+    "food_max_energy": 10.0,
+    "dead_bean_initial_food_size_factor": 0.5
   }
 } 

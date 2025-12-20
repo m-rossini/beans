@@ -45,7 +45,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
       (represents drawing on fat) and survive the tick.
     """
 
-    def __init__(self, config, rng=None) -> None:
+    def __init__(self, config, rng) -> None:
         self.config = config
         self.rng = rng
         self.logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
     def check(self, bean: Bean) -> SurvivalResult:
         config: BeansConfig = self.config
         self.logger.debug(f">>>>> Survival.check: "
-                          f"bean={bean.id},"
+                          f" Bean {bean.id},"
                           f" age={bean.age},"
                           f"energy={bean.energy},"
                           f"size={bean.size},"
@@ -68,9 +68,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
             )
 
         if bean.energy <= 0:
-            self.logger.debug(
-                f">>>>> Survival.check: bean={bean.id}, energy={bean.energy}, size={bean.size}, min_size={config.min_bean_size}"
-            )
+            self.logger.debug(f">>>>> Survival.check: Bean {bean.id}, energy={bean.energy}, size={bean.size}, min_size={config.min_bean_size}")
             if bean.size <= config.min_bean_size:
                 return SurvivalResult(
                     alive=False,
@@ -92,12 +90,23 @@ class DefaultSurvivalChecker(SurvivalChecker):
 
         threshold = min(config.max_bean_size, config.initial_bean_size * config.obesity_threshold_factor)
         if bean.size >= threshold:
-            rng = self.rng or random
-            prob = config.obesity_death_probability
-            self.logger.debug(
-                f">>>>> Survival.check: obesity check bean={bean.id}, size={bean.size}, threshold={threshold}, prob={prob}"
-            )
-            if rng.random() < prob:
+            min_size = config.min_bean_size
+            max_size = config.max_bean_size
+            base_prob = config.obesity_death_probability
+            # Scale probability linearly with size
+            prob = base_prob * (bean.size - min_size) / (max_size - min_size)
+            prob = max(0.0, min(prob, base_prob))  # Clamp to [0, base_prob]
+            rng_val = self.rng.random()
+            self.logger.debug(f">>>>> Survival.check: obesity check Bean {bean.id}, "
+                              f"size={bean.size}, "
+                              f"threshold={threshold}, "
+                              f"base_prob={base_prob}, "
+                              f"prob={prob}, "
+                              f"rng={rng_val}"
+                              f"min_size={min_size}, "
+                              f"max_size={max_size} "
+                            )
+            if rng_val < prob:
                 return SurvivalResult(
                     alive=False,
                     reason="obesity",
@@ -128,6 +137,6 @@ class SurvivalManager:
 
             result.bean = bean
             self.dead_beans.append(result)
-            self.logger.debug(f">>>>> SurvivalManager: bean {bean.id} died: reason={result.reason}")
+            self.logger.debug(f">>>>> SurvivalManager::check_and_record: bean {bean.id} died: reason={result.reason}")
 
         return result

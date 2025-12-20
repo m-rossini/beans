@@ -4,7 +4,7 @@ from typing import List, Sequence
 import arcade
 import arcade.key
 
-from beans.world import World
+from beans.world import World, WorldState
 from reporting.report import ConsoleSimulationReport, SimulationReport
 
 from .bean_sprite import BeanSprite
@@ -74,12 +74,14 @@ class WorldWindow(arcade.Window):
     def _all_food_positions(self):
         fm = self.world.food_manager
         # Only works for HybridFoodManager for now, as per test
-        for pos, qty in getattr(fm, 'grid', {}).items():
-            if qty > 0:
-                yield (pos[0], 'COMMON', qty)
-        for pos, info in getattr(fm, 'dead_beans', {}).items():
-            if info['value'] > 0:
-                yield (pos[0], 'DEAD_BEAN', info['value'])
+        for pos, entry in getattr(fm, 'grid', {}).items():
+            if entry['value'] > 0:
+                food_type = entry.get('type', None)
+                if hasattr(food_type, 'name'):
+                    type_name = food_type.name
+                else:
+                    type_name = str(food_type)
+                yield (pos[0], type_name, entry['value'])
 
     def _create_bean_sprites(self, positions) -> BeanSprite:
         return [self._create_sprite(bean, positions[i]) for i, bean in enumerate(self.world.beans)]
@@ -107,23 +109,18 @@ class WorldWindow(arcade.Window):
             self._draw_help_overlay()
 
     def on_update(self, delta_time: float):
-        logger.debug(
-            ">>>>> WorldWindow.on_update: delta_time=%0.3f",
-            delta_time,
-        )
+        logger.debug(">>>>> WorldWindow.on_update: delta_time=%0.3f", delta_time)
         if self._pause_for_empty_world():
             return
         if self._paused:
             return
-        self.world.step(delta_time)
-        self.title = f"{self.base_title} - round: {self.world.round}"
+        world_state : WorldState = self.world.step(delta_time)
+        self.title = f"{self.base_title} - round: {world_state.current_round} - alive beans: {len(world_state.alive_beans)} - dead beans: {len(world_state.dead_beans)}"
+        self._add_dead_bean_food(world_state)
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
-            logger.debug(
-                ">>>>> WorldWindow.on_update: %d sprites removed",
-                (old_count - len(self.bean_sprites)),
-            )
+            logger.debug(">>>>> WorldWindow.on_update: %d sprites removed", (old_count - len(self.bean_sprites)))
         # Collect target positions from movement system
         targets = []
         for sprite in self.bean_sprites:
@@ -136,11 +133,22 @@ class WorldWindow(arcade.Window):
         for sprite in self.bean_sprites:
             sprite.update_from_bean(delta_time, adjusted_targets[sprite])
             self.sprite_list.append(sprite)
-        logger.debug(
-            ">>>>> WorldWindow.on_update: %d sprites active",
-            len(self.bean_sprites),
-        )
-        self._pause_for_empty_world()
+        logger.debug(">>>>> WorldWindow.on_update: %d sprites active", len(self.bean_sprites))
+        empty = self._pause_for_empty_world()
+        if empty:
+            logger.info(">>>> WorldWindow.on_update: No alive beans left, pausing simulation. Here are the death reasons:")
+            for survival_result in self.world.dead_beans:
+                bean = survival_result.bean
+                logger.info(f">>>> Bean id={bean.id} died due to: {survival_result.reason}")
+
+    def _add_dead_bean_food(self, world_state: WorldState) -> None:
+        """Add dead bean food at sprite position for each dead bean."""
+        for dead_bean in world_state.dead_beans:
+            sprite = next((s for s in self.bean_sprites if s.bean.id == dead_bean.id), None)
+            if sprite is not None:
+                pos = (int(sprite.center_x), int(sprite.center_y))
+                size = int(dead_bean.size *  self.world.env_config.dead_bean_initial_food_size_factor)
+                self.world.food_manager.add_dead_bean_as_food(pos, size)
 
     def on_key_press(self, symbol: int, modifiers: int):
         if self._prompt_active:
