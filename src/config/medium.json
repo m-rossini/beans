@@ -54,7 +54,7 @@
   },
   "environment": {
     "cell_size": 20,
-    "food_density": 0.01,
+    "food_density": 0.0005,
     "hazard_density": 0.002,
     "food_spawn_rate_per_round": 0.5,
     "hazard_spawn_rate_per_round": 0.05,

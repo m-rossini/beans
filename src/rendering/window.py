@@ -74,12 +74,14 @@ class WorldWindow(arcade.Window):
     def _all_food_positions(self):
         fm = self.world.food_manager
         # Only works for HybridFoodManager for now, as per test
-        for pos, qty in getattr(fm, 'grid', {}).items():
-            if qty > 0:
-                yield (pos[0], 'COMMON', qty)
-        for pos, info in getattr(fm, 'dead_beans', {}).items():
-            if info['value'] > 0:
-                yield (pos[0], 'DEAD_BEAN', info['value'])
+        for pos, entry in getattr(fm, 'grid', {}).items():
+            if entry['value'] > 0:
+                food_type = entry.get('type', None)
+                if hasattr(food_type, 'name'):
+                    type_name = food_type.name
+                else:
+                    type_name = str(food_type)
+                yield (pos[0], type_name, entry['value'])
 
     def _create_bean_sprites(self, positions) -> BeanSprite:
         return [self._create_sprite(bean, positions[i]) for i, bean in enumerate(self.world.beans)]

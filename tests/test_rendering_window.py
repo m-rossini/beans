@@ -45,7 +45,7 @@ def test_sprite_position_updates_on_movement(monkeypatch):
     win = WorldWindow(world)
     sprite = win.bean_sprites[0]
     # Patch bean_dynamics to use the test bean's genotype and max_age
-    world.bean_dynamics = BeanDynamics(bcfg)
+    # world.bean_dynamics = BeanDynamics(bcfg)
     # Set initial position and direction
     initial_x = sprite.center_x
     initial_y = sprite.center_y
@@ -364,7 +364,7 @@ def test_window_bounce_deducts_energy(monkeypatch):
 
 def test_food_rendering_scaling_and_color():
     """TDD: Food and dead bean food should be rendered with correct color and size scaling."""
-    from beans.environment.food_manager import FoodManager
+    from beans.environment.food_manager import FoodManager, FoodType
     cfg = WorldConfig(
         male_sprite_color="blue",
         female_sprite_color="red",
@@ -387,9 +387,9 @@ def test_food_rendering_scaling_and_color():
     win = WorldWindow(world)
     # Manipulate the food manager via the world instance
     fm: FoodManager = world.food_manager
-    fm.grid[(5, 5)] = 10.0
-    fm.grid[(10, 10)] = 2.0
-    fm.dead_beans[(15, 15)] = {"value": 8.0, "rounds": 0}
+    fm.grid[(5, 5)] = {'value': 10.0, 'type': FoodType.COMMON}
+    fm.grid[(10, 10)] = {'value': 2.0, 'type': FoodType.COMMON}
+    fm.grid[(15, 15)] = {'value': 8.0, 'type': FoodType.DEAD_BEAN, 'rounds': 0}
     # Use the window's public interface to get food positions and types
     food_positions = list(win._all_food_positions())
     assert (5, 'COMMON', 10.0) in food_positions

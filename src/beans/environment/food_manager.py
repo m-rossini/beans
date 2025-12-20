@@ -1,4 +1,4 @@
-
+import logging
 
 from abc import ABC, abstractmethod
 from enum import Enum, auto
@@ -6,6 +6,7 @@ from typing import Dict, Set, Tuple
 import random
 from config.loader import EnvironmentConfig, WorldConfig
 
+logger = logging.getLogger(__name__)
 
 class FoodType(Enum):
     COMMON = auto()
@@ -32,56 +33,130 @@ class FoodManager(ABC):
         pass
 
 class HybridFoodManager(FoodManager):
+
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
         super().__init__(world_config, env_config)
-        self.grid: Dict[Tuple[int, int], float] = {}
-        self.dead_beans: Dict[Tuple[int, int], Dict[str, float]] = {}
+        # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
+        self.grid: Dict[Tuple[int, int], dict] = {}
+        self.total_food_energy: float = 0.0
 
-    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
+    def _determine_food_spawn(self) -> tuple[int, float]:
+        density = self.env_config.food_density
+        energy_per_food = self.env_config.food_quality
         width = self.world_config.width
         height = self.world_config.height
-        num_to_spawn = int(self.env_config.food_spawn_rate_per_round)
-        max_energy = self.env_config.food_max_energy
+        area = width * height
+        max_total_energy = area * 0.05
+        # Target total food energy for this round
+        target_total_energy = min(area * density * energy_per_food, max_total_energy)
+        # Calculate current total energy in grid (all food, including dead beans)
+        current_total_energy = sum(entry['value'] for entry in self.grid.values())
+        # Only spawn enough food to reach target
+        energy_to_spawn = max(0.0, target_total_energy - current_total_energy)
+        food_count = int(energy_to_spawn // energy_per_food)
+        total_energy = food_count * energy_per_food
+        logger.info(f"Spawning {food_count} "
+                    f"max_total_energy={max_total_energy} "
+                    f"target_total_energy={target_total_energy} "
+                    f"current_total_energy={current_total_energy} "
+                    f"energy_to_spawn={energy_to_spawn} "
+                    f"food_count={food_count} "
+                    f"food items totaling={total_energy} "
+                    f"energy_per_food={energy_per_food} "
+                    f"density={density} "
+                )
+        return food_count, total_energy
+
+
+    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
+        food_count, self.total_food_energy = self._determine_food_spawn()
+        distribution = self.env_config.food_spawn_distribution
+        if distribution == "random":
+            self._spawn_food_random(occupied_positions, food_count)
+        elif distribution == "clustered":
+            self._spawn_food_clustered(occupied_positions, food_count)
+        else:
+            raise ValueError(f"Unknown food spawn distribution: {distribution}")
+        logger.debug(f"Food spawned: {len(self.grid)} food pixels "
+                     f"total energy={self.total_food_energy} "
+                     f"occupied positions={len(occupied_positions)} "
+                     f"food_count={food_count}"
+                     )
+
+    def _spawn_food_random(self, occupied_positions: Set[Tuple[int, int]], num_to_spawn: int) -> None:
+        width = self.world_config.width
+        height = self.world_config.height
+        energy_per_food = self.env_config.food_quality
         spawned = 0
         attempts = 0
-        while spawned < num_to_spawn and attempts < num_to_spawn * 10:
-            x = random.randint(0, width - 1)
-            y = random.randint(0, height - 1)
-            pos = (x, y)
-            if pos in occupied_positions or pos in self.grid:
+        while spawned < num_to_spawn and attempts < num_to_spawn * 20:
+            x = random.randint(0, width - 2)
+            y = random.randint(0, height - 2)
+            square = [(x + dx, y + dy) for dx in range(2) for dy in range(2)]
+            # Check overlap with occupied or existing food
+            if any(pos in occupied_positions or pos in self.grid for pos in square):
                 attempts += 1
                 continue
-            self.grid[pos] = max_energy
+            for pos in square:
+                self.grid[pos] = {'value': energy_per_food, 'type': FoodType.COMMON}
             spawned += 1
             attempts += 1
 
+    def _spawn_food_clustered(self, occupied_positions: Set[Tuple[int, int]], num_to_spawn: int) -> None:
+        width = self.world_config.width
+        height = self.world_config.height
+        energy_per_food = self.env_config.food_quality
+        spawned = 0
+        # Pick a random cluster center, but ensure 2x2 fits
+        center_x = random.randint(0, width - 2)
+        center_y = random.randint(0, height - 2)
+        # Try to spawn all food within a 3x3 area around the center, each as a 2x2 square
+        possible_origins = [
+            (x, y)
+            for x in range(max(0, center_x - 1), min(width - 1, center_x + 2))
+            for y in range(max(0, center_y - 1), min(height - 1, center_y + 2))
+        ]
+        random.shuffle(possible_origins)
+        for origin in possible_origins:
+            if spawned >= num_to_spawn:
+                break
+            square = [(origin[0] + dx, origin[1] + dy) for dx in range(2) for dy in range(2)]
+            if any(pos[0] >= width or pos[1] >= height or pos in occupied_positions or pos in self.grid for pos in square):
+                continue
+            for pos in square:
+                self.grid[pos] = {'value': energy_per_food, 'type': FoodType.COMMON}
+            spawned += 1
+
     def step(self) -> None:
-        # Decay grid food by 10% of original value per tick
-        for pos in list(self.grid.keys()):
-            self.grid[pos] *= 0.9
-            if self.grid[pos] < 1e-6:
-                del self.grid[pos]
-        # Decay dead bean food: 50% per round, remove after 3 rounds
+        # Decay food by type
         to_remove = []
-        for pos, info in self.dead_beans.items():
-            info["value"] *= 0.5
-            info["rounds"] += 1
-            if info["rounds"] >= 3 or info['value'] < 1e-6:
-                to_remove.append(pos)
+        for pos, entry in self.grid.items():
+            if entry['type'] == FoodType.COMMON:
+                entry['value'] *= 0.9
+                if entry['value'] < 1e-6:
+                    to_remove.append(pos)
+            elif entry['type'] == FoodType.DEAD_BEAN:
+                entry['value'] *= 0.5
+                entry['rounds'] = entry.get('rounds', 0) + 1
+                if entry['rounds'] >= 3 or entry['value'] < 1e-6:
+                    to_remove.append(pos)
         for pos in to_remove:
-            del self.dead_beans[pos]
+            del self.grid[pos]
 
     def add_dead_bean_as_food(self, position: Tuple[int, int], size: float) -> None:
-        self.dead_beans[position] = {'value': size, 'rounds': 0}
+        # Add or update dead bean food at this position
+        if position in self.grid and self.grid[position]['type'] == FoodType.DEAD_BEAN:
+            self.grid[position]['value'] += size
+            self.grid[position]['rounds'] = 0
+        else:
+            self.grid[position] = {'value': size, 'type': FoodType.DEAD_BEAN, 'rounds': 0}
 
     def get_food_at(self, position: Tuple[int, int]) -> Dict[FoodType, float]:
+        # Return a dict of food type to value at this position
         result: Dict[FoodType, float] = {}
-        # Grid food
-        if position in self.grid:
-            result[FoodType.COMMON] = self.grid[position]
-        # Dead bean food
-        if position in self.dead_beans:
-            result[FoodType.DEAD_BEAN] = self.dead_beans[position]['value']
+        entry = self.grid.get(position)
+        if entry:
+            result[entry['type']] = entry['value']
         return result
 
 def create_food_manager_from_name(env_config: WorldConfig, world_config: WorldConfig) -> FoodManager:
