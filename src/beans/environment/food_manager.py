@@ -33,12 +33,17 @@ class FoodManager(ABC):
         pass
 
 class HybridFoodManager(FoodManager):
+    def _current_total_food_energy(self) -> float:
+        """Return the current total food energy in the world (all types)."""
+        return sum(entry['value'] for entry in self.grid.values())
 
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
         super().__init__(world_config, env_config)
         # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
         self.grid: Dict[Tuple[int, int], dict] = {}
         self.total_food_energy: float = 0.0
+        # Spawn initial food
+        self.spawn_food(set())
 
     def _determine_food_spawn(self) -> tuple[int, float]:
         density = self.env_config.food_density
@@ -69,7 +74,18 @@ class HybridFoodManager(FoodManager):
 
 
     def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
-        food_count, self.total_food_energy = self._determine_food_spawn()
+        max_count, max_energy = self._determine_food_spawn()
+        current_energy = self._current_total_food_energy()
+        allowed_energy = max(0.0, max_energy - current_energy)
+        if allowed_energy <= 0:
+            logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy.")
+            return
+        energy_per_food = self.env_config.food_quality
+        food_count = int(allowed_energy // energy_per_food)
+        if food_count <= 0:
+            logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item.")
+            return
+        self.total_food_energy = food_count * energy_per_food
         distribution = self.env_config.food_spawn_distribution
         if distribution == "random":
             self._spawn_food_random(occupied_positions, food_count)
@@ -77,11 +93,13 @@ class HybridFoodManager(FoodManager):
             self._spawn_food_clustered(occupied_positions, food_count)
         else:
             raise ValueError(f"Unknown food spawn distribution: {distribution}")
-        logger.debug(f"Food spawned: {len(self.grid)} food pixels "
-                     f"total energy={self.total_food_energy} "
-                     f"occupied positions={len(occupied_positions)} "
-                     f"food_count={food_count}"
-                     )
+        logger.debug(
+            ">>>>> HybridFoodManager::spawn_food: Food spawned:",
+            f"food_pixels={len(self.grid)}",
+            f"total_energy={self.total_food_energy}",
+            f"occupied_positions={len(occupied_positions)}",
+            f"food_count={food_count}"
+        )
 
     def _spawn_food_random(self, occupied_positions: Set[Tuple[int, int]], num_to_spawn: int) -> None:
         width = self.world_config.width
@@ -142,14 +160,26 @@ class HybridFoodManager(FoodManager):
                     to_remove.append(pos)
         for pos in to_remove:
             del self.grid[pos]
+        # Spawn food after decay
+        self.spawn_food(set())
 
     def add_dead_bean_as_food(self, position: Tuple[int, int], size: float) -> None:
-        # Add or update dead bean food at this position
+        # Dead bean food is always added, ignoring the global food cap
         if position in self.grid and self.grid[position]['type'] == FoodType.DEAD_BEAN:
             self.grid[position]['value'] += size
             self.grid[position]['rounds'] = 0
+            logger.debug(
+                ">>>>> HybridFoodManager::add_dead_bean_as_food: Increased dead bean food:",
+                f"position={position}",
+                f"added_value={size}"
+            )
         else:
             self.grid[position] = {'value': size, 'type': FoodType.DEAD_BEAN, 'rounds': 0}
+            logger.debug(
+                ">>>>> HybridFoodManager::add_dead_bean_as_food: Added dead bean food:",
+                f"position={position}",
+                f"value={size}"
+            )
 
     def get_food_at(self, position: Tuple[int, int]) -> Dict[FoodType, float]:
         # Return a dict of food type to value at this position

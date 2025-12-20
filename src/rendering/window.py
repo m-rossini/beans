@@ -4,7 +4,7 @@ from typing import List, Sequence
 import arcade
 import arcade.key
 
-from beans.world import World
+from beans.world import World, WorldState
 from reporting.report import ConsoleSimulationReport, SimulationReport
 
 from .bean_sprite import BeanSprite
@@ -114,8 +114,9 @@ class WorldWindow(arcade.Window):
             return
         if self._paused:
             return
-        self.world.step(delta_time)
-        self.title = f"{self.base_title} - round: {self.world.round}"
+        world_state : WorldState = self.world.step(delta_time)
+        self.title = f"{self.base_title} - round: {world_state.current_round} - alive beans: {len(world_state.alive_beans)} - dead beans: {len(world_state.dead_beans)}"
+        self._add_dead_bean_food(world_state)
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
@@ -133,12 +134,21 @@ class WorldWindow(arcade.Window):
             sprite.update_from_bean(delta_time, adjusted_targets[sprite])
             self.sprite_list.append(sprite)
         logger.debug(">>>>> WorldWindow.on_update: %d sprites active", len(self.bean_sprites))
-        empty =self._pause_for_empty_world()
+        empty = self._pause_for_empty_world()
         if empty:
             logger.info(">>>> WorldWindow.on_update: No alive beans left, pausing simulation. Here are the death reasons:")
             for survival_result in self.world.dead_beans:
                 bean = survival_result.bean
                 logger.info(f">>>> Bean id={bean.id} died due to: {survival_result.reason}")
+
+    def _add_dead_bean_food(self, world_state: WorldState) -> None:
+        """Add dead bean food at sprite position for each dead bean."""
+        for dead_bean in world_state.dead_beans:
+            sprite = next((s for s in self.bean_sprites if s.bean.id == dead_bean.id), None)
+            if sprite is not None:
+                pos = (int(sprite.center_x), int(sprite.center_y))
+                size = dead_bean.size * 0.5
+                self.world.food_manager.add_dead_bean_as_food(pos, size)
 
     def on_key_press(self, symbol: int, modifiers: int):
         if self._prompt_active:
