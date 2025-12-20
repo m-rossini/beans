@@ -92,6 +92,7 @@ class EnvironmentConfig:
     food_max_energy: float = 10.0  # Max energy per food item
     food_spawn_distribution: str = "random"  # Distribution type for food spawning
     food_decay_rate: float = 0.01  # Decay rate per step for food
+    dead_bean_initial_food_size_factor: float = 0.5  #Initial food size for dead beans.When a bean dies, it sizes will be mulitplied by this
 
 
 DEFAULT_WORLD_CONFIG = WorldConfig(
@@ -175,7 +176,8 @@ DEFAULT_ENVIRONMENT_CONFIG = EnvironmentConfig(
     food_quality=5,
     food_max_energy=10.0,
     food_spawn_distribution="random",
-    food_decay_rate=0.01
+    food_decay_rate=0.01,
+    dead_bean_initial_food_size_factor=0.5,
 )
 
 
@@ -291,6 +293,7 @@ def load_config(
         food_max_energy=env_data.get("food_max_energy", 10.0),
         food_spawn_distribution=env_data.get("food_spawn_distribution", "random"),
         food_decay_rate=env_data.get("food_decay_rate", 0.01),
+        dead_bean_initial_food_size_factor=env_data.get("dead_bean_initial_food_size_factor", 0.5)
     )
 
     # Validate values — if invalid config values are present, fail fast (raise ValueError)

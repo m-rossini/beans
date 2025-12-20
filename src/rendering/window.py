@@ -147,7 +147,7 @@ class WorldWindow(arcade.Window):
             sprite = next((s for s in self.bean_sprites if s.bean.id == dead_bean.id), None)
             if sprite is not None:
                 pos = (int(sprite.center_x), int(sprite.center_y))
-                size = dead_bean.size * 0.5
+                size = int(dead_bean.size *  self.world.env_config.dead_bean_initial_food_size_factor)
                 self.world.food_manager.add_dead_bean_as_food(pos, size)
 
     def on_key_press(self, symbol: int, modifiers: int):
