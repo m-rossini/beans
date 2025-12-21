@@ -395,3 +395,10 @@ def test_food_rendering_scaling_and_color():
     assert (5, 'COMMON', 10.0) in food_positions
     assert (10, 'COMMON', 2.0) in [(x, t, q) for (x, t, q) in food_positions if t == 'COMMON']
     assert (15, 'DEAD_BEAN', 8.0) in [(x, t, q) for (x, t, q) in food_positions if t == 'DEAD_BEAN']
+
+    # High-level: Ensure on_draw executes without error (smoke test)
+    # This checks that the rendering logic can handle the food grid as set up above
+    try:
+        win.on_draw()
+    except Exception as e:
+        assert False, f"on_draw raised an exception: {e}"
