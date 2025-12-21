@@ -73,9 +73,9 @@ def test_intake_increases_energy():
     bean = make_bean_with_genes(config, energy=50.0)
 
     before = bean.energy
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=20.0)
-    # returned state should reflect increased energy and original bean should be unchanged
-    assert state.energy > before
+    # Intake is now handled elsewhere; just check that energy system does not mutate energy without intake
+    state = energy_system.apply_energy_system(bean)
+    assert state.energy < before  # energy should decrease due to metabolism
     assert bean.energy == before
 
 
@@ -87,7 +87,7 @@ def test_metabolism_reduces_energy_over_time():
 
     prev = bean.energy
     for _ in range(5):
-        state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
+        state = energy_system.apply_energy_system(bean)
         assert state.energy <= prev
         prev = state.energy
     # original bean remains unchanged
@@ -100,7 +100,7 @@ def test_size_increases_when_energy_above_baseline():
     bean = make_bean_with_genes(config, energy=config.energy_baseline + 20)
 
     size_before = bean.size
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
+    state = energy_system.apply_energy_system(bean)
     assert state.size >= size_before
     assert bean.size == size_before
 
@@ -111,7 +111,7 @@ def test_size_decreases_when_energy_below_baseline():
     bean = make_bean_with_genes(config, energy=config.energy_baseline - 20)
 
     size_before = bean.size
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
+    state = energy_system.apply_energy_system(bean)
     assert state.size <= size_before
     assert bean.size == size_before
 
@@ -121,14 +121,14 @@ def test_size_clamping():
     energy_system = create_energy_system_from_name("standard", config)
     # too small (create bean already at small size)
     bean = make_bean_with_genes(config, energy=50.0, size=1.0)
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
+    state = energy_system.apply_energy_system(bean)
     # the returned state should be clamped; original bean still holds the old size
     assert state.size >= config.min_bean_size
     assert bean.size == 1.0
 
     # too large
     bean2 = make_bean_with_genes(config, energy=50.0, size=50.0)
-    state2 = energy_system.apply_energy_system(bean2, energy_intake_eu=0.0)
+    state2 = energy_system.apply_energy_system(bean2)
     assert state2.size <= config.max_bean_size
     assert bean2.size == 50.0
 

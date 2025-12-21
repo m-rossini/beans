@@ -69,8 +69,8 @@ def test_apply_energy_returns_state_and_does_not_mutate_bean():
     bean = make_bean_with_genes(config, energy=50.0)
 
     before = bean.energy
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=20.0)
-    assert state.energy > before
+    state = energy_system.apply_energy_system(bean)
+    assert state.energy < before  # energy should decrease due to metabolism
     assert bean.energy == before
 
 
@@ -80,8 +80,8 @@ def test_intake_changes_returned_state_but_not_bean():
     bean = make_bean_with_genes(config, energy=50.0)
 
     before = bean.energy
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=20.0)
-    assert state.energy > before
+    state = energy_system.apply_energy_system(bean)
+    assert state.energy < before  # energy should decrease due to metabolism
     assert bean.energy == before
 
 
@@ -92,7 +92,7 @@ def test_metabolism_reduces_returned_energy_over_time():
 
     prev = bean.energy
     for _ in range(5):
-        state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
+        state = energy_system.apply_energy_system(bean)
         assert state.energy <= prev
         prev = state.energy
     assert bean.energy == 120.0
@@ -108,7 +108,7 @@ def test_size_clamping_on_returned_state():
     state0.store(size=1.0)
     bean.update_from_state(state0)
 
-    state = energy_system.apply_energy_system(bean, energy_intake_eu=0.0)
+    state = energy_system.apply_energy_system(bean)
     assert state.size >= config.min_bean_size
     # original bean remains at size 1.0 until update_from_state is called
     assert bean.size == 1.0

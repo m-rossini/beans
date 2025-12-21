@@ -20,7 +20,7 @@ class FakeEnv:
     def step(self) -> None:
         self.stepped = True
 
-    def get_energy_intake(self) -> float:
+    # get_energy_intake method removed from World
         return self.energy
 
     def get_temperature(self) -> float:
@@ -43,5 +43,5 @@ def test_world_delegates_energy_and_temperature_to_environment(tmp_path):
 
     w = World(world_cfg, beans_cfg, env_cfg)
     w.environment = fake
-    assert w.get_energy_intake() == 3.14
+    # get_energy_intake usage removed from World
     assert w.get_temperature() == 7.0

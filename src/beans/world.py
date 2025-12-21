@@ -142,7 +142,7 @@ class World:
         return self.state
 
     def _update_bean(self, bean: Bean) -> BeanState:
-        bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
+        bean_state = self.energy_system.apply_energy_system(bean)
 
         speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
         bean_state.store(speed=speed)
@@ -157,13 +157,6 @@ class World:
         """Backwards compatible accessor for recorded dead beans."""
         return self.survival_manager.dead_beans
 
-    def get_energy_intake(self) -> float:
-        """Return the energy intake available from the world.
-
-        Currently returns a hardcoded default value.
-        TODO: Implement dynamic energy intake based on world state.
-        """
-        return self.environment.get_energy_intake()
 
     def get_temperature(self) -> float:
         """Return the current world temperature.

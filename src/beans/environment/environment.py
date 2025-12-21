@@ -18,9 +18,6 @@ class Environment(ABC):
     def step(self) -> None: ...
 
     @abstractmethod
-    def get_energy_intake(self) -> float: ...
-
-    @abstractmethod
     def get_temperature(self) -> float: ...
 
     @property
@@ -50,7 +47,6 @@ class DefaultEnvironment(Environment):
     def step(self) -> None:
         self._food_manager.step()
 
-    def get_energy_intake(self) -> float:
         return self._beans_config.energy_gain_per_step
 
     def get_temperature(self) -> float:
