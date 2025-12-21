@@ -3,6 +3,7 @@ from typing import List, Sequence
 
 import arcade
 import arcade.key
+from beans.environment.food_manager import FoodType
 
 from beans.world import World, WorldState
 from reporting.report import ConsoleSimulationReport, SimulationReport
@@ -103,10 +104,22 @@ class WorldWindow(arcade.Window):
     def on_draw(self):
         self.clear()
         self.sprite_list.draw()
+        self._draw_food_items()
         if self._prompt_active:
             self._draw_zero_bean_prompt()
         if self._help_active:
             self._draw_help_overlay()
+
+    def _draw_food_items(self):
+        """Draw food and dead bean food items on the screen."""
+        food_manager = self.world.environment.food_manager
+        for (x, y), entry in food_manager.grid.items():
+            if entry.get('value', 0) > 0:
+                color = arcade.color.GREEN
+                if entry.get('type', None) == FoodType.DEAD_BEAN:
+                    color = arcade.color.BROWN
+                size = entry.get('size', 3)
+                arcade.draw_circle_filled(x, y, size, color)
 
     def on_update(self, delta_time: float):
         logger.debug(">>>>> WorldWindow.on_update: delta_time=%0.3f", delta_time)

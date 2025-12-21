@@ -1,9 +1,9 @@
 import logging
-
+import random
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Dict, Set, Tuple
-import random
+
 from config.loader import EnvironmentConfig, WorldConfig
 
 logger = logging.getLogger(__name__)
