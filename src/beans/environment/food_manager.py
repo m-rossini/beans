@@ -41,6 +41,24 @@ class FoodManager(ABC):
 
 class HybridFoodManager(FoodManager):
 
+    def process_bean_food_collision(self, bean, position):
+        """
+        Handles collision between a bean and food at the given position.
+        Transfers energy from food to bean, decreases food value accordingly.
+        Food is not removed here, only during decay in step().
+        Returns the amount of energy gained by the bean (float).
+        """
+        entry = self.grid.get(position)
+        if not entry or entry['value'] <= 0:
+            return 0.0
+        # Determine how much energy the bean can take (all available for now)
+        energy_available = entry['value']
+        # Optionally, could limit by bean's max energy storage, but test expects all
+        gained = min(energy_available, self.env_config.food_quality)
+        entry['value'] -= gained
+        # Do not remove food here, only in step()
+        return gained
+
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
         super().__init__(world_config, env_config)
         # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
@@ -67,7 +85,7 @@ class HybridFoodManager(FoodManager):
         energy_to_spawn = max(0.0, target_total_energy - current_total_energy)
         food_count = int(energy_to_spawn // energy_per_food)
         total_energy = food_count * energy_per_food
-        logger.info(f"Spawning {food_count} "
+        logger.debug(f"Spawning {food_count} "
                     f"max_total_energy={max_total_energy} "
                     f"target_total_energy={target_total_energy} "
                     f"current_total_energy={current_total_energy} "
@@ -85,13 +103,21 @@ class HybridFoodManager(FoodManager):
         current_energy = self._current_total_food_energy()
         allowed_energy = max(0.0, max_energy - current_energy)
         if allowed_energy <= 0:
-            logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy.")
+            logger.debug(f">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy. "
+                         f"max_energy={max_energy} "
+                         f"current_energy={current_energy}"
+                         f"Allowed_energy={allowed_energy} "
+                         f"max_count={max_count}")
             return
 
         energy_per_food = self.env_config.food_quality
         food_count = int(allowed_energy // energy_per_food)
         if food_count <= 0:
-            logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item.")
+            logger.debug(f">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item. "
+                         f"max_count={max_count} "
+                         f"allowed_energy={allowed_energy} "
+                         f"energy_per_food={energy_per_food} "
+                         f"food_count={food_count}")
             return
 
         self.total_food_energy = food_count * energy_per_food
