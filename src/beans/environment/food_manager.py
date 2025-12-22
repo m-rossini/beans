@@ -41,22 +41,18 @@ class FoodManager(ABC):
 
 class HybridFoodManager(FoodManager):
 
-    def process_bean_food_collision(self, bean, position):
+    def consume_food_at_position(self, bean, position):
         """
-        Handles collision between a bean and food at the given position.
-        Transfers energy from food to bean, decreases food value accordingly.
+        Transfers energy from food to bean at the given position, decreases food value accordingly.
         Food is not removed here, only during decay in step().
         Returns the amount of energy gained by the bean (float).
         """
         entry = self.grid.get(position)
         if not entry or entry['value'] <= 0:
             return 0.0
-        # Determine how much energy the bean can take (all available for now)
         energy_available = entry['value']
-        # Optionally, could limit by bean's max energy storage, but test expects all
         gained = min(energy_available, self.env_config.food_quality)
         entry['value'] -= gained
-        # Do not remove food here, only in step()
         return gained
 
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:

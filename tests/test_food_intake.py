@@ -9,7 +9,7 @@ class DummyCollisionSystem:
         self.food_manager = food_manager
 
     def bean_eats_food(self, bean, position):
-        return self.food_manager.process_bean_food_collision(bean, position)
+        return self.food_manager.consume_food_at_position(bean, position)
 
 def make_bean(size=10.0, sex=Sex.MALE, id=1):
     beans_config = DEFAULT_BEANS_CONFIG
