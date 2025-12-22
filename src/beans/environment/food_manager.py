@@ -24,7 +24,7 @@ class FoodManager(ABC):
         self.food_manager_state = FoodManagerState()
 
     @abstractmethod
-    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
+    def _spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
         pass
 
     @abstractmethod
@@ -46,7 +46,7 @@ class HybridFoodManager(FoodManager):
         # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
         self.grid: Dict[Tuple[int, int], dict] = {}
         self.total_food_energy: float = 0.0
-        self.spawn_food(set())
+        self._spawn_food(set())
 
     def _current_total_food_energy(self) -> float:
         """Return the current total food energy in the world (all types)."""
@@ -80,21 +80,19 @@ class HybridFoodManager(FoodManager):
         return food_count, total_energy
 
 
-    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> FoodManagerState:
+    def _spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
         max_count, max_energy = self._determine_food_spawn()
         current_energy = self._current_total_food_energy()
         allowed_energy = max(0.0, max_energy - current_energy)
         if allowed_energy <= 0:
             logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy.")
-            self.food_manager_state.total_food_energy = current_energy
-            return self.food_manager_state
+            return
 
         energy_per_food = self.env_config.food_quality
         food_count = int(allowed_energy // energy_per_food)
         if food_count <= 0:
             logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item.")
-            self.food_manager_state.total_food_energy = current_energy
-            return self.food_manager_state
+            return
 
         self.total_food_energy = food_count * energy_per_food
         distribution = self.env_config.food_spawn_distribution
@@ -106,16 +104,12 @@ class HybridFoodManager(FoodManager):
             raise ValueError(f"Unknown food spawn distribution: {distribution}")
 
         logger.debug(
-            ">>>>> HybridFoodManager::spawn_food: Food spawned:",
+            ">>>>> HybridFoodManager::_spawn_food: Food spawned:",
             f"food_pixels={len(self.grid)}",
             f"total_energy={self.total_food_energy}",
             f"occupied_positions={len(occupied_positions)}",
             f"food_count={food_count}"
         )
-
-        self.food_manager_state.total_food_energy = self._current_total_food_energy()
-
-        return self.food_manager_state
 
     def _spawn_food_random(self, occupied_positions: Set[Tuple[int, int]], num_to_spawn: int) -> None:
         width = self.world_config.width
@@ -161,7 +155,7 @@ class HybridFoodManager(FoodManager):
                 self.grid[pos] = {'value': energy_per_food, 'type': FoodType.COMMON}
             spawned += 1
 
-    def step(self) -> None:
+    def step(self) -> FoodManagerState:
         # Decay food by type
         to_remove = []
         for pos, entry in self.grid.items():
@@ -177,7 +171,9 @@ class HybridFoodManager(FoodManager):
         for pos in to_remove:
             del self.grid[pos]
         # Spawn food after decay
-        self.spawn_food(set())
+        self._spawn_food(set())
+        self.food_manager_state.total_food_energy = self._current_total_food_energy()
+        return self.food_manager_state
 
     def add_dead_bean_as_food(self, position: Tuple[int, int], size: float) -> None:
         # Dead bean food is always added, ignoring the global food cap
