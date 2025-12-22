@@ -35,13 +35,3 @@ def test_world_calls_environment_step_and_delegates(tmp_path):
     w.environment = fake
     w.step(1.0)
     assert fake.stepped is True
-
-
-def test_world_delegates_energy_and_temperature_to_environment(tmp_path):
-    world_cfg, beans_cfg, env_cfg = load_config("src/config/small.json")
-    fake = FakeEnv()
-
-    w = World(world_cfg, beans_cfg, env_cfg)
-    w.environment = fake
-    # get_energy_intake usage removed from World
-    assert w.get_temperature() == 7.0

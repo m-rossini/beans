@@ -107,9 +107,7 @@ class World:
 
 
     def step(self, dt: float) -> WorldState:
-        logger.debug(
-            f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}"
-        )
+        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
         self.environment.step()
         survivors: List[Bean] = []
         dead_this_step: List[Bean] = []
@@ -156,12 +154,3 @@ class World:
     def dead_beans(self) -> List[SurvivalResult]:
         """Backwards compatible accessor for recorded dead beans."""
         return self.survival_manager.dead_beans
-
-
-    def get_temperature(self) -> float:
-        """Return the current world temperature.
-
-        Currently returns a hardcoded default value.
-        TODO: Implement dynamic temperature based on world state.
-        """
-        return self.environment.get_temperature()

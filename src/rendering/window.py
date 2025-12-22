@@ -123,32 +123,46 @@ class WorldWindow(arcade.Window):
 
     def on_update(self, delta_time: float):
         logger.debug(">>>>> WorldWindow.on_update: delta_time=%0.3f", delta_time)
-        if self._pause_for_empty_world():
+        if self._pause_for_empty_world() or self._paused:
             return
-        if self._paused:
-            return
-        world_state : WorldState = self.world.step(delta_time)
-        self.title = f"{self.base_title} - round: {world_state.current_round} - alive beans: {len(world_state.alive_beans)} - dead beans: {len(world_state.dead_beans)}"
+        world_state = self._advance_world(delta_time)
+        self._update_window_title(world_state)
         self._add_dead_bean_food(world_state)
+        self._refresh_bean_sprites()
+        self._move_and_update_sprites(delta_time)
+        logger.debug(">>>>> WorldWindow.on_update: %d sprites active", len(self.bean_sprites))
+        self._handle_empty_world()
+
+    def _advance_world(self, delta_time: float) -> WorldState:
+        world_state = self.world.step(delta_time)
+        return world_state
+
+    def _update_window_title(self, world_state: WorldState) -> None:
+        self.title = (
+            f"{self.base_title} - round: {world_state.current_round} "
+            f"- alive beans: {len(world_state.alive_beans)} "
+            f"- dead beans: {len(world_state.dead_beans)}"
+        )
+
+    def _refresh_bean_sprites(self) -> None:
         old_count = len(self.bean_sprites)
         self.bean_sprites = [sprite for sprite in self.bean_sprites if sprite.bean in self.world.beans]
         if len(self.bean_sprites) < old_count:
             logger.debug(">>>>> WorldWindow.on_update: %d sprites removed", (old_count - len(self.bean_sprites)))
-        # Collect target positions from movement system
-        targets = []
-        for sprite in self.bean_sprites:
-            tx, ty, _ = self._movement_system.move_sprite(sprite, self.width, self.height)
-            targets.append((sprite, tx, ty))
-        # Resolve collisions and get adjusted positions
-        adjusted_targets, damage_report = self._movement_system.resolve_collisions(targets, self.width, self.height)
-        # Update sprites with adjusted positions
+
+    def _move_and_update_sprites(self, delta_time: float) -> None:
+        targets = [
+            (sprite, *self._movement_system.move_sprite(sprite, self.width, self.height)[:2])
+            for sprite in self.bean_sprites
+        ]
+        adjusted_targets, _ = self._movement_system.resolve_collisions(targets, self.width, self.height)
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
             sprite.update_from_bean(delta_time, adjusted_targets[sprite])
             self.sprite_list.append(sprite)
-        logger.debug(">>>>> WorldWindow.on_update: %d sprites active", len(self.bean_sprites))
-        empty = self._pause_for_empty_world()
-        if empty:
+
+    def _handle_empty_world(self) -> None:
+        if self._pause_for_empty_world():
             logger.info(">>>> WorldWindow.on_update: No alive beans left, pausing simulation. Here are the death reasons:")
             for survival_result in self.world.dead_beans:
                 bean = survival_result.bean
