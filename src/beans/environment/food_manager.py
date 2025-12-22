@@ -41,6 +41,13 @@ class FoodManager(ABC):
 
 class HybridFoodManager(FoodManager):
 
+    def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
+        super().__init__(world_config, env_config)
+        # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
+        self.grid: Dict[Tuple[int, int], dict] = {}
+        self.total_food_energy: float = 0.0
+        self._spawn_food(set())
+
     def consume_food_at_position(self, bean, position):
         """
         Transfers energy from food to bean at the given position, decreases food value accordingly.
