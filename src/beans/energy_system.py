@@ -40,28 +40,25 @@ class EnergySystem(ABC):
         """
         self.config = config
 
-    def apply_energy_system(self, bean: Bean, energy_intake_eu: float) -> BeanState:
+    def apply_energy_system(self, bean: Bean) -> BeanState:
         """Apply the energy system mechanics to a bean for one update cycle.
 
         This method orchestrates the energy system steps:
-        1. Apply energy intake
-        2. Apply basal metabolism cost
-        3. Apply movement cost
-        4. Apply fat storage from surplus energy
-        5. Apply fat burning from energy deficit
-        6. Handle negative energy by burning fat
-        7. Clamp size to valid range
+        1. Apply basal metabolism cost
+        2. Apply movement cost
+        3. Apply fat storage from surplus energy
+        4. Apply fat burning from energy deficit
+        5. Handle negative energy by burning fat
+        6. Clamp size to valid range
 
         Args:
             bean: The bean to apply the energy system to.
-            energy_intake_eu: Amount of energy units the bean has ingested.
 
         """
         bean_state: BeanState = bean.to_state()
         # Set target_size every step
         bean_state.target_size = self._calculate_target_size(bean)
 
-        bean_state.energy = self._apply_intake(bean_state, energy_intake_eu)
         bean_state.energy = self._apply_basal_metabolism(bean_state, self._get_metabolism_factor(bean))
         bean_state.energy = self._apply_movement_cost(bean_state)
         bean_state.energy, bean_state.size = self._apply_fat_storage(bean_state, bean.genotype.genes[Gene.FAT_ACCUMULATION])
@@ -75,16 +72,6 @@ class EnergySystem(ABC):
         """Calculate the target size for a bean using genotype and config."""
         return size_target(bean.age, bean.genotype, self.config)
 
-    @abstractmethod
-    def _apply_intake(self, bean_state: BeanState, energy_eu: float) -> float:
-        """Apply energy intake to a bean.
-
-        Args:
-            bean: The bean to apply intake to.
-            energy_eu: Amount of energy units to add.
-
-        """
-        ...
 
     @abstractmethod
     def _apply_basal_metabolism(self, bean_state: BeanState, metabolism_factor: float) -> float:
@@ -170,24 +157,6 @@ class StandardEnergySystem(EnergySystem):
     - Size and metabolism-based basal burn
     """
 
-    def _apply_intake(self, bean_state: BeanState, energy_eu: float) -> float:
-        """Apply energy intake to a bean.
-
-        Called when the bean eats. Directly increases circulating energy.
-
-        Args:
-            bean: The bean to apply intake to.
-            energy_eu: Amount of energy units to add.
-
-        """
-        ret_val = bean_state.energy + energy_eu
-        logger.debug(
-            f">>>>> Bean {bean_state.id}"
-            f" apply_intake: energy_eu={energy_eu},"
-            f" old_energy={bean_state.energy:.2f},"
-            f" new_energy={ret_val:.2f}"
-        )
-        return ret_val
 
     def _apply_basal_metabolism(self, bean_state: BeanState, metabolism_factor: float) -> float:
         """Apply basal metabolic cost to a bean.

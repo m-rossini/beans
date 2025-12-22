@@ -4,12 +4,11 @@ from dataclasses import dataclass
 from typing import List
 
 from beans.dynamics.bean_dynamics import BeanDynamics
-from beans.environment.environment import create_environment_from_name
+from beans.environment.environment import EnvironmentState, create_environment_from_name
 from beans.environment.food_manager import FoodManager, create_food_manager_from_name
 from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
-from .bean import Bean, BeanState, Sex
-from .context import BeanContext
+from .bean import Bean, BeanContext, BeanState, Sex
 from .energy_system import EnergySystem, create_energy_system_from_name
 from .genetics import create_phenotype, create_random_genotype
 from .placement import create_strategy_from_name
@@ -27,6 +26,7 @@ class WorldState:
     alive_beans: List[Bean]
     dead_beans: List[Bean]
     current_round: int = 0
+    environment_state: EnvironmentState = None
 
 class World:
     def __init__(
@@ -60,6 +60,7 @@ class World:
                                                         self.env_config,
                                                         self.beans_config,
                                                         self.food_manager)
+        self.environment_state: EnvironmentState = None
         self._rng = random.Random(self.world_config.seed) if self.world_config.seed is not None else random.Random()
         self.beans: List[Bean] = self._initialize()
         self.initial_beans: int = len(self.beans)
@@ -107,10 +108,8 @@ class World:
 
 
     def step(self, dt: float) -> WorldState:
-        logger.debug(
-            f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}"
-        )
-        self.environment.step()
+        logger.debug(f">>>>> World.step: dt={dt}, beans_count={len(self.beans)}, dead_beans_count={len(self.dead_beans)}, round={self.round}")
+        self.environment_state = self.environment.step()
         survivors: List[Bean] = []
         dead_this_step: List[Bean] = []
         for bean in self.beans:
@@ -139,10 +138,11 @@ class World:
         self.state.alive_beans = survivors.copy()
         self.state.dead_beans = dead_this_step.copy()
         self.state.current_round = self.round
+        self.state.environment_state = self.environment_state
         return self.state
 
     def _update_bean(self, bean: Bean) -> BeanState:
-        bean_state = self.energy_system.apply_energy_system(bean, self.get_energy_intake())
+        bean_state = self.energy_system.apply_energy_system(bean)
 
         speed = self.bean_dynamics.calculate_speed(bean_state, bean.genotype, bean._max_age)
         bean_state.store(speed=speed)
@@ -156,19 +156,3 @@ class World:
     def dead_beans(self) -> List[SurvivalResult]:
         """Backwards compatible accessor for recorded dead beans."""
         return self.survival_manager.dead_beans
-
-    def get_energy_intake(self) -> float:
-        """Return the energy intake available from the world.
-
-        Currently returns a hardcoded default value.
-        TODO: Implement dynamic energy intake based on world state.
-        """
-        return self.environment.get_energy_intake()
-
-    def get_temperature(self) -> float:
-        """Return the current world temperature.
-
-        Currently returns a hardcoded default value.
-        TODO: Implement dynamic temperature based on world state.
-        """
-        return self.environment.get_temperature()

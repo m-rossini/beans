@@ -12,7 +12,6 @@ Avoid commenting code whenever possible
 ## General Instructions
 Follow the instructions on this section and the instructions on each file.
 
-- When python, ensure you are on the correct environment
 - When Asked a question, never change or add code, always ANSWER and give an educated answer with pros and cons of your choice
 - When in doubt, ask clarification questions. Do not assume, ask.
 - Stick to the request, do not go beyond what is asked.
@@ -26,7 +25,9 @@ Follow the instructions on this section and the instructions on each file.
 - Ensure you are in the proper envirnment when using python
 - If current branch is main, create a new branch to implement the plan
 - Implement each phase following TDD
-- Ask if you can commit and once commited, you move to the next phase.
+- A phase can have multiple steps, you do not have to ask me permission to follow thru steps
+- You must ask permission to change phase
+- The last action in a phas eis always a commit
 - No need to ask permission between steps in the same phase, only to commit and change phase
 - Each cycle of TDD and Implementation that is successful ALL tests must run and pass
 - Tests must run as make, first specific tests and once all pass, make test for all tests

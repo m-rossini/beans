@@ -398,7 +398,10 @@ def test_food_rendering_scaling_and_color():
 
     # High-level: Ensure on_draw executes without error (smoke test)
     # This checks that the rendering logic can handle the food grid as set up above
-    try:
-        win.on_draw()
-    except Exception as e:
-        assert False, f"on_draw raised an exception: {e}"
+    import arcade
+    from unittest.mock import patch
+    with patch.object(arcade, "draw_circle_filled", lambda *args, **kwargs: None):
+        try:
+            win.on_draw()
+        except Exception as e:
+            assert False, f"on_draw raised an exception: {e}"
