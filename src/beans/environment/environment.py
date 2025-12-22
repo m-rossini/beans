@@ -1,21 +1,32 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
-from beans.environment.food_manager import FoodManager
+from beans.environment.food_manager import FoodManager, FoodManagerState
 from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 
-class Environment(ABC):
-    """Abstract Environment interface.
+@dataclass
+class EnvironmentState:
+    food_manager_state: FoodManagerState
 
-    Minimal interface required by `World`. Implementations should provide
-    `step()` which advances environment state, and query methods for energy
-    intake and temperature.
-    """
+class Environment(ABC):
+    def __init__(
+        self,
+        env_config: EnvironmentConfig,
+        beans_config: BeansConfig,
+        world_config: WorldConfig,
+        food_manager: FoodManager,
+    ) -> None:
+        self._env_config = env_config
+        self._beans_config = beans_config
+        self._world_config = world_config
+        self._food_manager = food_manager
+        self._environment_state: EnvironmentState = EnvironmentState(food_manager_state=None)
 
     @abstractmethod
-    def step(self) -> None: ...
+    def step(self) -> EnvironmentState: ...
 
     @property
     @abstractmethod
@@ -36,13 +47,12 @@ class DefaultEnvironment(Environment):
         world_config: WorldConfig,
         food_manager: FoodManager,
     ) -> None:
-        self._env_config = env_config
-        self._beans_config = beans_config
-        self._world_config = world_config
-        self._food_manager = food_manager
+        super().__init__(env_config, beans_config, world_config, food_manager)
 
-    def step(self) -> None:
-        self._food_manager.step()
+    def step(self) -> EnvironmentState:
+        self._food_manager_state = self._food_manager.step()
+        self._environment_state.food_manager_state = self._food_manager_state
+        return self._environment_state
 
     @property
     def food_manager(self) -> FoodManager:

@@ -134,8 +134,7 @@ class WorldWindow(arcade.Window):
         self._handle_empty_world()
 
     def _advance_world(self, delta_time: float) -> WorldState:
-        world_state = self.world.step(delta_time)
-        return world_state
+        return self.world.step(delta_time)
 
     def _update_window_title(self, world_state: WorldState) -> None:
         self.title = (

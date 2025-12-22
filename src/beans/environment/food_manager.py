@@ -1,6 +1,7 @@
 import logging
 import random
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Dict, Set, Tuple
 
@@ -12,16 +13,22 @@ class FoodType(Enum):
     COMMON = auto()
     DEAD_BEAN = auto()
 
+@dataclass
+class FoodManagerState:
+    total_food_energy: float = 0
+
 class FoodManager(ABC):
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
         self.world_config = world_config
         self.env_config = env_config
+        self.food_manager_state = FoodManagerState()
+
     @abstractmethod
     def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
         pass
 
     @abstractmethod
-    def step(self) -> None:
+    def step(self) -> FoodManagerState:
         pass
 
     @abstractmethod
@@ -33,17 +40,17 @@ class FoodManager(ABC):
         pass
 
 class HybridFoodManager(FoodManager):
-    def _current_total_food_energy(self) -> float:
-        """Return the current total food energy in the world (all types)."""
-        return sum(entry['value'] for entry in self.grid.values())
 
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
         super().__init__(world_config, env_config)
         # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
         self.grid: Dict[Tuple[int, int], dict] = {}
         self.total_food_energy: float = 0.0
-        # Spawn initial food
         self.spawn_food(set())
+
+    def _current_total_food_energy(self) -> float:
+        """Return the current total food energy in the world (all types)."""
+        return sum(entry['value'] for entry in self.grid.values())
 
     def _determine_food_spawn(self) -> tuple[int, float]:
         density = self.env_config.food_density
@@ -73,18 +80,22 @@ class HybridFoodManager(FoodManager):
         return food_count, total_energy
 
 
-    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> None:
+    def spawn_food(self, occupied_positions: Set[Tuple[int, int]]) -> FoodManagerState:
         max_count, max_energy = self._determine_food_spawn()
         current_energy = self._current_total_food_energy()
         allowed_energy = max(0.0, max_energy - current_energy)
         if allowed_energy <= 0:
             logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy.")
-            return
+            self.food_manager_state.total_food_energy = current_energy
+            return self.food_manager_state
+
         energy_per_food = self.env_config.food_quality
         food_count = int(allowed_energy // energy_per_food)
         if food_count <= 0:
             logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item.")
-            return
+            self.food_manager_state.total_food_energy = current_energy
+            return self.food_manager_state
+
         self.total_food_energy = food_count * energy_per_food
         distribution = self.env_config.food_spawn_distribution
         if distribution == "random":
@@ -93,6 +104,7 @@ class HybridFoodManager(FoodManager):
             self._spawn_food_clustered(occupied_positions, food_count)
         else:
             raise ValueError(f"Unknown food spawn distribution: {distribution}")
+
         logger.debug(
             ">>>>> HybridFoodManager::spawn_food: Food spawned:",
             f"food_pixels={len(self.grid)}",
@@ -100,6 +112,10 @@ class HybridFoodManager(FoodManager):
             f"occupied_positions={len(occupied_positions)}",
             f"food_count={food_count}"
         )
+
+        self.food_manager_state.total_food_energy = self._current_total_food_energy()
+
+        return self.food_manager_state
 
     def _spawn_food_random(self, occupied_positions: Set[Tuple[int, int]], num_to_spawn: int) -> None:
         width = self.world_config.width
