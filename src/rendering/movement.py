@@ -17,12 +17,31 @@ def _normalize_angle(angle: float) -> float:
     return angle
 
 
+
 class SpriteMovementSystem:
     """Movement system that updates sprite positions and handles wall bounces.
 
     Movement is purely visual/UI-level so no model position is stored; energy
     deduction messages are applied through the Bean DTO by the caller.
+
+    Attributes:
+        report_food_collision (Optional[Callable[[int, tuple[int, int]], None]]):
+            Optional callback to report bean-food collision events. Should be set by the caller.
+            Called as report_food_collision(bean_id, food_pos) when a bean-food collision is detected.
     """
+
+    def __init__(self):
+        # Optional callback for bean-food collision reporting
+        self.report_food_collision = None
+
+    def check_food_collision(self, sprite: BeanSprite, food_grid: dict) -> None:
+        """
+        Checks if the sprite's current grid position overlaps with a food cell in the food_grid.
+        If a collision is detected and report_food_collision is set, calls the callback with (bean_id, food_pos).
+        """
+        pos = (int(sprite.center_x), int(sprite.center_y))
+        if pos in food_grid and self.report_food_collision is not None:
+            self.report_food_collision(sprite.bean.id, pos)
 
     def move_sprite(self, sprite: BeanSprite, bounds_width: int, bounds_height: int) -> tuple[float, float, int]:
         """Move sprite by bean speed units and apply bounces if bounds crossed.
