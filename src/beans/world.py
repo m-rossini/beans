@@ -10,7 +10,7 @@ from config.loader import BeansConfig, EnvironmentConfig, WorldConfig
 
 from .bean import Bean, BeanContext, BeanState, Sex
 from .energy_system import EnergySystem, create_energy_system_from_name
-from .genetics import create_phenotype, create_random_genotype
+from .genetics import create_phenotype, create_random_genotype, extract_phenotype_values
 from .placement import create_strategy_from_name
 from .population import (
     PopulationEstimator,
@@ -79,8 +79,7 @@ class World:
             male_female_ratio=self.male_female_ratio,
         )
         bean_count = male_count + female_count
-        logger.info(
-            ">>>> World._initialize: calculated population. male_count=%d, female_count=%d",
+        logger.info(">>>> World._initialize: calculated population. male_count=%d, female_count=%d",
             male_count,
             female_count,
         )
@@ -123,7 +122,7 @@ class World:
                 )
                 logger.debug(
                     "phenotype=%s, genotype=%s",
-                    bean._phenotype.to_dict(),
+                    extract_phenotype_values(bean._phenotype),
                     bean.genotype.to_compact_str(),
                 )
                 dead_this_step.append(bean)
@@ -137,6 +136,20 @@ class World:
         self.state.dead_beans = dead_this_step.copy()
         self.state.current_round = self.round
         self.state.environment_state = self.environment_state
+
+        logger.debug(f">>>>> World.step: [state]. FoodManagerState: "
+                    f"food_items_count={self.environment_state.food_manager_state.total_food_count} "
+                    f"total_food_energy={self.environment_state.food_manager_state.total_food_energy} "
+        )
+        logger.debug(f">>>>> World.step: [state]. EnvironmentState: "
+                     f"food manager present={self.environment_state.food_manager_state is not None} "
+        )
+        logger.debug(f">>>>> World.step: [state]. WorldState: "
+                     f"alive_beans={len(self.state.alive_beans)} "
+                     f"dead_beans={len(self.state.dead_beans)} "
+                     f"current_round={self.state.current_round}"
+        )
+
         return self.state
 
     def _update_bean(self, bean: Bean) -> BeanState:

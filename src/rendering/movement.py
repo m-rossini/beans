@@ -41,6 +41,7 @@ class SpriteMovementSystem:
         """
         pos = (int(sprite.center_x), int(sprite.center_y))
         if pos in food_grid and self.report_food_collision is not None:
+            logger.debug(f">>>>> MovementSystem.check_food_collision: Bean {sprite.bean.id} collided with food at {pos}")
             self.report_food_collision(sprite.bean.id, pos)
 
     def move_sprite(self, sprite: BeanSprite, bounds_width: int, bounds_height: int) -> tuple[float, float, int]:

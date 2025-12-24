@@ -53,20 +53,34 @@ class DefaultSurvivalChecker(SurvivalChecker):
     def check(self, bean: Bean) -> SurvivalResult:
         config: BeansConfig = self.config
         self.logger.debug(f">>>>> Survival.check: "
-                          f" Bean {bean.id},"
-                          f" age={bean.age},"
-                          f"energy={bean.energy},"
-                          f"size={bean.size},"
-                          f"min_size={config.min_bean_size}"
+                          f" Bean {bean.id}"
+                          f" age={bean.age}"
+                          f" energy={bean.energy}"
+                          f" size={bean.size}"
+                          f" min_size={config.min_bean_size}"
                           )
 
+        # Priority order: age, starvation, obesity
+        result = (
+            self._check_age_death(bean) or
+            self._check_starvation(bean) or
+            self._check_obesity(bean)
+        )
+        if result is not None:
+            return result
+        return SurvivalResult(alive=True)
+
+    def _check_age_death(self, bean: Bean) -> Optional[SurvivalResult]:
         if bean.age >= bean._max_age:
             return SurvivalResult(
                 alive=False,
                 reason="max_age_reached",
                 message="Age exceeded genetic max",
             )
+        return None
 
+    def _check_starvation(self, bean: Bean) -> Optional[SurvivalResult]:
+        config: BeansConfig = self.config
         if bean.energy <= 0:
             self.logger.debug(f">>>>> Survival.check: Bean {bean.id}, energy={bean.energy}, size={bean.size}, min_size={config.min_bean_size}")
             if bean.size <= config.min_bean_size:
@@ -75,7 +89,6 @@ class DefaultSurvivalChecker(SurvivalChecker):
                     reason="energy_depleted",
                     message="No fat left to sustain (energy depleted)",
                 )
-
             base = config.starvation_base_depletion
             mult = config.starvation_depletion_multiplier
             depletion = base * mult
@@ -87,7 +100,10 @@ class DefaultSurvivalChecker(SurvivalChecker):
                 reason=None,
                 message=f"Drew {depletion} fat due to starvation; new_size={new_size}",
             )
+        return None
 
+    def _check_obesity(self, bean: Bean) -> Optional[SurvivalResult]:
+        config: BeansConfig = self.config
         threshold = min(config.max_bean_size, config.initial_bean_size * config.obesity_threshold_factor)
         if bean.size >= threshold:
             min_size = config.min_bean_size
@@ -112,8 +128,7 @@ class DefaultSurvivalChecker(SurvivalChecker):
                     reason="obesity",
                     message="Probabilistic obesity death",
                 )
-
-        return SurvivalResult(alive=True)
+        return None
 
 
 class SurvivalManager:

@@ -230,10 +230,11 @@ class StandardEnergySystem(EnergySystem):
             f">>>>> Bean {bean_state.id}"
             f" apply_fat_storage:"
             f" surplus={surplus:.2f},"
-            f" fat_gain={fat_gain:.2f},"
+            f" fat_gain={fat_gain:.2f}"
+            f" old_energy={bean_state.energy:.2f}"
+            f" new_energy={phenotype_energy:.2f}"
             f" energy_cost={energy_cost:.2f}"
-            f" new_energy={phenotype_energy:.2f},"
-            f" old_size={bean_state.size:.2f},"
+            f" old_size={bean_state.size:.2f}"
             f" new_size={phenotype_size:.2f}"
         )
         return (phenotype_energy, phenotype_size)

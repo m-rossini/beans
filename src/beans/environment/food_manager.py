@@ -16,6 +16,7 @@ class FoodType(Enum):
 @dataclass
 class FoodManagerState:
     total_food_energy: float = 0
+    total_food_count: int = 0
 
 class FoodManager(ABC):
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
@@ -202,6 +203,7 @@ class HybridFoodManager(FoodManager):
         # Spawn food after decay
         self._spawn_food(set())
         self.food_manager_state.total_food_energy = self._current_total_food_energy()
+        self.food_manager_state.total_food_count = len(self.grid)
         return self.food_manager_state
 
     def add_dead_bean_as_food(self, position: Tuple[int, int], size: float) -> None:
