@@ -206,6 +206,15 @@ class Phenotype:
         return asdict(self)
 
 
+def extract_phenotype_values(phenotype: Phenotype) -> dict[str, float]:
+    """Extract phenotype values into a dictionary for easy access."""
+    return {
+        "age": phenotype.age,
+        "speed": f"{phenotype.speed:.2f}",
+        "energy": f"{phenotype.energy:.2f}",
+        "size": f"{phenotype.size:.2f}",
+        "target_size": f"{phenotype.target_size:.2f}",
+    }
 # =============================================================================
 # Genetic Calculation Functions
 # =============================================================================

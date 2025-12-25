@@ -2,6 +2,7 @@ import logging
 import math
 from typing import Dict, List, Tuple
 
+from beans.environment.food_manager import FoodManager
 from beans.placement import SpatialHash
 from config.loader import BeansConfig
 
@@ -18,11 +19,16 @@ def _normalize_angle(angle: float) -> float:
 
 
 class SpriteMovementSystem:
-    """Movement system that updates sprite positions and handles wall bounces.
+    """
+    Movement system that updates sprite positions and handles wall bounces.
 
     Movement is purely visual/UI-level so no model position is stored; energy
     deduction messages are applied through the Bean DTO by the caller.
     """
+
+    def __init__(self):
+        pass
+
 
     def move_sprite(self, sprite: BeanSprite, bounds_width: int, bounds_height: int) -> tuple[float, float, int]:
         """Move sprite by bean speed units and apply bounces if bounds crossed.
@@ -66,8 +72,7 @@ class SpriteMovementSystem:
 
         # Do not update sprite positions directly here; return target coords so the
         # caller (sprite) can interpolate visually.
-        msg = (
-            f">>>>> MovementSystem.move_sprite: bean={bean.id}, speed={bean.speed:.2f}, "
+        msg = (f">>>>> MovementSystem.move_sprite: bean={bean.id}, speed={bean.speed:.2f}, "
             f"dx={dx:.2f}, dy={dy:.2f}, target=({new_x:.2f},{new_y:.2f}), collisions={collisions}"
         )
         logger.debug(msg)
@@ -138,6 +143,8 @@ class SpriteMovementSystem:
         area = self._circle_intersection_area(r0, r1, d)
         return area >= 2.0
 
+
+    #TODO _compute_collision_damage should be done in energy system, which is the one taking care of energy and size.
     def _compute_collision_damage(
         self,
         sprite_a: BeanSprite,
@@ -260,32 +267,12 @@ class SpriteMovementSystem:
         other.bean.update_from_state(state)
         other.direction = new_dir
 
-    def resolve_collisions(
-        self,
-        sprite_targets: List[Tuple[BeanSprite, float, float]],
-        bounds_width: int,
-        bounds_height: int,
-    ) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
-        """Detect and resolve inter-bean collisions for a frame.
 
-        Args:
-            sprite_targets: list of (sprite, target_x, target_y) as produced by `move_sprite`.
-            bounds_width: world width (unused currently, reserved for future use).
-            bounds_height: world height.
-
-        Returns:
-            adjusted_targets: mapping sprite -> (new_x, new_y) after nudging
-            damage_report: mapping bean.id -> total damage applied this frame
-
-        """
+    def _detect_bean_collisions(self, sprite_targets, bounds_width, bounds_height):
+        """Detect and resolve bean-bean collisions, returning adjusted positions and damage report."""
         adjusted: Dict[BeanSprite, Tuple[float, float]] = {sprite: (tx, ty) for sprite, tx, ty in sprite_targets}
         damage_report: Dict[int, float] = {}
         if not sprite_targets:
-            return adjusted, damage_report
-
-        # Check if collisions are enabled
-        cfg = sprite_targets[0][0].bean.beans_config
-        if not cfg.collision_enable:
             return adjusted, damage_report
 
         positions_map, sizes, spatial = self._initialize_collision_data(sprite_targets, bounds_width, bounds_height)
@@ -305,7 +292,6 @@ class SpriteMovementSystem:
                     damage_a, damage_b = self._compute_collision_damage(sprite, other, (tx, ty), npos, cfg)
                     self._apply_damage(sprite, other, damage_a, damage_b, damage_report)
                     new_speed_a, new_dir_a, new_speed_b, new_dir_b = self._resolve_elastic_collision(sprite, other, (tx, ty), npos, cfg)
-                    # Update via DTO
                     self._update_sprite_state(sprite, new_speed_a, new_dir_a)
                     self._update_sprite_state(other, new_speed_b, new_dir_b)
 
@@ -322,3 +308,50 @@ class SpriteMovementSystem:
                     )
 
         return adjusted, damage_report
+
+    def _detect_food_collisions(self, sprite_targets, food_items):
+        """Detect food collisions for all sprites, considering bean size (radius)."""
+        food_collisions = []
+        if not food_items:
+            return food_collisions
+        for sprite, tx, ty in sprite_targets:
+            bean_x, bean_y = tx, ty
+            bean_radius = sprite.bean.size / 2.0
+            for food_pos, food_info in food_items.items():
+                food_x, food_y = food_pos
+                dist = math.hypot(bean_x - food_x, bean_y - food_y)
+                if dist <= bean_radius:
+                    food_type = food_info['type']
+                    food_value = food_info['value']
+                    logger.debug(f">>>>> MovementSystem._detect_food_collisions: Bean {sprite.bean.id} collided with food at {food_pos} (type={food_type}, value={food_value}, dist={dist:.2f}, radius={bean_radius:.2f})")
+                    food_collisions.append({
+                        'bean': sprite,
+                        'food_type': food_type,
+                        'food_value': food_value,
+                        'position': food_pos
+                    })
+            return food_collisions
+
+    def resolve_collisions(
+        self,
+        sprite_targets: List[Tuple[BeanSprite, float, float]],
+        bounds_width: int,
+        bounds_height: int,
+        food_items: dict = None
+    ) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float], List[dict]]:
+        """Detect and resolve inter-bean, bean-food, and bean-deadbean collisions for a frame.
+
+        Args:
+            sprite_targets: list of (sprite, target_x, target_y) as produced by `move_sprite`.
+            bounds_width: world width (unused currently, reserved for future use).
+            bounds_height: world height.
+            food_items: dict mapping positions to food info, as returned by FoodManager.get_all_food().
+
+        Returns:
+            adjusted_targets: mapping sprite -> (new_x, new_y) after nudging
+            damage_report: mapping bean.id -> total damage applied this frame
+            food_collisions: list of dicts with bean, food_type, food_value, and position
+        """
+        adjusted, damage_report = self._detect_bean_collisions(sprite_targets, bounds_width, bounds_height)
+        food_collisions: List[dict] = self._detect_food_collisions(sprite_targets, food_items)
+        return adjusted, damage_report, food_collisions

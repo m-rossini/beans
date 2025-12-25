@@ -7,11 +7,7 @@ from pydantic import BaseModel
 
 from config.loader import BeansConfig
 
-from .genetics import (
-    Genotype,
-    Phenotype,
-    genetic_max_age,
-)
+from .genetics import Genotype, Phenotype, extract_phenotype_values, genetic_max_age
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +181,7 @@ class Bean:
         """
         if self._is_dead():
             logger.warning(f">>> Bean {self.id} update called on dead bean. No update performed.")
-            return {"phenotype": self._phenotype.to_dict()}
+            return {"phenotype": extract_phenotype_values(self._phenotype)}
 
         return self._phenotype.age + 1
 
@@ -218,8 +214,11 @@ class Bean:
 
         logger.debug(
             f">>>>> Bean {self.id} update_from_state: before update"
-            f" phenotype={self._phenotype.to_dict()},"
-            f" state={{age:{state.age}, speed:{state.speed}, energy:{state.energy}, size:{state.size}}}"
+            f" phenotype={extract_phenotype_values(self._phenotype)},"
+            f" state={{age:{state.age}"
+            f" speed:{state.speed:.2f}"
+            f" energy:{state.energy:.2f}"
+            f" size:{state.size:.2f}}}"
         )
         self._phenotype.age = state.age
         self._phenotype.speed = state.speed

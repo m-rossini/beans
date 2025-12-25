@@ -58,15 +58,20 @@ def run_frame_for_sprites(
     height: int = 500,
     delta_time: float = 1.0,
 ) -> Tuple[Dict[BeanSprite, Tuple[float, float]], Dict[int, float]]:
+    class DummyFoodManager:
+        def get_all_food(self):
+            return {}
+    food_manager = DummyFoodManager()
     # Collect targets from move_sprite
     targets = []
     for s in sprites:
         tx, ty, _ = movement.move_sprite(s, width, height)
         targets.append((s, tx, ty))
 
+    food_items = food_manager.get_all_food()
     # resolve_collisions is part of the plan and should exist on SpriteMovementSystem
     # It returns (adjusted_targets, damage_report)
-    adjusted, report = movement.resolve_collisions(targets, width, height)
+    adjusted, report, _ = movement.resolve_collisions(targets, width, height, food_items=food_items)
 
     # Apply visual updates
     for s in sprites:

@@ -16,6 +16,7 @@ class FoodType(Enum):
 @dataclass
 class FoodManagerState:
     total_food_energy: float = 0
+    total_food_count: int = 0
 
 class FoodManager(ABC):
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
@@ -39,6 +40,10 @@ class FoodManager(ABC):
     def get_food_at(self, position: Tuple[int, int]) -> Dict[FoodType, float]:
         pass
 
+    @abstractmethod
+    def get_all_food(self) -> Dict[Tuple[int, int], Dict[FoodType, float]]:
+        pass
+
 class HybridFoodManager(FoodManager):
 
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
@@ -47,6 +52,20 @@ class HybridFoodManager(FoodManager):
         self.grid: Dict[Tuple[int, int], dict] = {}
         self.total_food_energy: float = 0.0
         self._spawn_food(set())
+
+    def consume_food_at_position(self, bean, position):
+        """
+        Transfers energy from food to bean at the given position, decreases food value accordingly.
+        Food is not removed here, only during decay in step().
+        Returns the amount of energy gained by the bean (float).
+        """
+        entry = self.grid.get(position)
+        if not entry or entry['value'] <= 0:
+            return 0.0
+        energy_available = entry['value']
+        gained = min(energy_available, self.env_config.food_quality)
+        entry['value'] -= gained
+        return gained
 
     def _current_total_food_energy(self) -> float:
         """Return the current total food energy in the world (all types)."""
@@ -67,7 +86,7 @@ class HybridFoodManager(FoodManager):
         energy_to_spawn = max(0.0, target_total_energy - current_total_energy)
         food_count = int(energy_to_spawn // energy_per_food)
         total_energy = food_count * energy_per_food
-        logger.info(f"Spawning {food_count} "
+        logger.debug(f"Spawning {food_count} "
                     f"max_total_energy={max_total_energy} "
                     f"target_total_energy={target_total_energy} "
                     f"current_total_energy={current_total_energy} "
@@ -85,13 +104,21 @@ class HybridFoodManager(FoodManager):
         current_energy = self._current_total_food_energy()
         allowed_energy = max(0.0, max_energy - current_energy)
         if allowed_energy <= 0:
-            logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy.")
+            logger.debug(f">>>> HybridFoodManager::spawn_food: No food spawned, world at or above max food energy. "
+                         f"max_energy={max_energy} "
+                         f"current_energy={current_energy}"
+                         f"Allowed_energy={allowed_energy} "
+                         f"max_count={max_count}")
             return
 
         energy_per_food = self.env_config.food_quality
         food_count = int(allowed_energy // energy_per_food)
         if food_count <= 0:
-            logger.info(">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item.")
+            logger.debug(f">>>> HybridFoodManager::spawn_food: No food spawned, not enough room for a single food item. "
+                         f"max_count={max_count} "
+                         f"allowed_energy={allowed_energy} "
+                         f"energy_per_food={energy_per_food} "
+                         f"food_count={food_count}")
             return
 
         self.total_food_energy = food_count * energy_per_food
@@ -173,6 +200,7 @@ class HybridFoodManager(FoodManager):
         # Spawn food after decay
         self._spawn_food(set())
         self.food_manager_state.total_food_energy = self._current_total_food_energy()
+        self.food_manager_state.total_food_count = len(self.grid)
         return self.food_manager_state
 
     def add_dead_bean_as_food(self, position: Tuple[int, int], size: float) -> None:
@@ -200,6 +228,10 @@ class HybridFoodManager(FoodManager):
         if entry:
             result[entry['type']] = entry['value']
         return result
+
+    def get_all_food(self) -> Dict[Tuple[int, int], Dict[str, float]]:
+        ret_val = { pos: {'type': entry['type'], 'value': entry['value']} for pos, entry in self.grid.items() if entry['value'] > 0 }
+        return ret_val
 
 def create_food_manager_from_name(env_config: WorldConfig, world_config: WorldConfig) -> FoodManager:
     name = env_config.food_manager.lower()
