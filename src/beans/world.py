@@ -137,6 +137,19 @@ class World:
         self.state.current_round = self.round
         self.state.environment_state = self.environment_state
 
+        for bean in self.beans:
+            logger.debug(
+                ">>>>> World.step [state]. Beans State:"
+                f" Bean {bean.id} "
+                f" alive={bean.alive}"
+                f" sex={bean.sex.value}"
+                f" age={bean.age:.2f}"
+                f" energy={bean.energy:.2f}"
+                f" size={bean.size:.2f}"
+                f" target_size={bean._phenotype.target_size:.2f}"
+                f" speed={bean.speed:.2f}"
+                f" genotype={bean.genotype.to_compact_str()}"
+            )
         logger.debug(f">>>>> World.step: [state]. FoodManagerState: "
                     f"food_items_count={self.environment_state.food_manager_state.total_food_count} "
                     f"total_food_energy={self.environment_state.food_manager_state.total_food_energy} "

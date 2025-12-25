@@ -40,6 +40,10 @@ class FoodManager(ABC):
     def get_food_at(self, position: Tuple[int, int]) -> Dict[FoodType, float]:
         pass
 
+    @abstractmethod
+    def get_all_food(self) -> Dict[Tuple[int, int], Dict[FoodType, float]]:
+        pass
+
 class HybridFoodManager(FoodManager):
 
     def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
@@ -62,13 +66,6 @@ class HybridFoodManager(FoodManager):
         gained = min(energy_available, self.env_config.food_quality)
         entry['value'] -= gained
         return gained
-
-    def __init__(self, world_config: WorldConfig, env_config: EnvironmentConfig) -> None:
-        super().__init__(world_config, env_config)
-        # Each grid entry: { 'value': float, 'type': FoodType, 'rounds': int (for DEAD_BEAN) }
-        self.grid: Dict[Tuple[int, int], dict] = {}
-        self.total_food_energy: float = 0.0
-        self._spawn_food(set())
 
     def _current_total_food_energy(self) -> float:
         """Return the current total food energy in the world (all types)."""
@@ -231,6 +228,10 @@ class HybridFoodManager(FoodManager):
         if entry:
             result[entry['type']] = entry['value']
         return result
+
+    def get_all_food(self) -> Dict[Tuple[int, int], Dict[str, float]]:
+        ret_val = { pos: {'type': entry['type'], 'value': entry['value']} for pos, entry in self.grid.items() if entry['value'] > 0 }
+        return ret_val
 
 def create_food_manager_from_name(env_config: WorldConfig, world_config: WorldConfig) -> FoodManager:
     name = env_config.food_manager.lower()

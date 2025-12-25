@@ -72,17 +72,6 @@ class WorldWindow(arcade.Window):
         self._reporters: List[SimulationReport] = list(reporters) if reporters is not None else [ConsoleSimulationReport()]
         self._help_active = False
 
-    def _all_food_positions(self):
-        fm = self.world.food_manager
-        # Only works for HybridFoodManager for now, as per test
-        for pos, entry in getattr(fm, 'grid', {}).items():
-            if entry['value'] > 0:
-                food_type = entry.get('type', None)
-                if hasattr(food_type, 'name'):
-                    type_name = food_type.name
-                else:
-                    type_name = str(food_type)
-                yield (pos[0], type_name, entry['value'])
 
     def _create_bean_sprites(self, positions) -> BeanSprite:
         return [self._create_sprite(bean, positions[i]) for i, bean in enumerate(self.world.beans)]
@@ -155,7 +144,11 @@ class WorldWindow(arcade.Window):
             (sprite, *self._movement_system.move_sprite(sprite, self.width, self.height)[:2])
             for sprite in self.bean_sprites
         ]
-        adjusted_targets, _ = self._movement_system.resolve_collisions(targets, self.width, self.height)
+        food_manager = self.world.environment.food_manager
+        food_items = food_manager.get_all_food()
+        adjusted_targets, damage_report, food_collisions = self._movement_system.resolve_collisions(
+            targets, self.width, self.height, food_items=food_items
+        )
         self.sprite_list = arcade.SpriteList()
         for sprite in self.bean_sprites:
             sprite.update_from_bean(delta_time, adjusted_targets[sprite])

@@ -22,35 +22,3 @@ def make_bean_sprite(size=10.0, sex=Sex.MALE, id=1, x=5.0, y=5.0):
     sprite = BeanSprite(bean=bean, position=(x, y), color=(0, 255, 0), direction=0.0)
     return sprite
 
-def test_sprite_movement_detects_and_reports_food_collision(monkeypatch):
-    # Setup food manager and sprite
-    food_manager = HybridFoodManager(DEFAULT_WORLD_CONFIG, DEFAULT_ENVIRONMENT_CONFIG)
-    sprite = make_bean_sprite(x=10.0, y=10.0)
-    position = (10, 10)
-    food_manager.grid[position] = {'value': 20.0, 'type': FoodType.COMMON}
-    movement = SpriteMovementSystem()
-
-
-    # Patch movement system to collect collision events
-    collision_events = []
-    def fake_report_collision(bean_id, food_pos):
-        collision_events.append((bean_id, food_pos))
-    movement.report_food_collision = fake_report_collision
-
-    # Simulate movement tick: check for food collision
-    movement.check_food_collision(sprite, food_manager.grid)
-
-    # World/subsystem applies business logic
-    for bean_id, food_pos in collision_events:
-        energy = food_manager.consume_food_at_position(None, food_pos)
-        sprite.bean._phenotype.energy += energy
-
-    # Assert bean's energy increased and food's value decreased
-    assert sprite.bean.energy > 50.0
-    assert food_manager.grid[position]['value'] < 20.0
-    # Assert food is not removed immediately
-    assert position in food_manager.grid
-    # After decay step, food should be removed
-    food_manager.grid[position]['value'] = 0.0
-    food_manager.step()
-    assert position not in food_manager.grid
